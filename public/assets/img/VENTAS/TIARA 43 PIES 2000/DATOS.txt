@@ -1,0 +1,11 @@
+Marca: Tiara 
+Pies: 43 pies
+Año: 2000
+Motores: caterpillar de 670 hp con 2800 horas de uso
+Plata: Cooler de 9 kilos casi nueva con 400 horas de uso
+Sala
+Cocina
+Habitación
+Baño
+Aire acondicionado
+Sistema de GPS

@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+  <style>
+    /* ── Admin Calendar Redesign ── */
+    .cal-shell {
+      background: var(--bg-card);
+      border: 1px solid var(--line-2);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .cal-topbar {
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .cal-month-title {
+      font-family: var(--serif); font-size: 1.25rem; font-style: italic;
+      color: var(--text); font-weight: 700; min-width: 160px;
+    }
+    .cal-range {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);
+    }
+    .cal-nav-group { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
+    .cal-nav-btn {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: var(--bg-2); border: 1px solid var(--line-2);
+      color: var(--text-2); cursor: pointer; display: grid; place-items: center;
+      font-size: 1rem; transition: background 0.15s;
+    }
+    .cal-nav-btn:hover { background: var(--sky-light); color: var(--sky-2); }
+    .cal-today-btn {
+      height: 40px; padding: 0 0.9rem; border-radius: 8px;
+      background: var(--bg-2); border: 1px solid var(--line-2);
+      color: var(--text-2); cursor: pointer; font-family: var(--mono);
+      font-size: 0.72rem; font-weight: 500; transition: background 0.15s;
+    }
+    .cal-today-btn:hover { background: var(--sky-light); color: var(--sky-2); }
+
+    .cal-filter-bar {
+      display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--line); background: var(--bg);
+      flex-wrap: wrap; align-items: center;
+    }
+    .cal-filter-pill {
+      padding: 0.35rem 1rem; border-radius: 50px;
+      font-family: var(--mono); font-size: 0.7rem; cursor: pointer;
+      border: 1.5px solid var(--line-2); color: var(--text-muted);
+      background: transparent; transition: all 0.15s;
+    }
+    .cal-filter-pill.active {
+      background: var(--navy); color: #fff; border-color: var(--navy);
+    }
+    .cal-filter-pill:hover:not(.active) { border-color: var(--sky); color: var(--sky-2); }
+    .cal-filter-boat {
+      margin-left: auto;
+      padding: 0.35rem 0.75rem; border-radius: 8px;
+      border: 1.5px solid var(--line-2); font-family: var(--mono);
+      font-size: 0.7rem; color: var(--text-2); background: var(--bg);
+      cursor: pointer;
+    }
+
+    .cal-grid-head {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      border-bottom: 2px solid var(--line);
+    }
+    .cal-grid-head-cell {
+      padding: 0.6rem 0;
+      text-align: center; font-family: var(--mono);
+      font-size: 0.65rem; letter-spacing: 0.1em;
+      color: var(--text-muted); text-transform: uppercase;
+      border-right: 1px solid var(--line);
+    }
+    .cal-grid-head-cell:last-child { border-right: none; }
+
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+    }
+    .cal-cell {
+      min-height: 110px; padding: 0.5rem 0.4rem;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      position: relative; vertical-align: top;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell.out-month { background: var(--bg-2); opacity: 0.5; }
+    .cal-cell.is-today { background: rgba(14,165,233,0.04); }
+    .cal-cell-num {
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 0.35rem;
+      width: 24px; height: 24px; display: flex; align-items: center;
+      justify-content: center; border-radius: 50%;
+    }
+    .cal-cell.is-today .cal-cell-num {
+      background: var(--sky); color: #fff;
+    }
+    .cal-event {
+      display: flex; align-items: center; gap: 0.3rem;
+      padding: 0.22rem 0.45rem; border-radius: 5px; margin-bottom: 0.2rem;
+      font-family: var(--mono); font-size: 0.62rem; line-height: 1.3;
+      cursor: pointer; transition: opacity 0.15s; overflow: hidden;
+      border-left: 3px solid transparent;
+    }
+    .cal-event:hover { opacity: 0.8; }
+    .cal-event.confirmed {
+      background: rgba(14,165,233,0.12); border-left-color: var(--sky);
+      color: var(--sky-3);
+    }
+    .cal-event.pending {
+      background: rgba(245,166,35,0.12); border-left-color: #F5A623;
+      color: #B27B0D;
+    }
+    .cal-event.cancelled {
+      background: rgba(239,68,68,0.08); border-left-color: #EF4444;
+      color: #DC2626; text-decoration: line-through; opacity: 0.6;
+    }
+    .cal-event-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+    }
+    .confirmed .cal-event-dot { background: var(--sky); }
+    .pending .cal-event-dot { background: #F5A623; }
+    .cal-more {
+      font-family: var(--mono); font-size: 0.6rem;
+      color: var(--text-muted); padding: 0.1rem 0.3rem;
+      cursor: pointer;
+    }
+    .cal-more:hover { color: var(--sky); }
+    .cal-legend {
+      display: flex; gap: 1.5rem; padding: 0.9rem 1.5rem;
+      border-top: 1px solid var(--line); background: var(--bg);
+      flex-wrap: wrap;
+    }
+    .cal-legend-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);
+    }
+    .cal-legend-dot {
+      width: 10px; height: 10px; border-radius: 3px;
+    }
+
+    /* ── Boats tabs ── */
+    .boats-tabs {
+      display: flex; gap: 0; margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--line);
+    }
+    .boats-tab {
+      padding: 0.6rem 1.5rem; font-family: var(--mono);
+      font-size: 0.75rem; cursor: pointer; color: var(--text-muted);
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: all 0.2s; letter-spacing: 0.05em;
+    }
+    .boats-tab.active { color: var(--sky-2); border-bottom-color: var(--sky-2); font-weight: 600; }
+    .boats-tab:hover:not(.active) { color: var(--text-2); }
+    .boats-tab-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      font-size: 0.6rem; margin-left: 0.4rem;
+      background: var(--sky-lighter); color: var(--sky-2);
+    }
+    .boats-tab.active .boats-tab-count {
+      background: var(--sky); color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="admin-sidebar-logo-img" />
+    <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:-1.5rem;margin-bottom:1.5rem;">ADMIN PANEL</div>
+    <div class="admin-nav-item active" onclick="showSection('dashboard',this)"><span class="admin-nav-icon">📊</span>Dashboard</div>
+    <div class="admin-nav-item" onclick="showSection('bookings',this)"><span class="admin-nav-icon">📋</span>Reservas</div>
+    <div class="admin-nav-item" onclick="showSection('payments',this)"><span class="admin-nav-icon">💳</span>Verificar Pagos</div>
+    <div class="admin-nav-item" onclick="showSection('boats',this)"><span class="admin-nav-icon">⛵</span>Embarcaciones</div>
+    <div class="admin-nav-item" onclick="showSection('calendar',this)"><span class="admin-nav-icon">📅</span>Calendario</div>
+    <div style="margin-top:auto;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.12);">
+      <div class="admin-nav-item" onclick="logout()"><span class="admin-nav-icon">🚪</span>Salir</div>
+      <a href="/" class="admin-nav-item" style="display:flex;"><span class="admin-nav-icon">🌐</span>Ver Sitio</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+
+    <!-- ── Dashboard ── -->
+    <section id="sec-dashboard">
+      <div class="admin-header">
+        <h1 class="admin-title">Dashboard</h1>
+        <p class="admin-subtitle">Resumen general de la plataforma</p>
+      </div>
+      <div class="admin-stats" id="admin-stats">
+        <div class="skeleton" style="height:100px;border-radius:16px;"></div>
+        <div class="skeleton" style="height:100px;border-radius:16px;"></div>
+        <div class="skeleton" style="height:100px;border-radius:16px;"></div>
+        <div class="skeleton" style="height:100px;border-radius:16px;"></div>
+        <div class="skeleton" style="height:100px;border-radius:16px;"></div>
+      </div>
+      <div class="admin-header" style="margin-bottom:1rem;">
+        <h2 style="font-family:var(--serif);font-size:1.3rem;font-style:italic;color:var(--cream);">Reservas Recientes</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="recent-bookings-table">
+          <thead><tr><th>Referencia</th><th>Embarcación</th><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Total</th><th>Estado</th><th>Pago</th></tr></thead>
+          <tbody id="recent-bookings-body"><tr><td colspan="8" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas aún.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Bookings ── -->
+    <section id="sec-bookings" class="hidden">
+      <div class="admin-header">
+        <h1 class="admin-title">Todas las Reservas</h1>
+        <p class="admin-subtitle">Gestiona las reservas de la plataforma</p>
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <select class="filter-select" id="book-filter-status" style="width:auto;min-width:160px;">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente</option>
+          <option value="confirmed">Confirmadas</option>
+          <option value="cancelled">Canceladas</option>
+        </select>
+        <select class="filter-select" id="book-filter-pay" style="width:auto;min-width:200px;">
+          <option value="">Todos los pagos</option>
+          <option value="pending">Sin pago</option>
+          <option value="submitted">Comprobante enviado</option>
+          <option value="verified">Pago verificado</option>
+          <option value="rejected">Pago rechazado</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadAllBookings()">Filtrar</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('book-filter-status').value='';document.getElementById('book-filter-pay').value='';loadAllBookings()">Limpiar</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Ref</th><th>Embarcación</th><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Total</th><th>Estado</th><th>Pago</th><th>Acciones</th></tr></thead>
+          <tbody id="all-bookings-body"><tr><td colspan="9" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Payments ── -->
+    <section id="sec-payments" class="hidden">
+      <div class="admin-header">
+        <h1 class="admin-title">Verificar Pagos</h1>
+        <p class="admin-subtitle">Revisa y aprueba los comprobantes de pago enviados</p>
+      </div>
+      <div id="payments-pending-list" style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="skeleton" style="height:140px;border-radius:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ── Boats ── -->
+    <section id="sec-boats" class="hidden">
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <h1 class="admin-title">Embarcaciones</h1>
+          <p class="admin-subtitle">Gestiona el catálogo completo</p>
+        </div>
+        <button class="btn btn-primary" onclick="openBoatModal(null)">+ Agregar embarcación</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="boats-tabs">
+        <button class="boats-tab active" onclick="switchBoatsTab('renta',this)">
+          ⛵ En Renta <span class="boats-tab-count" id="tab-count-renta">—</span>
+        </button>
+        <button class="boats-tab" onclick="switchBoatsTab('venta',this)">
+          🏷️ En Venta <span class="boats-tab-count" id="tab-count-venta">—</span>
+        </button>
+      </div>
+
+      <!-- Tabla Renta -->
+      <div id="boats-tab-renta">
+        <div class="table-wrap">
+          <table class="data-table boats-admin-table">
+            <thead>
+              <tr><th>Embarcación</th><th>Ubicación</th><th>Capacidad</th><th>Precio / día</th><th>Destacada</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="boats-renta-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--cream-3);padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabla Venta -->
+      <div id="boats-tab-venta" class="hidden">
+        <div class="table-wrap">
+          <table class="data-table boats-admin-table">
+            <thead>
+              <tr><th>Embarcación</th><th>Ubicación</th><th>Capacidad</th><th>Precio de venta</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="boats-venta-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--cream-3);padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Calendar ── -->
+    <section id="sec-calendar" class="hidden">
+      <div class="admin-header">
+        <h1 class="admin-title">Calendario de Reservas</h1>
+        <p class="admin-subtitle">Vista mensual de disponibilidad por embarcación</p>
+      </div>
+
+      <div class="cal-shell">
+        <!-- Top bar -->
+        <div class="cal-topbar">
+          <div>
+            <div class="cal-month-title" id="cal-month-title">—</div>
+            <div class="cal-range" id="cal-range"></div>
+          </div>
+          <div class="cal-nav-group">
+            <button class="cal-nav-btn" id="cal-prev-month" title="Mes anterior">‹</button>
+            <button class="cal-today-btn" id="cal-today-btn">Hoy</button>
+            <button class="cal-nav-btn" id="cal-next-month" title="Mes siguiente">›</button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="cal-filter-bar">
+          <button class="cal-filter-pill active" onclick="setCalFilter('all',this)">Todas</button>
+          <button class="cal-filter-pill" onclick="setCalFilter('confirmed',this)">Confirmadas</button>
+          <button class="cal-filter-pill" onclick="setCalFilter('pending',this)">Pendientes</button>
+          <select class="cal-filter-boat" id="cal-filter-boat" onchange="renderCalendar()">
+            <option value="">Todas las embarcaciones</option>
+          </select>
+        </div>
+
+        <!-- Day headers -->
+        <div class="cal-grid-head">
+          <div class="cal-grid-head-cell">Lun</div>
+          <div class="cal-grid-head-cell">Mar</div>
+          <div class="cal-grid-head-cell">Mié</div>
+          <div class="cal-grid-head-cell">Jue</div>
+          <div class="cal-grid-head-cell">Vie</div>
+          <div class="cal-grid-head-cell">Sáb</div>
+          <div class="cal-grid-head-cell">Dom</div>
+        </div>
+
+        <!-- Calendar grid -->
+        <div class="cal-grid" id="admin-cal-grid"></div>
+
+        <!-- Legend -->
+        <div class="cal-legend">
+          <div class="cal-legend-item">
+            <div class="cal-legend-dot" style="background:var(--sky);"></div>Confirmada
+          </div>
+          <div class="cal-legend-item">
+            <div class="cal-legend-dot" style="background:#F5A623;"></div>Pendiente de pago
+          </div>
+          <div class="cal-legend-item">
+            <div class="cal-legend-dot" style="background:var(--line-2);"></div>Disponible
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Booking detail modal -->
+<div class="modal-overlay" id="verify-modal">
+  <div class="modal" style="position:relative;max-width:580px;">
+    <button class="modal-close" onclick="closeVerifyModal()" aria-label="Cerrar">✕</button>
+    <div class="modal-title" id="verify-modal-title">Detalle de Reserva</div>
+    <div id="verify-modal-body"></div>
+  </div>
+</div>
+
+<!-- Boat modal -->
+<div class="modal-overlay" id="boat-modal">
+  <div class="modal" style="position:relative;max-width:640px;max-height:90vh;">
+    <button class="modal-close" onclick="closeBoatModal()" aria-label="Cerrar">✕</button>
+    <div class="modal-title" id="boat-modal-title">Agregar Embarcación</div>
+    <div id="boat-modal-body">
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="bm-name" /></div>
+          <div class="form-group"><label class="form-label">Slug *</label><input class="form-input" id="bm-slug" /></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Ubicación *</label>
+            <select class="form-select" id="bm-location">
+              <option value="Boca Chica">Boca Chica</option>
+              <option value="Punta Cana">Punta Cana</option>
+              <option value="La Romana">La Romana</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Marca</label><input class="form-input" id="bm-brand" /></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Capacidad (personas) *</label><input type="number" class="form-input" id="bm-capacity" min="1" /></div>
+          <div class="form-group"><label class="form-label">Eslora (pies)</label><input type="number" class="form-input" id="bm-length" /></div>
+          <div class="form-group"><label class="form-label">Año</label><input type="number" class="form-input" id="bm-year" /></div>
+          <div class="form-group"><label class="form-label">Precio USD / día *</label><input type="number" class="form-input" id="bm-price" step="50" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción corta</label><input class="form-input" id="bm-short-desc" /></div>
+        <div class="form-group"><label class="form-label">Descripción completa</label><textarea class="form-textarea" id="bm-desc" rows="4"></textarea></div>
+        <div class="form-group"><label class="form-label">Imágenes (URLs o rutas, una por línea)</label><textarea class="form-textarea" id="bm-images" rows="4" placeholder="/assets/img/BOTE/portada.jpg"></textarea></div>
+        <div class="form-group"><label class="form-label">Características (una por línea)</label><textarea class="form-textarea" id="bm-features" rows="3" placeholder="Motor 2x300HP&#10;GPS marino"></textarea></div>
+        <div class="form-group"><label class="form-label">Amenidades (una por línea)</label><textarea class="form-textarea" id="bm-amenities" rows="3" placeholder="Capitán incluido&#10;Bar premium"></textarea></div>
+        <div class="form-group"><label class="form-label">Reglas (una por línea)</label><textarea class="form-textarea" id="bm-rules" rows="3" placeholder="No fumar&#10;Máximo X personas"></textarea></div>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream-2);cursor:pointer;"><input type="checkbox" id="bm-featured" /> Destacada</label>
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream-2);cursor:pointer;"><input type="checkbox" id="bm-available" checked /> Disponible</label>
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--cream-2);cursor:pointer;"><input type="checkbox" id="bm-for-sale" /> En Venta</label>
+        </div>
+        <div id="boat-form-error" class="form-error hidden"></div>
+        <button class="btn btn-primary" id="save-boat-btn" style="justify-content:center;" onclick="saveBoat()">Guardar embarcación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script type="module">
+(function () {
+  window.logout = async function () {
+    const clerk = window.__clerk || window.Clerk;
+    if (clerk) await clerk.signOut();
+    location.href = '/';
+  };
+
+  window.VBR_getClerk().then(clerk => {
+    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
+    if (clerk.user.publicMetadata?.role !== 'admin') { location.href = '/dashboard.html'; return; }
+    loadDashboard();
+    loadAllBookings();
+    loadBoatsAdmin();
+  });
+
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const SCHEDULE_LABEL = { '9am-3pm': 'Mañana 9AM–3PM', '4pm-10pm': 'Tarde 4PM–10PM', 'full-day': 'Día completo' };
+  const fmtDate = (d) => window.VBR.fmtDateShort(d);
+  const esc = (s) => window.VBR.esc(s);
+
+  function badge(label, cls) { return `<span class="badge badge-${cls}">${label}</span>`; }
+
+  /* ── Section nav ── */
+  window.showSection = function (id, el) {
+    document.querySelectorAll('.admin-main > section').forEach(s => s.classList.add('hidden'));
+    document.getElementById('sec-' + id).classList.remove('hidden');
+    document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+    if (id === 'dashboard')  loadDashboard();
+    if (id === 'bookings')   loadAllBookings();
+    if (id === 'payments')   loadPendingPayments();
+    if (id === 'boats')      loadBoatsAdmin();
+    if (id === 'calendar')   initCalendarSection();
+  };
+
+  /* ── Dashboard ── */
+  function loadDashboard() {
+    window.VBR.api('/admin/stats').then(stats => {
+      document.getElementById('admin-stats').innerHTML = `
+        <div class="stat-card"><div class="stat-card-label">Embarcaciones</div><div class="stat-card-num">${stats.total_boats}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Total Reservas</div><div class="stat-card-num">${stats.total_bookings}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Confirmadas</div><div class="stat-card-num">${stats.confirmed_bookings}</div></div>
+        <div class="stat-card" style="border-color:rgba(14,165,233,0.3);"><div class="stat-card-label">Pagos pendientes</div><div class="stat-card-num" style="color:var(--sky);">${stats.pending_verification}</div><div class="stat-card-sub">Requieren verificación</div></div>
+        <div class="stat-card"><div class="stat-card-label">Ingresos confirmados</div><div class="stat-card-num">$${Number(stats.total_revenue).toLocaleString()}</div><div class="stat-card-sub">USD</div></div>
+      `;
+      const tbody = document.getElementById('recent-bookings-body');
+      if (!stats.recent_bookings || !stats.recent_bookings.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas aún — los datos reales aparecerán aquí.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = stats.recent_bookings.map(b => `
+        <tr onclick="openVerifyModal(${b.id})" style="cursor:pointer;">
+          <td style="font-family:var(--mono);font-size:0.72rem;">${esc(b.booking_ref)}</td>
+          <td>${esc(b.boat_name)}</td>
+          <td>${esc(b.user_name)}</td>
+          <td>${fmtDate(b.start_date)}</td>
+          <td style="font-family:var(--mono);font-size:0.7rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
+          <td>$${Number(b.total_price).toLocaleString()}</td>
+          <td>${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
+          <td>${badge(b.payment_status==='verified'?'Verificado':b.payment_status==='submitted'?'En revisión':b.payment_status==='rejected'?'Rechazado':'Sin pago', b.payment_status==='verified'?'verified':b.payment_status==='submitted'?'submitted':b.payment_status==='rejected'?'rejected':'pending')}</td>
+        </tr>`).join('');
+    }).catch(() => window.VBR.toast('Error cargando el dashboard', 'error'));
+  }
+
+  /* ── All bookings ── */
+  window.loadAllBookings = function () {
+    const status = document.getElementById('book-filter-status').value;
+    const pay = document.getElementById('book-filter-pay').value;
+    let url = '/bookings?';
+    if (status) url += 'status=' + status + '&';
+    if (pay) url += 'payment_status=' + pay;
+    window.VBR.api(url).then(data => {
+      const tbody = document.getElementById('all-bookings-body');
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas registradas.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(b => {
+        const ps = b.pay_status || b.payment_status;
+        return `<tr>
+          <td style="font-family:var(--mono);font-size:0.7rem;">${esc(b.booking_ref)}</td>
+          <td>${esc(b.boat_name)}</td>
+          <td><div>${esc(b.user_name)}</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${esc(b.user_email)}</div></td>
+          <td>${fmtDate(b.start_date)}</td>
+          <td style="font-family:var(--mono);font-size:0.68rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
+          <td>$${Number(b.total_price).toLocaleString()}</td>
+          <td>${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
+          <td>${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button></td>
+        </tr>`;
+      }).join('');
+    }).catch(() => window.VBR.toast('Error cargando reservas', 'error'));
+  };
+
+  /* ── Pending payments ── */
+  function loadPendingPayments() {
+    window.VBR.api('/bookings?payment_status=submitted').then(data => {
+      const wrap = document.getElementById('payments-pending-list');
+      if (!data.length) {
+        wrap.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><h3 class="empty-state-title">Sin pagos pendientes</h3><p class="empty-state-desc">Todos los comprobantes han sido verificados.</p></div>`;
+        return;
+      }
+      wrap.innerHTML = data.map(b => `
+        <div style="background:var(--bg-card);border:1px solid var(--line-2);border-radius:var(--r);padding:1.5rem;border-left:3px solid var(--sky);">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.3rem;">${esc(b.boat_name)}</div>
+              <div style="font-family:var(--mono);font-size:0.68rem;color:var(--cream-3);">${esc(b.booking_ref)}</div>
+              <div style="margin-top:0.5rem;font-size:0.85rem;color:var(--cream-2);">👤 ${esc(b.user_name)} · ${esc(b.user_email)}${b.user_phone?' · '+esc(b.user_phone):''}</div>
+              <div style="font-size:0.85rem;color:var(--cream-2);margin-top:0.2rem;">📅 ${fmtDate(b.start_date)} · ${esc(SCHEDULE_LABEL[b.schedule]||b.schedule||'')}</div>
+              ${b.reference_number ? `<div style="font-family:var(--mono);font-size:0.72rem;color:var(--gold);margin-top:0.4rem;">Ref: ${esc(b.reference_number)}</div>` : ''}
+              ${b.bank_name ? `<div style="font-size:0.8rem;color:var(--cream-3);">Banco: ${esc(b.bank_name)}</div>` : ''}
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--gold);margin-bottom:0.9rem;">$${Number(b.total_price).toLocaleString()} USD</div>
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
+                ${b.receipt_filename ? `<button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">Ver comprobante</button>` : ''}
+                <button class="btn btn-success btn-sm" onclick="verifyPayment(${b.id},'approve')">✓ Aprobar</button>
+                <button class="btn btn-danger btn-sm" onclick="verifyPayment(${b.id},'reject')">✕ Rechazar</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('');
+    }).catch(() => window.VBR.toast('Error cargando pagos pendientes', 'error'));
+  }
+
+  /* ── Verify modal ── */
+  window.openVerifyModal = function (id) {
+    window.VBR.api('/bookings/' + id).then(b => {
+      document.getElementById('verify-modal-title').textContent = 'Reserva · ' + b.booking_ref;
+      document.getElementById('verify-modal-body').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="boat-spec-item"><div class="boat-spec-label">Embarcación</div><div class="boat-spec-val">${esc(b.boat_name)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Ubicación</div><div class="boat-spec-val">${esc(b.boat_location)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Cliente</div><div class="boat-spec-val">${esc(b.user_name)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Contacto</div><div class="boat-spec-val" style="font-size:0.78rem;">${esc(b.user_email)}<br>${esc(b.user_phone||'—')}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Fecha</div><div class="boat-spec-val">${fmtDate(b.start_date)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Turno</div><div class="boat-spec-val">${esc(SCHEDULE_LABEL[b.schedule]||b.schedule||'—')}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests} pers.</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--gold);">$${Number(b.total_price).toLocaleString()} USD</div></div>
+          </div>
+          ${b.bank_name||b.reference_number ? `
+          <div class="bank-box">
+            <div class="bank-box-title">Comprobante de pago</div>
+            ${b.bank_name?`<div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">${esc(b.bank_name)}</span></div>`:''}
+            ${b.account_holder?`<div class="bank-row"><span class="bank-key">Titular</span><span class="bank-val">${esc(b.account_holder)}</span></div>`:''}
+            ${b.reference_number?`<div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="font-family:var(--mono);">${esc(b.reference_number)}</span></div>`:''}
+            ${b.receipt_filename?`<div class="bank-row"><span class="bank-key">Archivo</span><button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">Ver comprobante</button></div>`:''}
+          </div>` : '<p style="color:var(--cream-3);font-size:0.85rem;">Sin comprobante enviado aún.</p>'}
+          ${b.special_requests?`<div class="boat-spec-item"><div class="boat-spec-label">Notas</div><div class="boat-spec-val" style="font-size:0.85rem;">${esc(b.special_requests)}</div></div>`:''}
+          ${b.payment_status === 'submitted' ? `
+          <div style="border-top:1px solid var(--line);padding-top:1.25rem;">
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+              <button class="btn btn-success" onclick="verifyPayment(${b.id},'approve');closeVerifyModal()">✓ Aprobar pago</button>
+              <button class="btn btn-danger" onclick="promptReject(${b.id})">✕ Rechazar pago</button>
+            </div>
+          </div>` : `<p style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);">Estado: ${b.payment_status}</p>`}
+        </div>`;
+      document.getElementById('verify-modal').classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }).catch(() => window.VBR.toast('Error cargando la reserva', 'error'));
+  };
+  // El comprobante ya no se sirve como archivo público — se pide con el token de sesión
+  // y se abre como blob, igual que cualquier otra llamada autenticada del panel.
+  window.viewReceipt = async function (id) {
+    try {
+      const clerk = window.__clerk || window.Clerk;
+      const token = clerk?.session ? await clerk.session.getToken() : null;
+      const r = await fetch('/api/bookings/' + id + '/receipt', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+      if (!r.ok) { window.VBR.toast('No se pudo cargar el comprobante', 'error'); return; }
+      const blob = await r.blob();
+      window.open(URL.createObjectURL(blob), '_blank');
+    } catch (e) {
+      window.VBR.toast('Error al abrir el comprobante', 'error');
+    }
+  };
+  window.closeVerifyModal = function () { document.getElementById('verify-modal').classList.remove('is-open'); document.body.style.overflow = ''; };
+  document.getElementById('verify-modal').addEventListener('click', e => { if (e.target.id === 'verify-modal') window.closeVerifyModal(); });
+
+  window.verifyPayment = function (id, action, reason) {
+    window.VBR.api('/bookings/' + id + '/verify-payment', { method: 'PATCH', body: { action, rejection_reason: reason } }).then(d => {
+      if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+      window.VBR.toast(d.message || (action === 'approve' ? 'Pago aprobado' : 'Pago rechazado'), action === 'approve' ? 'success' : 'info');
+      loadPendingPayments(); loadDashboard();
+    }).catch(() => window.VBR.toast('Error de conexión al verificar el pago', 'error'));
+  };
+  window.promptReject = function (id) {
+    const reason = prompt('Motivo del rechazo (opcional):') || 'Pago no verificado';
+    window.verifyPayment(id, 'reject', reason);
+    window.closeVerifyModal();
+  };
+
+  /* ── Boats admin ── */
+  let allBoatsCached = [];
+  let currentBoatsTab = 'renta';
+
+  window.switchBoatsTab = function (tab, el) {
+    currentBoatsTab = tab;
+    document.querySelectorAll('.boats-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('boats-tab-renta').classList.toggle('hidden', tab !== 'renta');
+    document.getElementById('boats-tab-venta').classList.toggle('hidden', tab !== 'venta');
+  };
+
+  function loadBoatsAdmin() {
+    window.VBR.api('/boats/admin/all').then(boats => {
+      allBoatsCached = boats;
+      const renta = boats.filter(b => !b.for_sale);
+      const venta = boats.filter(b => b.for_sale);
+
+      document.getElementById('tab-count-renta').textContent = renta.length;
+      document.getElementById('tab-count-venta').textContent = venta.length;
+
+      // Tabla renta
+      document.getElementById('boats-renta-body').innerHTML = renta.length ? renta.map(b => {
+        const meta = esc([b.brand, b.length_ft ? b.length_ft+'ft' : '', b.year].filter(Boolean).join(' · '));
+        return `
+        <tr>
+          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.63rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
+          <td data-label="Ubicación">📍 ${esc(b.location)}</td>
+          <td data-label="Capacidad">${b.capacity} pers.</td>
+          <td data-label="Precio / día" style="font-family:var(--serif);font-style:italic;color:var(--sky-2);">$${Number(b.price_per_day).toLocaleString()}<span style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);font-style:normal;"> /día</span></td>
+          <td data-label="Destacada">${b.featured?'⭐ Sí':'—'}</td>
+          <td data-label="Estado"><span class="badge badge-${b.available?'confirmed':'cancelled'}">${b.available?'Activa':'Inactiva'}</span></td>
+          <td data-label="Acciones" style="display:flex;gap:0.4rem;">
+            <button class="btn btn-ghost btn-sm" onclick="openBoatModal(${b.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deactivateBoat(${b.id},'${b.name}')" ${!b.available?'disabled':''}>Desactivar</button>
+          </td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin embarcaciones en renta.</td></tr>';
+
+      // Tabla venta
+      document.getElementById('boats-venta-body').innerHTML = venta.length ? venta.map(b => {
+        const meta = esc([b.brand, b.length_ft ? b.length_ft+'ft' : '', b.year].filter(Boolean).join(' · '));
+        return `
+        <tr>
+          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.63rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
+          <td data-label="Ubicación">📍 ${esc(b.location)}</td>
+          <td data-label="Capacidad">${b.capacity} pers.</td>
+          <td data-label="Precio de venta" style="font-family:var(--serif);font-style:italic;color:var(--sky-2);">${b.sale_price ? '$'+Number(b.sale_price).toLocaleString()+' USD' : '<span style="color:var(--cream-3);">A consultar</span>'}</td>
+          <td data-label="Estado"><span class="badge badge-${b.available?'confirmed':'cancelled'}">${b.available?'Activa':'Inactiva'}</span></td>
+          <td data-label="Acciones" style="display:flex;gap:0.4rem;">
+            <button class="btn btn-ghost btn-sm" onclick="openBoatModal(${b.id})">Editar</button>
+            <a href="/boat.html?slug=${encodeURIComponent(b.slug)}" target="_blank" class="btn btn-ghost btn-sm">Ver página</a>
+          </td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin embarcaciones en venta.</td></tr>';
+    }).catch(() => window.VBR.toast('Error cargando embarcaciones', 'error'));
+  }
+
+  let editingBoatId = null;
+
+  window.openBoatModal = function (id) {
+    editingBoatId = id;
+    document.getElementById('boat-modal-title').textContent = id ? 'Editar Embarcación' : 'Agregar Embarcación';
+    if (id) {
+      window.VBR.api('/boats/admin/all').then(boats => {
+        const b = boats.find(x => x.id === id);
+        if (!b) return;
+        document.getElementById('bm-name').value = b.name;
+        document.getElementById('bm-slug').value = b.slug;
+        document.getElementById('bm-location').value = b.location;
+        document.getElementById('bm-brand').value = b.brand||'';
+        document.getElementById('bm-capacity').value = b.capacity;
+        document.getElementById('bm-length').value = b.length_ft||'';
+        document.getElementById('bm-year').value = b.year||'';
+        document.getElementById('bm-price').value = b.price_per_day;
+        document.getElementById('bm-short-desc').value = b.short_description||'';
+        document.getElementById('bm-desc').value = b.description||'';
+        document.getElementById('bm-images').value = (b.images||[]).join('\n');
+        document.getElementById('bm-features').value = (b.features||[]).join('\n');
+        document.getElementById('bm-amenities').value = (b.amenities||[]).join('\n');
+        document.getElementById('bm-rules').value = (b.rules||[]).join('\n');
+        document.getElementById('bm-featured').checked = Boolean(b.featured);
+        document.getElementById('bm-available').checked = Boolean(b.available);
+        document.getElementById('bm-for-sale').checked = Boolean(b.for_sale);
+      }).catch(() => window.VBR.toast('Error cargando la embarcación', 'error'));
+    } else {
+      ['bm-name','bm-slug','bm-brand','bm-capacity','bm-length','bm-year','bm-price','bm-short-desc','bm-desc','bm-images','bm-features','bm-amenities','bm-rules'].forEach(i => document.getElementById(i).value = '');
+      document.getElementById('bm-featured').checked = false;
+      document.getElementById('bm-available').checked = true;
+      document.getElementById('bm-for-sale').checked = false;
+    }
+    document.getElementById('boat-modal').classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('bm-name').addEventListener('input', function () {
+      if (!editingBoatId) document.getElementById('bm-slug').value = this.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    });
+  };
+  window.closeBoatModal = function () { document.getElementById('boat-modal').classList.remove('is-open'); document.body.style.overflow = ''; };
+  document.getElementById('boat-modal').addEventListener('click', e => { if (e.target.id === 'boat-modal') window.closeBoatModal(); });
+
+  window.saveBoat = function () {
+    const lines = id => document.getElementById(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const body = {
+      name: document.getElementById('bm-name').value.trim(),
+      slug: document.getElementById('bm-slug').value.trim(),
+      location: document.getElementById('bm-location').value,
+      brand: document.getElementById('bm-brand').value.trim(),
+      capacity: parseInt(document.getElementById('bm-capacity').value),
+      length_ft: parseInt(document.getElementById('bm-length').value)||null,
+      year: parseInt(document.getElementById('bm-year').value)||null,
+      price_per_day: parseFloat(document.getElementById('bm-price').value)||0,
+      short_description: document.getElementById('bm-short-desc').value.trim(),
+      description: document.getElementById('bm-desc').value.trim(),
+      images: lines('bm-images'),
+      features: lines('bm-features'),
+      amenities: lines('bm-amenities'),
+      rules: lines('bm-rules'),
+      featured: document.getElementById('bm-featured').checked,
+      available: document.getElementById('bm-available').checked,
+      for_sale: document.getElementById('bm-for-sale').checked,
+    };
+    if (!body.name || !body.slug || !body.capacity) {
+      document.getElementById('boat-form-error').textContent = 'Nombre, slug y capacidad son requeridos';
+      document.getElementById('boat-form-error').classList.remove('hidden'); return;
+    }
+    const method = editingBoatId ? 'PUT' : 'POST';
+    const url = editingBoatId ? '/boats/' + editingBoatId : '/boats';
+    const btn = document.getElementById('save-boat-btn');
+    if (btn.disabled) return; // evita doble envío (doble clic, conexión lenta)
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    window.VBR.api(url, { method, body }).then(d => {
+      if (d.error) {
+        document.getElementById('boat-form-error').textContent = d.error;
+        document.getElementById('boat-form-error').classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Guardar embarcación';
+        return;
+      }
+      window.VBR.toast(editingBoatId ? 'Embarcación actualizada' : 'Embarcación creada', 'success');
+      btn.disabled = false; btn.textContent = 'Guardar embarcación';
+      window.closeBoatModal();
+      loadBoatsAdmin();
+    }).catch(() => {
+      document.getElementById('boat-form-error').textContent = 'Error de conexión con el servidor';
+      document.getElementById('boat-form-error').classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Guardar embarcación';
+    });
+  };
+
+  window.deactivateBoat = function (id, name) {
+    if (!confirm(`¿Desactivar "${name}"? No aparecerá en el catálogo.`)) return;
+    window.VBR.api('/boats/' + id, { method: 'DELETE' }).then(() => { window.VBR.toast('Embarcación desactivada', 'info'); loadBoatsAdmin(); })
+      .catch(() => window.VBR.toast('Error al desactivar la embarcación', 'error'));
+  };
+
+  /* ══════════════════════════════════════════
+     CALENDARIO REDISEÑADO
+  ══════════════════════════════════════════ */
+  let calYear = new Date().getFullYear();
+  let calMonth = new Date().getMonth();
+  let calAllBoats = [], calAllBookings = [];
+  let calStatusFilter = 'all';
+  let calInited = false;
+
+  window.setCalFilter = function (f, el) {
+    calStatusFilter = f;
+    document.querySelectorAll('.cal-filter-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    renderCalendar();
+  };
+
+  function initCalendarSection() {
+    if (calInited) { renderCalendar(); return; }
+    calInited = true;
+
+    Promise.all([
+      window.VBR.api('/boats/admin/all'),
+      window.VBR.api('/bookings/admin/calendar-all')
+    ]).then(([boats, bookings]) => {
+      calAllBoats = boats.filter(b => !b.for_sale); // solo lanchas en renta
+      calAllBookings = bookings;
+
+      // Populate boat filter
+      const sel = document.getElementById('cal-filter-boat');
+      calAllBoats.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id; opt.textContent = b.name;
+        sel.appendChild(opt);
+      });
+
+      renderCalendar();
+    }).catch(() => { calInited = false; window.VBR.toast('Error cargando el calendario', 'error'); });
+
+    document.getElementById('cal-prev-month').addEventListener('click', () => {
+      calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    });
+    document.getElementById('cal-next-month').addEventListener('click', () => {
+      calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    });
+    document.getElementById('cal-today-btn').addEventListener('click', () => {
+      calYear = new Date().getFullYear();
+      calMonth = new Date().getMonth();
+      renderCalendar();
+    });
+  }
+
+  window.renderCalendar = function () {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const firstDay = new Date(calYear, calMonth, 1);
+    const lastDay  = new Date(calYear, calMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    // Update header
+    document.getElementById('cal-month-title').textContent = MONTHS[calMonth] + ' ' + calYear;
+    document.getElementById('cal-range').textContent =
+      firstDay.toLocaleDateString('es-DO', {day:'numeric', month:'long', year:'numeric'}) + ' – ' +
+      lastDay.toLocaleDateString('es-DO', {day:'numeric', month:'long', year:'numeric'});
+
+    // Filter bookings
+    const boatFilter = document.getElementById('cal-filter-boat').value;
+    let bookings = calAllBookings.filter(b => b.status !== 'cancelled');
+    if (calStatusFilter !== 'all') bookings = bookings.filter(b => b.status === calStatusFilter);
+    if (boatFilter) bookings = bookings.filter(b => String(b.boat_id) === boatFilter);
+
+    // Start from Monday — get day of week (0=Sun..6=Sat) → convert to Mon-based (0=Mon..6=Sun)
+    let startDow = firstDay.getDay(); // 0=Sun
+    startDow = startDow === 0 ? 6 : startDow - 1; // convert to Mon-based
+
+    const grid = document.getElementById('admin-cal-grid');
+    let html = '';
+
+    // Leading empty cells
+    for (let i = 0; i < startDow; i++) {
+      html += `<div class="cal-cell out-month"></div>`;
+    }
+
+    // Day cells
+    for (let day = 1; day <= daysInMonth; day++) {
+      const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const date = new Date(calYear, calMonth, day);
+      const isToday = date.toDateString() === today.toDateString();
+
+      // Find bookings starting or spanning this day
+      const dayBookings = bookings.filter(b => ds >= b.start_date && ds <= b.end_date);
+
+      let eventsHtml = '';
+      const maxShow = 3;
+      const shown = dayBookings.slice(0, maxShow);
+      const extra = dayBookings.length - maxShow;
+
+      shown.forEach(b => {
+        const boatName = (calAllBoats.find(bt => bt.id === b.boat_id)||{}).name || b.boat_name || '—';
+        const cls = b.status === 'confirmed' ? 'confirmed' : 'pending';
+        const shortName = boatName.length > 14 ? boatName.slice(0,13)+'…' : boatName;
+        eventsHtml += `
+          <div class="cal-event ${cls}" onclick="openVerifyModal(${b.id})" title="${boatName} · ${b.user_name}">
+            <div class="cal-event-dot"></div>
+            <span>${shortName}</span>
+          </div>`;
+      });
+      if (extra > 0) eventsHtml += `<div class="cal-more">+${extra} más</div>`;
+
+      html += `
+        <div class="cal-cell ${isToday?'is-today':''}">
+          <div class="cal-cell-num">${day}</div>
+          ${eventsHtml}
+        </div>`;
+    }
+
+    // Trailing empty cells to complete last row
+    const totalCells = startDow + daysInMonth;
+    const trailing = (7 - (totalCells % 7)) % 7;
+    for (let i = 0; i < trailing; i++) {
+      html += `<div class="cal-cell out-month"></div>`;
+    }
+
+    grid.innerHTML = html;
+  };
+
+})();
+</script>
+</body>
+</html>

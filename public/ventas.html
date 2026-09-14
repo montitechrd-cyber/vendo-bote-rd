@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embarcaciones en Venta — VENDO BOTE RD</title>
+  <meta name="description" content="Compra embarcaciones de lujo en República Dominicana. Lanchas, yates, catamaranes y más." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+  <style>
+    /* ── Misma cuadrícula que el catálogo de renta (tarjetas 4:3) ── */
+    #sale-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+    #sale-grid .card { display: flex; flex-direction: column; }
+
+    /* ── Sale badge ── */
+    .card-badge.sale { background: var(--navy); color: #fff; }
+
+    /* ── Video poster (no autoplay, un clic muestra el video real) ── */
+    .sale-card-video-wrap { position: relative; width: 100%; height: 100%; cursor: pointer; background: var(--navy); }
+    .sale-card-play {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(15,52,96,0.55); backdrop-filter: blur(2px);
+      color: #fff; font-size: 1.3rem; display: grid; place-items: center;
+      padding-left: 4px; transition: transform 0.2s, background 0.2s;
+      pointer-events: none;
+    }
+    .sale-card-video-wrap:hover .sale-card-play { transform: translate(-50%, -50%) scale(1.1); background: rgba(14,165,233,0.75); }
+
+    /* ── WhatsApp CTA button ── */
+    .card-wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; margin-top: 1.1rem; padding: 0.8rem 1rem;
+      background: #25D366; color: #fff; border-radius: var(--r-sm);
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em;
+      text-decoration: none; text-transform: uppercase;
+      transition: background 0.3s, transform 0.35s var(--ease-soft), box-shadow 0.3s;
+    }
+    .card-wa-btn:hover {
+      background: #1dbe5c; transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(37,211,102,0.38);
+    }
+    .card-wa-btn svg { flex-shrink: 0; }
+
+    /* ── Sale hero strip ── */
+    .sale-hero-kicker { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .sale-hero-kicker::before {
+      content: ''; display: block; width: 36px; height: 2px;
+      background: var(--sky); border-radius: 2px; flex-shrink: 0;
+    }
+
+    /* ── Filter bar (sale) ── */
+    .sale-filters {
+      display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+      background: var(--bg-card); border: 1.5px solid var(--line);
+      border-radius: var(--r); padding: 1.4rem 1.6rem; margin-bottom: 2rem;
+    }
+    .sale-filter-group { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 160px; }
+    .sale-filter-group.search { flex: 2; min-width: 220px; }
+    .sale-filter-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; }
+
+    /* ── Results bar ── */
+    .sale-results-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .sale-count {
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+      color: var(--text-muted); text-transform: uppercase;
+    }
+
+    /* ── Sell CTA section ── */
+    .sell-cta {
+      margin-top: 4rem; border-radius: var(--r); overflow: hidden;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+      padding: 3rem 2.5rem; text-align: center; position: relative;
+    }
+    .sell-cta::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 80% at 50% 120%, rgba(14,165,233,0.18) 0%, transparent 70%);
+    }
+    .sell-cta-kicker {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.3em;
+      color: rgba(14,165,233,0.8); text-transform: uppercase; margin-bottom: 0.75rem;
+    }
+    .sell-cta-title {
+      font-family: var(--serif); font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-style: italic; font-weight: 700; color: #fff;
+      margin-bottom: 0.85rem; line-height: 1.2;
+    }
+    .sell-cta-desc { color: rgba(255,255,255,0.65); max-width: 480px; margin: 0 auto 1.75rem; font-size: 0.9rem; line-height: 1.65; }
+  </style>
+</head>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
+
+<nav class="nav is-scrolled" id="nav" role="navigation">
+  <a href="/">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" />
+  </a>
+  <div class="nav-links" id="nav-links">
+    <div class="nav-dropdown">
+      <a href="/embarcaciones.html" class="nav-link">Rentar</a>
+      <div class="nav-dropdown-menu">
+        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+      </div>
+    </div>
+    <a href="/ventas.html" class="nav-link active">Comprar</a>
+  </div>
+  <div class="nav-actions" id="nav-actions">
+    <a href="/auth.html" class="nav-btn nav-btn-ghost" id="nav-login-btn">Ingresar</a>
+    <a href="/auth.html" class="nav-btn nav-btn-primary" id="nav-register-btn">Contactar</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+  <div class="nav-mobile-links">
+    <a href="/embarcaciones.html" class="nav-mobile-link">Rentar</a>
+    <a href="/ventas.html" class="nav-mobile-link">Comprar</a>
+    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+  </div>
+</div>
+
+<div class="page">
+  <!-- Page hero -->
+  <div class="page-hero">
+    <div class="page-hero-inner">
+      <div class="sale-hero-kicker">
+        <div class="section-kicker" style="margin:0;">Mercado Náutico</div>
+      </div>
+      <h1 class="page-title">Embarcaciones en <em>Venta</em></h1>
+      <p class="page-subtitle">Encuentra tu embarcación en República Dominicana. Lanchas, yates y catamaranes al mejor precio.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+
+      <!-- Filters -->
+      <div class="sale-filters">
+        <div class="sale-filter-group">
+          <label class="sale-filter-label" for="filter-price">Precio máximo</label>
+          <select class="filter-select" id="filter-price">
+            <option value="">Sin límite</option>
+            <option value="50000">Hasta $50,000</option>
+            <option value="100000">Hasta $100,000</option>
+            <option value="200000">Hasta $200,000</option>
+            <option value="500000">Hasta $500,000</option>
+          </select>
+        </div>
+        <div class="sale-filter-group">
+          <label class="sale-filter-label" for="filter-capacity">Capacidad mínima</label>
+          <select class="filter-select" id="filter-capacity">
+            <option value="">Cualquiera</option>
+            <option value="6">6+ personas</option>
+            <option value="10">10+ personas</option>
+            <option value="15">15+ personas</option>
+          </select>
+        </div>
+        <div class="sale-filter-group search">
+          <label class="sale-filter-label" for="filter-search">Buscar embarcación</label>
+          <input type="text" class="filter-input" id="filter-search" placeholder="Nombre, marca, modelo..." />
+        </div>
+        <div class="sale-filter-group" style="flex:0;min-width:auto;">
+          <label class="sale-filter-label">&nbsp;</label>
+          <button class="btn btn-primary filter-btn" id="btn-filter">Filtrar</button>
+        </div>
+      </div>
+
+      <!-- Results bar -->
+      <div class="sale-results-bar">
+        <span class="sale-count" id="results-count">Cargando...</span>
+      </div>
+
+      <!-- Grid — reuses exact .card / .boats-grid classes -->
+      <div class="boats-grid" id="sale-grid">
+        <div class="skeleton" style="height:520px;border-radius:16px"></div>
+        <div class="skeleton" style="height:520px;border-radius:16px"></div>
+        <div class="skeleton" style="height:520px;border-radius:16px"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-sale" class="hidden" style="text-align:center;padding:4rem 2rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">⚓</div>
+        <h3 style="font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--navy);margin-bottom:0.75rem;">No hay embarcaciones disponibles</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Próximamente nuevas embarcaciones en venta. Contáctanos para más información.</p>
+        <a href="https://wa.me/18298912252" target="_blank" class="btn btn-primary">Contactar por WhatsApp</a>
+      </div>
+
+      <!-- Sell your boat CTA -->
+      <div class="sell-cta hidden" id="sale-cta">
+        <div class="sell-cta-kicker">¿Quieres vender tu embarcación?</div>
+        <h2 class="sell-cta-title">Publica tu anuncio<br>con nosotros</h2>
+        <p class="sell-cta-desc">Llegamos a compradores en toda República Dominicana. Contáctanos y publicamos tu embarcación en nuestra plataforma.</p>
+        <a href="https://wa.me/18298912252" target="_blank" class="btn btn-primary btn-lg">Contactar por WhatsApp →</a>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="footer-logo-img" /></a>
+      <span style="font-family:var(--mono);font-size:0.72rem;color:rgba(255,255,255,0.5);letter-spacing:0.1em;">© 2026 VENDO BOTE RD</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script defer>
+(function () {
+  let allBoats = [];
+
+  const WA_NUMBER = '18298912252';
+  const esc = (s) => window.VBR.esc(s);
+
+  function fmt(price) {
+    return '$' + Number(price).toLocaleString('en-US');
+  }
+
+  // Mensaje de WhatsApp organizado en formato de "orden" con los datos de la embarcación
+  function waLink(boat) {
+    const priceDisplay = boat.sale_price ? fmt(boat.sale_price) + ' USD' : 'A consultar';
+    const lines = [
+      '🛥️ *SOLICITUD DE INFORMACIÓN*',
+      '',
+      `⛵ *Embarcación:* ${boat.name}`,
+      `📍 *Ubicación:* ${boat.location || '—'}`,
+      `👥 *Capacidad:* ${boat.capacity || '—'} personas`,
+      `📏 *Eslora:* ${boat.length_ft ? boat.length_ft + ' ft' : '—'}`,
+      boat.year ? `📅 *Año:* ${boat.year}` : null,
+      `💰 *Precio:* ${priceDisplay}`,
+      '',
+      'Hola, estoy interesado en esta embarcación. ¿Me pueden dar más información y coordinar una visita?',
+    ].filter(l => l !== null).join('\n');
+    return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines);
+  }
+
+  function buildSaleCard(boat) {
+    const src = (boat.images && boat.images[0]) ? boat.images[0] : '';
+    const isVideo = /\.(mp4|webm|mov)$/i.test(src);
+
+    // Los videos ya no se reproducen en la tarjeta: se muestra una portada fija
+    // (un fotograma tomado del propio video) con un ícono de play; el video
+    // completo se ve al entrar a la ficha de la embarcación.
+    const media = isVideo
+      ? `<div class="sale-card-video-wrap" data-video-src="${esc(src)}">
+           <img class="sale-card-poster" alt="${esc(boat.name)}" style="width:100%;height:100%;object-fit:cover;display:block;background:var(--bg-2);" />
+           <div class="sale-card-play">▶</div>
+         </div>`
+      : `<img src="${esc(src || 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&q=80')}" alt="${esc(boat.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+
+    const priceDisplay = boat.sale_price ? fmt(boat.sale_price) : 'Consultar';
+    const specs = [
+      boat.capacity ? `<span class="card-spec">👥 ${boat.capacity} pers.</span>` : '',
+      boat.length_ft ? `<span class="card-spec">⛵ ${boat.length_ft} ft</span>` : '',
+    ].filter(Boolean).join('');
+
+    // Misma tarjeta que en Rentar (.card / .card-img / .card-body / .card-meta),
+    // solo que en vez de precio por día + reservar, se muestra el precio de
+    // venta (o "Consultar") y un botón para pedir información por WhatsApp.
+    return `
+      <article class="card" onclick="location.href='/boat.html?slug=${encodeURIComponent(boat.slug)}'" data-reveal>
+        <div class="card-img">
+          ${media}
+          <span class="card-badge sale">EN VENTA</span>
+          <div class="card-location">📍 ${esc(boat.location || '')}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">${esc(boat.name)}</div>
+          <div class="card-desc">${esc(boat.short_description || '')}</div>
+          <div class="card-meta">
+            <div class="card-specs">${specs}</div>
+            <div class="card-price">
+              <div class="card-price-amount">${priceDisplay}</div>
+              <div class="card-price-unit">${boat.sale_price ? 'USD · precio de venta' : 'precio de venta'}</div>
+            </div>
+          </div>
+          <a href="${waLink(boat)}" target="_blank" class="card-wa-btn" onclick="event.stopPropagation()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Consultar por WhatsApp
+          </a>
+        </div>
+      </article>`;
+  }
+
+  function applyFilters() {
+    const maxPrice = parseFloat(document.getElementById('filter-price').value) || Infinity;
+    const capacity = parseInt(document.getElementById('filter-capacity').value) || 0;
+    const search = document.getElementById('filter-search').value.toLowerCase().trim();
+
+    const filtered = allBoats.filter(b =>
+      (!b.sale_price || b.sale_price <= maxPrice) &&
+      b.capacity >= capacity &&
+      (!search || b.name.toLowerCase().includes(search) ||
+        (b.brand || '').toLowerCase().includes(search) ||
+        (b.description || '').toLowerCase().includes(search))
+    );
+
+    document.getElementById('results-count').textContent =
+      `${filtered.length} ${filtered.length !== 1 ? 'embarcaciones' : 'embarcación'} en venta`;
+
+    const grid = document.getElementById('sale-grid');
+    const empty = document.getElementById('empty-sale');
+    const cta = document.getElementById('sale-cta');
+
+    if (!filtered.length) {
+      grid.innerHTML = '';
+      empty.classList.remove('hidden');
+      cta.classList.add('hidden');
+    } else {
+      empty.classList.add('hidden');
+      grid.innerHTML = filtered.map(buildSaleCard).join('');
+      window.VBR.observeReveals();
+      cta.classList.remove('hidden');
+    }
+
+    generateVideoPosters();
+  }
+
+  // Toma un fotograma real del video (no lo reproduce) para usarlo como portada de la tarjeta.
+  // Se procesan uno a la vez y se espera a que el frame esté realmente pintado
+  // (2 rAF después de 'seeked') para no capturar un cuadro a medio decodificar.
+  // Carrera contra un timeout: si la pestaña está en segundo plano, requestAnimationFrame
+  // no se ejecuta y esto nunca debe bloquear el procesamiento del resto de las tarjetas.
+  function waitFrame() {
+    return new Promise(r => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; r(); } };
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+      setTimeout(finish, 300);
+    });
+  }
+
+  async function capturePoster(wrap) {
+    const src = wrap.dataset.videoSrc;
+    const img = wrap.querySelector('.sale-card-poster');
+    if (!src || !img) return;
+
+    const vid = document.createElement('video');
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.preload = 'auto';
+    vid.src = src;
+
+    try {
+      await new Promise((resolve, reject) => {
+        vid.addEventListener('loadedmetadata', resolve, { once: true });
+        vid.addEventListener('error', reject, { once: true });
+      });
+      const dur = vid.duration || 8;
+      const target = Math.min(5, Math.max(dur - 0.5, 0.5));
+      await new Promise((resolve, reject) => {
+        vid.addEventListener('seeked', resolve, { once: true });
+        vid.addEventListener('error', reject, { once: true });
+        vid.currentTime = target;
+      });
+      await waitFrame();
+      const canvas = document.createElement('canvas');
+      canvas.width = vid.videoWidth;
+      canvas.height = vid.videoHeight;
+      canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
+      img.src = canvas.toDataURL('image/jpeg', 0.85);
+    } catch (e) { /* se deja el fondo por defecto */ }
+    vid.src = '';
+  }
+
+  function generateVideoPosters() {
+    const wraps = [...document.querySelectorAll('.sale-card-video-wrap')];
+    (async () => { for (const w of wraps) await capturePoster(w); })();
+
+    // Abrir el video completo (con controles) al hacer clic en la portada, sin navegar a la ficha.
+    document.querySelectorAll('.sale-card-video-wrap').forEach(wrap => {
+      wrap.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const src = wrap.dataset.videoSrc;
+        wrap.innerHTML = `<video src="${src}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-filter').addEventListener('click', applyFilters);
+    document.getElementById('filter-search').addEventListener('keypress', e => {
+      if (e.key === 'Enter') applyFilters();
+    });
+    document.getElementById('filter-price').addEventListener('change', applyFilters);
+    document.getElementById('filter-capacity').addEventListener('change', applyFilters);
+
+    fetch('/api/boats/for-sale')
+      .then(r => r.json())
+      .then(boats => {
+        allBoats = boats;
+        applyFilters();
+      })
+      .catch(() => {
+        document.getElementById('sale-grid').innerHTML = '';
+        document.getElementById('empty-sale').classList.remove('hidden');
+        document.getElementById('results-count').textContent = '0 embarcaciones en venta';
+      });
+  });
+})();
+</script>
+</body>
+</html>

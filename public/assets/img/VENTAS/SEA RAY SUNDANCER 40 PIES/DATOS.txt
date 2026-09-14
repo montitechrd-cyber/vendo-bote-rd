@@ -1,0 +1,10 @@
+Marca: Sea Ray
+Modelo: Sundancer
+Pies: 40
+Año: 2007
+Planta: Onan 9 KVA
+Overhauled (200 hours)
+Motores: Cummins QSB 5.9-425 (nuevo)
+Overhauled (150 horas)
+Transmisión electrónica ZF
+Aire acondicionado (nuevo)

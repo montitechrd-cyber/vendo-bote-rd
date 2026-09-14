@@ -1,0 +1,8 @@
+Marca: Maxum
+Año: 2008
+Pies: 28
+Modelo: Maxum 2700SE
+Motor: Mercruiser 350 Mag MPI
+Salon
+Baño
+Habitación

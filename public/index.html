@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VENDO BOTE RD — Embarcaciones de Lujo en República Dominicana</title>
+  <meta name="description" content="Renta embarcaciones de lujo en Boca Chica, Punta Cana y La Romana. Experiencias náuticas premium para la alta sociedad dominicana." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+</head>
+<body>
+
+<!-- Splash -->
+<div class="splash" data-splash aria-hidden="true">
+  <div class="splash-inner">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="splash-logo-img" />
+    <div class="splash-sub">Embarcaciones · República Dominicana</div>
+    <div class="splash-bar"></div>
+  </div>
+</div>
+
+<!-- Scroll progress -->
+<div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
+
+<!-- Nav -->
+<nav class="nav" id="nav" role="navigation">
+  <a href="/">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" />
+  </a>
+  <div class="nav-links" id="nav-links">
+    <div class="nav-dropdown">
+      <a href="/embarcaciones.html" class="nav-link">Rentar</a>
+      <div class="nav-dropdown-menu">
+        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+      </div>
+    </div>
+    <a href="/ventas.html" class="nav-link">Comprar</a>
+  </div>
+  <div class="nav-actions" id="nav-actions">
+    <a href="/auth.html" class="nav-btn nav-btn-ghost" id="nav-login-btn">Ingresar</a>
+    <a href="/auth.html" class="nav-btn nav-btn-primary" id="nav-register-btn">Reservar</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+  <div class="nav-mobile-links">
+    <a href="/embarcaciones.html" class="nav-mobile-link">Rentar</a>
+    <a href="/ventas.html" class="nav-mobile-link">Comprar</a>
+    <a href="/embarcaciones.html?location=Boca Chica" class="nav-mobile-link">Boca Chica</a>
+    <a href="/embarcaciones.html?location=Punta Cana" class="nav-mobile-link">Punta Cana</a>
+    <a href="/embarcaciones.html?location=La Romana" class="nav-mobile-link">La Romana</a>
+    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <video class="hero-video" autoplay muted loop playsinline preload="auto">
+      <source src="/assets/video/hero.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="hero-tint"></div>
+  <div class="hero-mesh"></div>
+  <div class="hero-content">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="hero-logo" />
+    <div class="hero-locations">
+      <p class="hero-tagline">Renta tu bote, vive el mar</p>
+      <div class="hero-loc-row">
+        <span>Boca Chica</span>
+        <span class="hero-loc-dot"></span>
+        <span>Punta Cana</span>
+        <span class="hero-loc-dot"></span>
+        <span>La Romana</span>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <a href="/embarcaciones.html" class="btn btn-primary btn-lg">Explorar Embarcaciones</a>
+      <a href="#como-funciona" class="btn btn-ghost btn-lg">Cómo funciona</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- Marquee: filtros rápidos por tipo de embarcación y ubicación -->
+<div class="marquee">
+  <div class="marquee-track" id="marquee-track">
+    <a class="marquee-item" href="/embarcaciones.html?search=Yate"><span class="accent">⛵ Yates</span><span class="dot"></span></a>
+    <a class="marquee-item" href="/embarcaciones.html?search=Lancha">Lanchas<span class="dot"></span></a>
+    <a class="marquee-item" href="/embarcaciones.html?search=Catamarán"><span class="accent">Catamaranes</span><span class="dot"></span></a>
+    <a class="marquee-item" href="/embarcaciones.html?location=Boca%20Chica">📍 Boca Chica<span class="dot"></span></a>
+    <a class="marquee-item" href="/embarcaciones.html?location=Punta%20Cana"><span class="accent">📍 Punta Cana</span><span class="dot"></span></a>
+    <a class="marquee-item" href="/embarcaciones.html?location=La%20Romana">📍 Casa de Campo<span class="dot"></span></a>
+  </div>
+</div>
+
+<!-- Featured Boats -->
+<section class="section" id="embarcaciones">
+  <div class="section-inner">
+    <div class="section-header" data-reveal>
+      <div class="section-kicker">Flota Seleccionada</div>
+      <h2 class="section-title">Embarcaciones <em class="accent">Destacadas</em></h2>
+      <p class="section-sub">Cada embarcación ha sido seleccionada por su excelencia, condición y el nivel de experiencia que ofrece.</p>
+    </div>
+    <div class="boats-grid" id="featured-boats">
+      <div class="skeleton" style="height:420px"></div>
+      <div class="skeleton" style="height:420px"></div>
+      <div class="skeleton" style="height:420px"></div>
+    </div>
+    <div class="text-center mt-4" data-reveal>
+      <a href="/embarcaciones.html" class="btn btn-ghost-dark">Ver todas las embarcaciones →</a>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section" id="como-funciona" style="background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);">
+  <div class="section-inner">
+    <div class="section-header" data-reveal>
+      <div class="section-kicker">Proceso</div>
+      <h2 class="section-title">Cómo <em class="accent">Funciona</em></h2>
+      <p class="section-sub">Reservar tu embarcación ideal es sencillo. En cuatro pasos estás listo para zarpar.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step" data-reveal data-reveal-delay="1">
+        <div class="step-num">01</div>
+        <div class="step-icon">⚓</div>
+        <div class="step-title">Elige tu embarcación</div>
+        <div class="step-desc">Navega nuestro catálogo de embarcaciones de lujo. Filtra por destino, capacidad y tipo de experiencia que buscas.</div>
+      </div>
+      <div class="step" data-reveal data-reveal-delay="2">
+        <div class="step-num">02</div>
+        <div class="step-icon">📅</div>
+        <div class="step-title">Selecciona las fechas</div>
+        <div class="step-desc">Consulta el calendario de disponibilidad en tiempo real. Elige tus fechas y el sistema calculará el precio total automáticamente.</div>
+      </div>
+      <div class="step" data-reveal data-reveal-delay="3">
+        <div class="step-num">03</div>
+        <div class="step-icon">💳</div>
+        <div class="step-title">Realiza el pago</div>
+        <div class="step-desc">Transfiere el monto total a nuestra cuenta bancaria y sube el comprobante directamente en la plataforma de forma segura.</div>
+      </div>
+      <div class="step" data-reveal data-reveal-delay="4">
+        <div class="step-num">04</div>
+        <div class="step-icon">✅</div>
+        <div class="step-title">Confirmación y a navegar</div>
+        <div class="step-desc">Nuestro equipo verifica tu pago y confirma la reserva. Recibirás todos los detalles del capitán y punto de salida.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Payment info -->
+<section class="section">
+  <div class="section-inner">
+    <div class="payment-grid" data-reveal>
+      <div class="payment-text">
+        <div class="section-kicker">Método de Pago</div>
+        <h2 class="section-title" style="text-align:left;margin-bottom:1rem;">Transferencia <em class="accent">Bancaria</em></h2>
+        <p style="color:var(--text-muted);line-height:1.85;font-size:0.95rem;">Para garantizar la seguridad de cada transacción, aceptamos pagos exclusivamente vía transferencia bancaria. Una vez verificado tu comprobante, tu reserva queda confirmada de manera oficial.</p>
+        <ul class="payment-check-list">
+          <li><span class="check-icon">✓</span> Proceso seguro y transparente — sin intermediarios.</li>
+          <li><span class="check-icon">✓</span> Verificación manual por nuestro equipo en menos de 24 horas.</li>
+          <li><span class="check-icon">✓</span> Confirmación inmediata una vez verificado el pago.</li>
+          <li><span class="check-icon">✓</span> Subida segura de comprobante desde tu panel personal.</li>
+        </ul>
+      </div>
+      <div class="bank-box">
+        <div class="bank-box-title">🏦 Datos Bancarios</div>
+        <div class="bank-box-tab">
+          <button class="bank-box-tab-btn active" onclick="switchBank('popular',this)">Banco Popular</button>
+          <button class="bank-box-tab-btn" onclick="switchBank('reservas',this)">Banreservas</button>
+        </div>
+        <!-- Banco Popular -->
+        <div class="bank-panel active" id="bank-popular">
+          <div class="bank-row">
+            <span class="bank-key">Banco</span>
+            <span class="bank-val">Banco Popular Dominicano</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Titular</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">Juan Alberto Romero</span>
+              <button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Cuenta</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">745121483</span>
+              <button class="bank-copy" onclick="copyText('745121483')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Cédula</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">226-0007735-2</span>
+              <button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Referencia</span>
+            <span class="bank-val" style="color:var(--sky-2);">Número de reserva</span>
+          </div>
+        </div>
+        <!-- Banreservas -->
+        <div class="bank-panel" id="bank-reservas">
+          <div class="bank-row">
+            <span class="bank-key">Banco</span>
+            <span class="bank-val">Banco de Reservas (BanReservas)</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Titular</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">Juan Alberto Romero</span>
+              <button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Cuenta</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">9606655039</span>
+              <button class="bank-copy" onclick="copyText('9606655039')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Cédula</span>
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="bank-val">226-0007735-2</span>
+              <button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button>
+            </div>
+          </div>
+          <div class="bank-row">
+            <span class="bank-key">Referencia</span>
+            <span class="bank-val" style="color:var(--sky-2);">Número de reserva</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Final -->
+<section class="section" style="text-align:center; background: linear-gradient(135deg, var(--sky-lighter) 0%, var(--bg-2) 100%); border-top: 1px solid var(--line);">
+  <div class="section-inner">
+    <div data-reveal>
+      <div class="section-kicker">¿Listo para zarpar?</div>
+      <h2 class="section-title" style="margin-bottom:1rem;">Tu día de playa te espera.</h2>
+      <p style="color:var(--text-muted);max-width:480px;margin:0 auto 2.5rem;line-height:1.8;">Reserva tu embarcación hoy y disfruta un día inolvidable anclado en las mejores playas de Boca Chica, Punta Cana y La Romana.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="/embarcaciones.html" class="btn btn-primary btn-lg">Ver Embarcaciones</a>
+        <a href="https://wa.me/18298912252" target="_blank" rel="noopener" class="btn btn-lg" style="background:#25D366;color:white;box-shadow:0 4px 20px rgba(37,211,102,0.3);">
+          💬 Escribir por WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="footer-logo-img" />
+        <p class="footer-tagline">La plataforma de renta de embarcaciones en República Dominicana. Tu día de playa, a un clic de distancia.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Destinos</div>
+        <ul class="footer-links">
+          <li><a href="/embarcaciones.html?location=Boca Chica" class="footer-link">Boca Chica</a></li>
+          <li><a href="/embarcaciones.html?location=Punta Cana" class="footer-link">Punta Cana</a></li>
+          <li><a href="/embarcaciones.html?location=La Romana" class="footer-link">La Romana</a></li>
+          <li><a href="/embarcaciones.html" class="footer-link">Todas las áreas</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Plataforma</div>
+        <ul class="footer-links">
+          <li><a href="/embarcaciones.html" class="footer-link">Catálogo</a></li>
+          <li><a href="/auth.html" class="footer-link">Crear Cuenta</a></li>
+          <li><a href="/dashboard.html" class="footer-link">Mis Reservas</a></li>
+          <li><a href="#como-funciona" class="footer-link">Cómo Funciona</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Contacto</div>
+        <ul class="footer-links">
+          <li><span class="footer-link">📍 República Dominicana</span></li>
+          <li><a href="https://wa.me/18298912252" target="_blank" rel="noopener" class="footer-link">📱 WhatsApp: +1 829 891 2252</a></li>
+          <li><a href="mailto:info@vendoboterd.com" class="footer-link">✉️ info@vendoboterd.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 VENDO BOTE RD · Todos los derechos reservados</span>
+      <div class="footer-social">
+        <a href="#" class="footer-social-btn" aria-label="Instagram">In</a>
+        <a href="#" class="footer-social-btn" aria-label="Facebook">Fb</a>
+        <a href="https://wa.me/18298912252" target="_blank" class="footer-social-btn" aria-label="WhatsApp">Wa</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container" role="alert" aria-live="polite"></div>
+
+<!-- Chatbot -->
+<button class="chatbot-toggle" id="chatbot-toggle" aria-label="Chat de ayuda">💬</button>
+<div class="chatbot-panel" id="chatbot-panel" role="dialog" aria-label="Asistente virtual">
+  <div class="chatbot-header">
+    <div class="chatbot-avatar">⛵</div>
+    <div>
+      <div class="chatbot-title">Asistente VENDO BOTE RD</div>
+      <div class="chatbot-status">● En línea · Responde al instante</div>
+    </div>
+    <a href="https://wa.me/18298912252" target="_blank" rel="noopener" class="chatbot-wa-btn">
+      📱 WhatsApp
+    </a>
+  </div>
+  <div class="chatbot-scroll">
+    <div class="chatbot-body" id="chatbot-body">
+      <div class="chatbot-msg bot">¡Hola! 👋 Soy tu asistente de VENDO BOTE RD. ¿En qué puedo ayudarte hoy?</div>
+      <div class="chatbot-msg bot">Elige una pregunta frecuente o escríbenos directamente por WhatsApp.</div>
+    </div>
+    <div class="chatbot-faqs" id="chatbot-faqs">
+      <button class="chatbot-faq-btn" data-q="¿Cómo reservo una embarcación?" data-a="Para reservar, crea una cuenta gratuita, elige tu embarcación, selecciona las fechas en el calendario y confirma tu reserva. Luego realiza la transferencia bancaria y sube el comprobante desde tu panel personal.">¿Cómo reservo una embarcación?</button>
+      <button class="chatbot-faq-btn" data-q="¿Cuáles son los métodos de pago?" data-a="Aceptamos transferencia bancaria únicamente. Puedes transferir al Banco Popular (cuenta 745121483) o BanReservas (cuenta 9606655039), ambas a nombre de Juan Alberto Romero. Sube tu comprobante y verificamos en menos de 24 horas.">¿Cuáles son los métodos de pago?</button>
+      <button class="chatbot-faq-btn" data-q="¿Qué incluye el alquiler?" data-a="Todas nuestras embarcaciones incluyen capitán profesional. Según la embarcación pueden incluir equipo de snorkel, kayaks, nevera, sistema de sonido y más. Revisa los amenities de cada embarcación en su página de detalle.">¿Qué incluye el alquiler?</button>
+      <button class="chatbot-faq-btn" data-q="¿Cuáles destinos tienen disponibles?" data-a="Operamos en tres destinos del sur y este de República Dominicana: 📍 Boca Chica, 📍 Punta Cana y 📍 La Romana. Cada paseo sale y se disfruta anclado frente a las playas de esa misma zona.">¿Cuáles destinos tienen disponibles?</button>
+      <button class="chatbot-faq-btn" data-q="¿Cuánto tiempo tarda la confirmación?" data-a="Una vez que subas tu comprobante de pago, nuestro equipo lo verifica en un máximo de 24 horas. Al confirmar, recibirás todos los detalles del capitán y punto de salida.">¿Cuánto tiempo tarda la confirmación?</button>
+      <button class="chatbot-faq-btn" data-q="¿Puedo cancelar mi reserva?" data-a="Puedes cancelar tu reserva desde tu panel personal. Te recomendamos revisar la política de cancelación de cada embarcación. Para más detalles, comunícate con nosotros por WhatsApp.">¿Puedo cancelar mi reserva?</button>
+    </div>
+  </div>
+  <div class="chatbot-footer">
+    <a href="https://wa.me/18298912252" target="_blank" rel="noopener" class="chatbot-footer-wa">
+      📱 Hablar con un asesor por WhatsApp
+    </a>
+  </div>
+</div>
+
+<script>
+// Bank tab switcher
+function switchBank(id, btn) {
+  document.querySelectorAll('.bank-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bank-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+</body>
+</html>

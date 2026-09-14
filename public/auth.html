@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresar — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+  <style>
+    /* Estas reglas ganan sobre style.css por orden en la cascada (misma especificidad,
+       este <style> va después del <link>), sin necesidad de !important. */
+    body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; }
+    .auth-page { background: transparent; }
+    .auth-tagline { color: var(--text-muted); }
+    .clerk-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 400px;
+      padding: 1rem 0;
+    }
+    .auth-logo-img { filter: none; }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+  <div style="width:100%;max-width:480px;">
+    <a href="/" style="display:block;text-align:center;margin-bottom:0.5rem;">
+      <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="auth-logo-img" />
+    </a>
+    <p class="auth-tagline">La plataforma de embarcaciones en República Dominicana</p>
+
+    <div class="clerk-wrap">
+      <div id="clerk-mount"></div>
+    </div>
+
+    <p style="text-align:center;font-size:0.75rem;color:var(--cream-4);margin-top:2rem;">
+      Al registrarte aceptas nuestros términos de servicio y política de privacidad.
+    </p>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script>
+(function () {
+  const CLERK_PK = 'pk_test_cG9saXRlLWRvZ2Zpc2gtMzYuY2xlcmsuYWNjb3VudHMuZGV2JA';
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
+
+  function afterSignIn(user) {
+    sessionStorage.removeItem('vbr_redirect');
+    const role = user.publicMetadata?.role;
+    location.href = role === 'admin' ? '/admin.html' : redirect;
+  }
+
+  const s = document.createElement('script');
+  s.setAttribute('data-clerk-publishable-key', CLERK_PK);
+  s.src = 'https://polite-dogfish-36.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+  s.crossOrigin = 'anonymous';
+  s.async = true;
+  s.addEventListener('load', async function () {
+    await window.Clerk.load();
+    window.__clerk = window.Clerk;
+
+    if (window.Clerk.user) { afterSignIn(window.Clerk.user); return; }
+
+    const mount = document.getElementById('clerk-mount');
+    const opts = {
+      appearance: {
+        variables: {
+          colorPrimary: '#1a3a5c',
+          colorBackground: '#ffffff',
+          colorText: '#1a3a5c',
+          colorTextSecondary: '#4a6fa5',
+          colorInputBackground: '#f0f6ff',
+          colorInputText: '#1a3a5c',
+          colorNeutral: '#1a3a5c',
+          borderRadius: '10px',
+          fontFamily: 'inherit',
+          fontSize: '15px',
+        },
+        elements: {
+          card: { boxShadow: '0 8px 40px rgba(26,58,92,0.13)', border: '1px solid #d0e4f7' },
+          headerTitle: { color: '#1a3a5c', fontWeight: '700' },
+          headerSubtitle: { color: '#4a6fa5' },
+          formButtonPrimary: { background: '#1a3a5c', color: '#ffffff', '&:hover': { background: '#24527a' } },
+          footerActionLink: { color: '#1a7fc1' },
+          identityPreviewText: { color: '#1a3a5c' },
+          formFieldLabel: { color: '#1a3a5c' },
+          dividerLine: { background: '#d0e4f7' },
+          dividerText: { color: '#4a6fa5' },
+          socialButtonsBlockButton: { border: '1px solid #d0e4f7', color: '#1a3a5c' },
+        }
+      }
+    };
+
+    if (tab === 'register') {
+      window.Clerk.mountSignUp(mount, opts);
+    } else {
+      window.Clerk.mountSignIn(mount, opts);
+    }
+
+    window.Clerk.addListener(({ user }) => {
+      if (user) afterSignIn(user);
+    });
+  });
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

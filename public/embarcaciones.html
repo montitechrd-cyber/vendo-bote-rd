@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo de Embarcaciones — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+</head>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
+
+<nav class="nav is-scrolled" id="nav">
+  <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" /></a>
+  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="/embarcaciones.html" class="nav-link active">Rentar</a>
+      <div class="nav-dropdown-menu">
+        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+      </div>
+    </div>
+    <a href="/ventas.html" class="nav-link">Comprar</a>
+  </div>
+  <div class="nav-actions">
+    <a href="/auth.html" class="nav-btn nav-btn-ghost" id="nav-login-btn">Ingresar</a>
+    <a href="/auth.html" class="nav-btn nav-btn-primary" id="nav-register-btn">Reservar</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <div class="nav-mobile-links">
+    <a href="/embarcaciones.html" class="nav-mobile-link">Rentar</a>
+    <a href="/ventas.html" class="nav-mobile-link">Comprar</a>
+    <a href="/embarcaciones.html?location=Boca Chica" class="nav-mobile-link">Boca Chica</a>
+    <a href="/embarcaciones.html?location=Punta Cana" class="nav-mobile-link">Punta Cana</a>
+    <a href="/embarcaciones.html?location=La Romana" class="nav-mobile-link">La Romana</a>
+    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-hero">
+    <div class="page-hero-inner">
+      <div class="section-kicker">Todas las Embarcaciones</div>
+      <h1 class="page-title">Catálogo de <em>Embarcaciones</em></h1>
+      <p class="page-subtitle">Selecciona la embarcación perfecta para tu día de playa en República Dominicana.</p>
+    </div>
+  </div>
+
+  <!-- Location filter bar -->
+  <div class="loc-filter-bar">
+    <div class="loc-filter-inner" id="location-tabs">
+      <button class="loc-btn active" data-location="">
+        <span class="loc-btn-icon">🌊</span>
+        <span class="loc-btn-name">Todas</span>
+        <span class="loc-btn-sub">las ubicaciones</span>
+      </button>
+      <button class="loc-btn" data-location="Boca Chica">
+        <span class="loc-btn-icon">🌊</span>
+        <span class="loc-btn-name">Boca Chica</span>
+        <span class="loc-btn-sub">República Dominicana</span>
+      </button>
+      <button class="loc-btn" data-location="Punta Cana">
+        <span class="loc-btn-icon">🌊</span>
+        <span class="loc-btn-name">Punta Cana</span>
+        <span class="loc-btn-sub">República Dominicana</span>
+      </button>
+      <button class="loc-btn" data-location="La Romana">
+        <span class="loc-btn-icon">🌊</span>
+        <span class="loc-btn-name">La Romana</span>
+        <span class="loc-btn-sub">República Dominicana</span>
+      </button>
+      <button class="loc-btn" data-location="Miami">
+        <span class="loc-btn-icon">🌊</span>
+        <span class="loc-btn-name">Miami</span>
+        <span class="loc-btn-sub">Florida, USA</span>
+      </button>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group">
+          <label class="filter-label">Capacidad mínima</label>
+          <select class="filter-select" id="filter-capacity">
+            <option value="">Cualquiera</option>
+            <option value="6">6+ personas</option>
+            <option value="10">10+ personas</option>
+            <option value="15">15+ personas</option>
+            <option value="20">20+ personas</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Precio máximo / día</label>
+          <select class="filter-select" id="filter-price">
+            <option value="">Sin límite</option>
+            <option value="1200">Hasta $1,200</option>
+            <option value="2000">Hasta $2,000</option>
+            <option value="3000">Hasta $3,000</option>
+            <option value="5000">Hasta $5,000</option>
+          </select>
+        </div>
+        <div class="filter-group" style="flex:2;min-width:200px;">
+          <label class="filter-label">Buscar</label>
+          <input type="text" class="filter-input" id="filter-search" placeholder="Nombre, marca, característica..." />
+        </div>
+        <div class="filter-group" style="justify-content:flex-end;">
+          <label class="filter-label">&nbsp;</label>
+          <button class="btn btn-primary filter-btn" id="btn-filter">Filtrar</button>
+        </div>
+      </div>
+
+      <!-- Results count -->
+      <div style="margin-bottom:1.5rem;">
+        <p id="results-count" style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Cargando...</p>
+      </div>
+
+      <!-- Grid -->
+      <div class="boats-grid" id="boats-grid">
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+        <div class="skeleton" style="height:420px;border-radius:16px"></div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" style="height:70px;object-fit:contain;filter:brightness(0) invert(1);" /></a>
+      <span class="footer-copy">© 2026 VENDO BOTE RD</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script defer>
+(function () {
+  let allBoats = [];
+  let activeLocation = '';
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('location')) activeLocation = params.get('location');
+
+  function applyFilters() {
+    const capacity = parseInt(document.getElementById('filter-capacity').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('filter-price').value) || Infinity;
+    const search = document.getElementById('filter-search').value.toLowerCase().trim();
+
+    let filtered = allBoats.filter(b =>
+      (!activeLocation || b.location === activeLocation) &&
+      b.capacity >= capacity &&
+      b.price_per_day <= maxPrice &&
+      (!search || b.name.toLowerCase().includes(search) || (b.description || '').toLowerCase().includes(search) || (b.short_description || '').toLowerCase().includes(search) || (b.brand || '').toLowerCase().includes(search))
+    );
+
+    filtered.sort((a,b) => (b.featured||0) - (a.featured||0));
+
+    const count = document.getElementById('results-count');
+    count.textContent = `${filtered.length} ${filtered.length !== 1 ? 'embarcaciones' : 'embarcación'} encontrada${filtered.length !== 1 ? 's' : ''}`;
+
+    const grid = document.getElementById('boats-grid');
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⛵</div><h3 class="empty-state-title">Sin resultados</h3><p class="empty-state-desc">No encontramos embarcaciones con esos filtros. Intenta ampliar la búsqueda.</p><button class="btn btn-ghost" onclick="resetFilters()">Limpiar filtros</button></div>`;
+      return;
+    }
+    grid.innerHTML = filtered.map(window.VBR.buildBoatCard).join('');
+    window.VBR.observeReveals();
+  }
+
+  window.resetFilters = function () {
+    document.getElementById('filter-capacity').value = '';
+    document.getElementById('filter-price').value = '';
+    document.getElementById('filter-search').value = '';
+    activeLocation = '';
+    document.querySelectorAll('.loc-btn').forEach(t => t.classList.toggle('active', !t.dataset.location));
+    applyFilters();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.loc-btn');
+    tabs.forEach(tab => {
+      if (tab.dataset.location === activeLocation) { tabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); }
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeLocation = tab.dataset.location;
+        applyFilters();
+      });
+    });
+
+    document.getElementById('btn-filter').addEventListener('click', applyFilters);
+    document.getElementById('filter-search').addEventListener('keypress', e => { if (e.key === 'Enter') applyFilters(); });
+
+    if (params.get('search')) document.getElementById('filter-search').value = params.get('search');
+
+    fetch('/api/boats').then(r => r.json()).then(boats => {
+      allBoats = boats;
+      applyFilters();
+    });
+  });
+})();
+</script>
+</body>
+</html>

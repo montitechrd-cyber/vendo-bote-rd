@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embarcación — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+</head>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
+
+<nav class="nav is-scrolled" id="nav">
+  <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" /></a>
+  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="/embarcaciones.html" class="nav-link">Rentar</a>
+      <div class="nav-dropdown-menu">
+        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+      </div>
+    </div>
+    <a href="/ventas.html" class="nav-link">Comprar</a>
+  </div>
+  <div class="nav-actions">
+    <a href="/auth.html" class="nav-btn nav-btn-ghost" id="nav-login-btn">Ingresar</a>
+    <a href="/auth.html" class="nav-btn nav-btn-primary" id="nav-register-btn">Reservar</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <div class="nav-mobile-links">
+    <a href="/embarcaciones.html" class="nav-mobile-link">Catálogo</a>
+    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+  </div>
+</div>
+
+<!-- Loading skeleton -->
+<div id="page-loading" class="page" style="padding:calc(var(--nav-h) + 2rem) 2rem;">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div class="skeleton" style="height:520px;border-radius:16px;margin-bottom:2rem;"></div>
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:2rem;">
+      <div>
+        <div class="skeleton" style="height:40px;width:60%;margin-bottom:1rem;"></div>
+        <div class="skeleton" style="height:20px;width:30%;margin-bottom:2rem;"></div>
+        <div class="skeleton" style="height:120px;margin-bottom:1rem;"></div>
+      </div>
+      <div class="skeleton" style="height:400px;border-radius:16px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content (hidden until loaded) -->
+<div id="boat-page" class="page hidden">
+
+  <!-- Gallery -->
+  <div class="gallery-section" id="gallery-section">
+    <div class="gallery" id="gallery">
+      <!-- built by JS -->
+    </div>
+    <div class="gallery-fabs">
+      <button class="gallery-fab" id="gallery-back" aria-label="Volver al catálogo" title="Volver al catálogo">←</button>
+      <div class="gallery-fabs-right">
+        <button class="gallery-fab" id="gallery-share" aria-label="Compartir" title="Compartir">⤴</button>
+        <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
+      </div>
+    </div>
+    <div class="gallery-badge-count" id="gallery-badge-count"></div>
+    <div class="gallery-dots" id="gallery-dots"></div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Cerrar">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Foto anterior">‹</button>
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Foto siguiente">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+  </div>
+
+  <section class="section">
+    <div class="boat-detail-grid" id="boat-detail-grid">
+
+      <!-- Breadcrumb -->
+      <div style="display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);margin-bottom:1.5rem;">
+        <a href="/" style="color:var(--cream-3);transition:color 0.2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--cream-3)'">Inicio</a>
+        <span>›</span>
+        <a href="/embarcaciones.html" style="color:var(--cream-3);transition:color 0.2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--cream-3)'">Catálogo</a>
+        <span>›</span>
+        <span id="breadcrumb-name" style="color:var(--cream-2);"></span>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+        <h1 id="boat-name" style="font-family:var(--serif);font-size:clamp(1.8rem,4vw,2.8rem);font-style:italic;font-weight:700;color:var(--cream);line-height:1.15;"></h1>
+        <div id="boat-rating-badge" style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;background:var(--bg-card);border:1px solid var(--line-2);border-radius:50px;padding:0.4rem 0.9rem;">
+          <span style="color:var(--gold);font-size:0.85rem;">★</span>
+          <span id="boat-rating" style="font-family:var(--serif);font-style:italic;color:var(--cream);font-size:0.9rem;"></span>
+          <span id="boat-review-count" style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);"></span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <span id="boat-location-tag" style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);background:var(--bg-card);border:1px solid var(--line);border-radius:50px;padding:0.3rem 0.85rem;"></span>
+        <span id="boat-brand-tag" style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);background:var(--bg-card);border:1px solid var(--line);border-radius:50px;padding:0.3rem 0.85rem;"></span>
+      </div>
+
+      <!-- Specs grid -->
+      <div class="boat-detail-specs" id="boat-specs" style="margin-bottom:2.5rem;"></div>
+
+      <!-- ══ Flujo de reserva paso a paso ══ -->
+      <div id="booking-sidebar" class="booking-wizard">
+
+        <!-- Paso 1: fecha y horario -->
+        <div class="wizard-step" id="wizard-step-1">
+          <div class="wizard-step-head">
+            <div class="wizard-step-num" id="wizard-step-1-num">1</div>
+            <div class="wizard-step-headtext">
+              <div class="wizard-step-title">Elige fecha y horario</div>
+              <div class="wizard-step-sub">Disponibilidad en tiempo real</div>
+            </div>
+            <div class="wizard-step-price">
+              <span id="panel-price"></span>
+              <span id="panel-price-unit" class="wizard-step-price-unit">USD / día</span>
+            </div>
+          </div>
+          <div class="wizard-step-body">
+            <div class="calendar-wrapper">
+              <div class="calendar-header">
+                <button class="calendar-nav" id="cal-prev">‹</button>
+                <span class="calendar-title" id="cal-title"></span>
+                <button class="calendar-nav" id="cal-next">›</button>
+              </div>
+              <div class="calendar-days-header" id="cal-days-header"></div>
+              <div class="calendar-days" id="cal-days"></div>
+              <div class="calendar-legend">
+                <div class="calendar-legend-item"><div class="calendar-legend-dot available"></div>Disponible</div>
+                <div class="calendar-legend-item"><div class="calendar-legend-dot blocked"></div>Completo</div>
+                <div class="calendar-legend-item"><div class="calendar-legend-dot selected"></div>Seleccionado</div>
+              </div>
+            </div>
+
+            <!-- Selector de turno (genérico: 2 turnos estándar, horarios propios de la embarcación, o día completo) -->
+            <div id="schedule-section" style="display:none;margin-top:1.5rem;">
+              <div class="panel-subheading" id="schedule-title">Selecciona el turno</div>
+              <div id="schedule-options" style="display:grid;gap:0.6rem;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 2: personalizar -->
+        <div class="wizard-step is-locked" id="wizard-step-2">
+          <div class="wizard-step-head">
+            <div class="wizard-step-num">2</div>
+            <div class="wizard-step-headtext">
+              <div class="wizard-step-title">Personaliza tu reserva</div>
+              <div class="wizard-step-sub" id="wizard-step-2-sub">Primero elige la fecha en el paso 1</div>
+            </div>
+          </div>
+          <div class="wizard-step-body">
+            <!-- Selector de paquete de horas (embarcaciones con esquema de precio especial) -->
+            <div id="package-section" style="display:none;margin-bottom:1.25rem;">
+              <div class="panel-subheading">Selecciona el paquete</div>
+              <div class="additionals-grid" id="package-options"></div>
+            </div>
+
+            <!-- Guests -->
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label class="form-label" for="guests-input">Número de personas</label>
+              <div style="display:flex;align-items:center;gap:0.85rem;">
+                <button type="button" class="calendar-nav" id="guests-minus" aria-label="Restar persona">−</button>
+                <input type="number" class="form-input" id="guests-input" min="1" value="2" placeholder="Personas" style="max-width:100px;text-align:center;" />
+                <button type="button" class="calendar-nav" id="guests-plus" aria-label="Agregar persona">+</button>
+                <span style="font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);" id="guests-max-label"></span>
+              </div>
+              <div id="overage-hint" style="display:none;font-family:var(--mono);font-size:0.68rem;color:var(--cream-3);margin-top:0.5rem;"></div>
+            </div>
+
+            <!-- Horas extra (si la embarcación lo permite) -->
+            <div id="extra-hours-section" style="display:none;margin-bottom:1.25rem;">
+              <div class="panel-subheading">Horas extra</div>
+              <div style="display:flex;align-items:center;gap:0.85rem;">
+                <button type="button" class="calendar-nav" id="extra-hours-minus">−</button>
+                <span id="extra-hours-val" style="font-family:var(--serif);font-size:1.25rem;font-weight:700;color:var(--cream);min-width:20px;text-align:center;">0</span>
+                <button type="button" class="calendar-nav" id="extra-hours-plus">+</button>
+                <span style="font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);" id="extra-hours-price-label"></span>
+              </div>
+            </div>
+
+            <!-- Extras de comida (opcional, solo si la embarcación lo ofrece) -->
+            <div id="meal-addons-section" style="display:none;margin-bottom:1.25rem;">
+              <div class="panel-subheading">Opción de almuerzo (opcional)</div>
+              <div class="additionals-grid" id="meal-addons-options"></div>
+            </div>
+
+            <!-- Adicionales (solo embarcaciones de Boca Chica) -->
+            <div style="margin-bottom:0.25rem;" id="additionals-block">
+              <div class="panel-subheading">Adicionales opcionales</div>
+              <div class="additionals-grid">
+                <label class="additional-item">
+                  <input type="checkbox" class="additional-cb" data-key="decoracion" data-price="100" onchange="recalcTotal()" />
+                  <div class="additional-icon">🎂</div>
+                  <div class="additional-info">
+                    <div class="additional-name">Decoración</div>
+                    <div class="additional-price">+$100</div>
+                  </div>
+                </label>
+                <label class="additional-item">
+                  <input type="checkbox" class="additional-cb" data-key="parrillada" data-price="150" onchange="recalcTotal()" />
+                  <div class="additional-icon">🔥</div>
+                  <div class="additional-info">
+                    <div class="additional-name">Parrillada</div>
+                    <div class="additional-price">+$150</div>
+                  </div>
+                </label>
+                <label class="additional-item">
+                  <input type="checkbox" class="additional-cb" data-key="buffet" data-price="300" onchange="recalcTotal()" />
+                  <div class="additional-icon">🍽️</div>
+                  <div class="additional-info">
+                    <div class="additional-name">Buffet</div>
+                    <div class="additional-price">+$300</div>
+                  </div>
+                </label>
+                <label class="additional-item">
+                  <input type="checkbox" class="additional-cb" data-key="jetski" data-price="200" onchange="recalcTotal()" />
+                  <div class="additional-icon">🚤</div>
+                  <div class="additional-info">
+                    <div class="additional-name">Jet Ski</div>
+                    <div class="additional-price">+$200</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 3: resumen y reserva -->
+        <div class="wizard-step is-locked" id="wizard-step-3">
+          <div class="wizard-step-head">
+            <div class="wizard-step-num">3</div>
+            <div class="wizard-step-headtext">
+              <div class="wizard-step-title">Resumen y reserva</div>
+              <div class="wizard-step-sub">Revisa el total antes de confirmar</div>
+            </div>
+          </div>
+          <div class="wizard-step-body">
+            <!-- Summary lines -->
+            <div id="booking-lines" style="display:none;">
+              <div class="booking-line">
+                <span class="booking-line-label">Fecha</span>
+                <span class="booking-line-val" id="sum-start">—</span>
+              </div>
+              <div class="booking-line">
+                <span class="booking-line-label">Turno</span>
+                <span class="booking-line-val" id="sum-end">—</span>
+              </div>
+              <div class="booking-line">
+                <span class="booking-line-label">Duración</span>
+                <span class="booking-line-val" id="sum-days">—</span>
+              </div>
+              <div class="booking-line" id="sum-additionals-line" style="display:none;">
+                <span class="booking-line-label">Adicionales</span>
+                <span class="booking-line-val" id="sum-additionals">—</span>
+              </div>
+              <div class="booking-line total">
+                <span class="booking-line-label">Total estimado</span>
+                <span class="booking-line-val" id="sum-total">—</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary w-full" id="btn-reserve" style="margin-top:0.5rem;justify-content:center;" disabled>
+              Selecciona las fechas
+            </button>
+            <p style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);text-align:center;margin-top:0.75rem;line-height:1.6;">
+              Sin cargos hasta confirmar el pago vía transferencia bancaria.
+            </p>
+
+            <div class="wizard-next-hint">
+              <span style="font-size:1.1rem;">📌</span>
+              <span>Próximo paso: al reservar te llevaremos a subir tu comprobante de transferencia y confirmar tu reserva.</span>
+            </div>
+
+            <!-- Bank info de referencia -->
+            <div class="bank-box" style="margin-top:1.5rem;">
+              <div class="bank-box-title">🏦 Datos Bancarios</div>
+              <div class="bank-box-tab">
+                <button class="bank-box-tab-btn active" onclick="switchBankB('popular',this)">Banco Popular</button>
+                <button class="bank-box-tab-btn" onclick="switchBankB('reservas',this)">Banreservas</button>
+              </div>
+              <div class="bank-panel active" id="bk-popular">
+                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
+                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">745121483</span><button class="bank-copy" onclick="copyText('745121483')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+              </div>
+              <div class="bank-panel" id="bk-reservas">
+                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas</span></div>
+                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+              </div>
+              <p style="font-size:0.78rem;color:var(--cream-3);margin-top:1rem;line-height:1.5;">Confirma tu reserva y te indicaremos el monto exacto a transferir.</p>
+            </div>
+            <script>
+            function switchBankB(bank, btn) {
+              document.querySelectorAll('#bk-popular,#bk-reservas').forEach(p => p.classList.remove('active'));
+              document.getElementById('bk-' + bank).classList.add('active');
+              btn.closest('.bank-box-tab').querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div style="margin-bottom:2.5rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Descripción</h3>
+        <p id="boat-description" style="color:var(--cream-2);line-height:1.85;font-size:0.95rem;"></p>
+      </div>
+
+      <!-- Features -->
+      <div style="margin-bottom:2rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Características</h3>
+        <div class="feature-tags" id="boat-features"></div>
+      </div>
+
+      <!-- Amenities -->
+      <div style="margin-bottom:2rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h3>
+        <div class="feature-tags" id="boat-amenities"></div>
+      </div>
+
+      <!-- Rules -->
+      <div style="margin-bottom:2.5rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Reglas de la embarcación</h3>
+        <ul id="boat-rules" style="display:flex;flex-direction:column;gap:0.5rem;"></ul>
+      </div>
+
+      <!-- Reviews -->
+      <div data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1.25rem;">Reseñas</h3>
+        <div id="reviews-list"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Sticky price/CTA bar (mobile) -->
+  <div class="sticky-book-bar" id="sticky-book-bar">
+    <div class="sticky-book-price">
+      <span id="sticky-price">—</span>
+      <span class="sticky-price-unit" id="sticky-price-unit"></span>
+    </div>
+    <button class="btn btn-primary" id="sticky-book-btn">Reservar</button>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal-overlay" id="booking-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="position:relative;max-width:500px;">
+    <button class="modal-close" id="modal-close" aria-label="Cerrar">✕</button>
+    <div class="modal-title" id="modal-title">Confirmar Reserva</div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<footer class="footer" style="margin-top:0;">
+  <div class="footer-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <a href="/" class="footer-logo">VENDO BOTE <span>RD</span></a>
+      <a href="/embarcaciones.html" class="footer-link" style="font-size:0.85rem;color:var(--cream-3);">← Volver al catálogo</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script defer>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('slug');
+  if (!slug) { location.href = '/embarcaciones.html'; return; }
+
+  let boat = null;
+  let bookedSlots = {}; // { 'YYYY-MM-DD': ['10am-4pm', '5pm-11pm'] }
+  let calYear, calMonth;
+  let selDate = null, selSlot = null;
+  let selPackageHours = null, extraHours = 0;
+  let lightboxImgs = [], lightboxIdx = 0;
+
+  const fmt = (d) => window.VBR.fmtDateLong(d);
+  const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  /* ── Fetch boat ── */
+  function loadBoat() {
+    fetch('/api/boats/' + slug).then(r => r.json()).then(data => {
+      if (data.error) { location.href = '/embarcaciones.html'; return; }
+      boat = data;
+      document.title = boat.name + ' — VENDO BOTE RD';
+      renderBoat();
+      if (boat.for_sale) {
+        activateSaleMode();
+      } else {
+        initBookingListeners();
+        loadAvailability();
+      }
+      document.getElementById('page-loading').classList.add('hidden');
+      document.getElementById('boat-page').classList.remove('hidden');
+    });
+  }
+
+  const isVid = src => src && /\.(mp4|webm|mov)$/i.test(src);
+  function mediaThumb(src, idx, extra) {
+    if (isVid(src)) return `<video src="${src}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" onclick="openLightbox(${idx})" ${extra||''}></video>`;
+    return `<img src="${src}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;" />`;
+  }
+
+  let mainIdx = 0;
+  function paintMain() {
+    const imgs = lightboxImgs;
+    if (!imgs.length) return;
+    const src = imgs[mainIdx];
+    const gallery = document.getElementById('gallery');
+    const mainHTML = isVid(src)
+      ? `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><video src="${src}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video></div>`
+      : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
+    gallery.innerHTML = mainHTML + (gallery.dataset.thumbs || '');
+    document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === mainIdx));
+    document.getElementById('gallery-badge-count').textContent = hasRealImages ? `📷 ${mainIdx + 1}/${imgs.length}` : '';
+  }
+
+  function shiftMain(delta) {
+    const n = lightboxImgs.length;
+    if (!n) return;
+    mainIdx = (mainIdx + delta + n) % n;
+    paintMain();
+  }
+
+  const FALLBACK_IMG = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=75';
+  let hasRealImages = true;
+
+  function renderGallery() {
+    const realImgs = boat.images || [];
+    hasRealImages = realImgs.length > 0;
+    const imgs = realImgs.length ? realImgs : [FALLBACK_IMG];
+    lightboxImgs = imgs;
+    mainIdx = 0;
+    const gallery = document.getElementById('gallery');
+    gallery.dataset.thumbs = `
+      ${imgs[1] ? `<div class="gallery-thumb" onclick="openLightbox(1)">${mediaThumb(imgs[1],1)}</div>` : ''}
+      ${imgs[2] ? `<div class="gallery-thumb" onclick="openLightbox(2)" style="position:relative;">
+        ${mediaThumb(imgs[2],2)}
+        ${imgs.length > 3 ? `<div class="gallery-more">+${imgs.length - 2} fotos</div>` : ''}
+      </div>` : ''}
+    `;
+    document.getElementById('gallery-dots').innerHTML = realImgs.length > 1
+      ? imgs.slice(0, 10).map((_, i) => `<span class="gallery-dot${i === 0 ? ' active' : ''}" data-i="${i}"></span>`).join('')
+      : '';
+    document.querySelectorAll('.gallery-dot').forEach(d => d.addEventListener('click', () => { mainIdx = parseInt(d.dataset.i); paintMain(); }));
+    paintMain();
+
+    // Swipe gestures on mobile
+    const main = document.getElementById('gallery-section');
+    let touchStartX = null;
+    main.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    main.addEventListener('touchend', e => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) shiftMain(dx < 0 ? 1 : -1);
+      touchStartX = null;
+    }, { passive: true });
+  }
+
+  function renderBoat() {
+    renderGallery();
+
+    document.getElementById('boat-name').textContent = boat.name;
+    document.getElementById('breadcrumb-name').textContent = boat.name;
+    document.getElementById('boat-location-tag').textContent = '📍 ' + boat.location;
+    document.getElementById('boat-brand-tag').textContent = '⛵ ' + (boat.brand || 'Embarcación');
+    document.getElementById('panel-price').textContent = '$' + Number(boat.price_per_day).toLocaleString();
+    document.getElementById('panel-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : 'USD / día';
+    document.getElementById('boat-description').textContent = boat.description || '';
+
+    // Los adicionales (comida, jet ski, etc.) solo aplican a embarcaciones de Boca Chica
+    const additionalsBlock = document.getElementById('additionals-block');
+    if (additionalsBlock) additionalsBlock.style.display = (boat.location === 'Boca Chica') ? '' : 'none';
+
+    // Esquema de precio por paquete de horas (fuera de Boca Chica)
+    if (!boat.for_sale) {
+      renderPackageOptions();
+      renderExtraHoursUI();
+      renderMealAddonsUI();
+      const maxG = (boat.pricing_scheme && boat.pricing_scheme.max_capacity) || boat.capacity;
+      document.getElementById('guests-input').max = maxG;
+      document.getElementById('guests-max-label').textContent = 'máx. ' + maxG;
+      clampGuests();
+    }
+
+    // Rating
+    if (boat.avg_rating) {
+      document.getElementById('boat-rating').textContent = boat.avg_rating + ' ★';
+      document.getElementById('boat-review-count').textContent = boat.review_count + ' reseñas';
+    } else {
+      document.getElementById('boat-rating-badge').style.display = 'none';
+    }
+
+    // Specs
+    const specsData = [
+      ['👥', 'Capacidad', boat.capacity + ' personas'],
+      ['📏', 'Eslora', (boat.length_ft || '—') + ' ft'],
+      ['📅', 'Año', boat.year || '—'],
+      ['⚙️', 'Marca', boat.brand || '—'],
+      boat.for_sale
+        ? ['🏷️', 'Venta', boat.sale_price ? '$' + Number(boat.sale_price).toLocaleString() : 'Consultar']
+        : ['💰', 'Precio', '$' + Number(boat.price_per_day).toLocaleString() + ' / día'],
+      ['📍', 'Puerto', boat.location],
+    ];
+    document.getElementById('boat-specs').innerHTML = specsData.map(([icon, label, v]) => `
+      <div class="boat-spec-item">
+        <div class="boat-spec-icon">${icon}</div>
+        <div class="boat-spec-label">${label}</div>
+        <div class="boat-spec-val">${v}</div>
+      </div>`).join('');
+
+    // Sticky mobile price bar
+    const stickyBtn = document.getElementById('sticky-book-btn');
+    if (boat.for_sale) {
+      document.getElementById('sticky-price').textContent = boat.sale_price ? '$' + Number(boat.sale_price).toLocaleString() : 'Consultar';
+      document.getElementById('sticky-price-unit').textContent = boat.sale_price ? 'USD' : 'precio';
+      stickyBtn.textContent = 'Ver más';
+    } else {
+      document.getElementById('sticky-price').textContent = '$' + Number(boat.price_per_day).toLocaleString();
+      document.getElementById('sticky-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : 'USD / día';
+      stickyBtn.textContent = 'Reservar';
+    }
+
+    // Favorito (persistido en localStorage)
+    const favBtn = document.getElementById('gallery-fav');
+    const favs = JSON.parse(localStorage.getItem('vbr_favs') || '[]');
+    favBtn.textContent = favs.includes(boat.id) ? '❤️' : '♡';
+    favBtn.onclick = () => {
+      const cur = JSON.parse(localStorage.getItem('vbr_favs') || '[]');
+      const has = cur.includes(boat.id);
+      const next = has ? cur.filter(id => id !== boat.id) : [...cur, boat.id];
+      localStorage.setItem('vbr_favs', JSON.stringify(next));
+      favBtn.textContent = has ? '♡' : '❤️';
+      window.VBR?.toast(has ? 'Eliminado de favoritos' : 'Guardado en favoritos', 'success');
+    };
+
+    // Features / amenities / rules
+    const feats = boat.features || [];
+    document.getElementById('boat-features').innerHTML = feats.map(f => `<span class="feature-tag">✓ ${esc(f)}</span>`).join('');
+
+    const amen = boat.amenities || [];
+    document.getElementById('boat-amenities').innerHTML = amen.map(a => `<span class="feature-tag">🌟 ${esc(a)}</span>`).join('');
+
+    const rules = boat.rules || [];
+    document.getElementById('boat-rules').innerHTML = rules.map(r => `<li style="display:flex;gap:0.6rem;font-size:0.88rem;color:var(--cream-2);"><span style="color:var(--gold);flex-shrink:0;">—</span>${esc(r)}</li>`).join('');
+
+    // Reviews
+    const revList = document.getElementById('reviews-list');
+    if (!boat.reviews || !boat.reviews.length) {
+      revList.innerHTML = '<p style="color:var(--cream-3);font-size:0.88rem;">Sé el primero en dejar una reseña.</p>';
+    } else {
+      revList.innerHTML = boat.reviews.map(r => `
+        <div style="border-bottom:1px solid var(--line);padding:1.25rem 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <div class="testimonial-avatar" style="width:32px;height:32px;font-size:0.85rem;">${esc((r.user_name||'?')[0])}</div>
+              <span style="font-weight:500;font-size:0.88rem;color:var(--cream);">${esc(r.user_name)}</span>
+            </div>
+            <span style="color:var(--gold);font-size:0.85rem;">${'★'.repeat(r.rating)}</span>
+          </div>
+          <p style="font-size:0.87rem;color:var(--cream-2);line-height:1.7;font-style:italic;">"${esc(r.comment)}"</p>
+        </div>
+      `).join('');
+    }
+
+    // Guests max (ya ajustado arriba según pricing_scheme.max_capacity cuando aplica)
+  }
+
+  /* ── Availability ── */
+  function loadAvailability() {
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    fetchAvailability();
+  }
+
+  let availabilityRequestId = 0;
+  function fetchAvailability() {
+    const requestId = ++availabilityRequestId;
+    const requestedYear = calYear, requestedMonth = calMonth;
+    fetch(`/api/boats/${boat.id}/availability?year=${requestedYear}&month=${requestedMonth + 1}`)
+      .then(r => r.json())
+      .then(data => {
+        // Ignora respuestas de un mes que el usuario ya dejó atrás (petición más lenta
+        // que llega después de haber navegado a otro mes) — evita mostrar disponibilidad de un mes distinto.
+        if (requestId !== availabilityRequestId || requestedYear !== calYear || requestedMonth !== calMonth) return;
+        bookedSlots = {};
+        if (Array.isArray(data)) {
+          data.forEach(b => {
+            if (!bookedSlots[b.start_date]) bookedSlots[b.start_date] = [];
+            if (b.schedule) bookedSlots[b.start_date].push(b.schedule);
+          });
+        }
+        renderCalendar();
+        if (selDate) refreshSlotUI();
+      })
+      .catch(() => { if (requestId === availabilityRequestId) renderCalendar(); });
+  }
+
+  function getSlotDefs() {
+    const scheme = boat && boat.pricing_scheme;
+    if (scheme && scheme.time_slots && scheme.time_slots.length) {
+      const icons = ['🌅', '☀️', '🌆', '🌙'];
+      return scheme.time_slots.map((label, i) => ({ key: label, label, shortLabel: 'Turno ' + (i + 1), icon: icons[i] || '🕐' }));
+    }
+    if (scheme) return [{ key: 'full-day', label: 'Día completo', shortLabel: 'Día completo', icon: '📅' }];
+    return [
+      { key: '9am-3pm', label: '9:00 AM – 3:00 PM', shortLabel: 'Mañana/Tarde', icon: '🌅' },
+      { key: '4pm-10pm', label: '4:00 PM – 10:00 PM', shortLabel: 'Tarde/Noche', icon: '🌆' },
+    ];
+  }
+
+  function isDayFull(ds) {
+    const slots = bookedSlots[ds] || [];
+    return getSlotDefs().every(d => slots.includes(d.key));
+  }
+
+  /* ── Calendar ── */
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAYS_HDR = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+  const DAYS_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  function renderCalendar() {
+    document.getElementById('cal-title').textContent = MONTHS[calMonth] + ' ' + calYear;
+
+    const hdr = document.getElementById('cal-days-header');
+    hdr.innerHTML = DAYS_HDR.map(d => `<div class="calendar-day-name">${d}</div>`).join('');
+
+    const first = new Date(calYear, calMonth, 1);
+    const last  = new Date(calYear, calMonth + 1, 0);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const cells = [];
+
+    for (let i = 0; i < first.getDay(); i++) cells.push('<div class="calendar-day empty"></div>');
+
+    const todayStr = ymd(today);
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const date = new Date(calYear, calMonth, d);
+      const ds = ymd(date);
+      const isPast = date < today;
+      const isFull = isDayFull(ds);
+      const isToday = ds === todayStr;
+      const dayName = DAYS_SHORT[date.getDay()];
+      const inner = `<span class="cal-day-name">${dayName}</span><span class="cal-day-num">${d}</span>`;
+      let cls = 'calendar-day';
+      if (isPast)        { cls += ' past'; cells.push(`<div class="${cls}">${inner}</div>`); continue; }
+      if (isFull)        { cls += ' blocked'; cells.push(`<div class="${cls}">${inner}</div>`); continue; }
+      if (ds === selDate)  cls += ' selected';
+      else if (isToday)    cls += ' today';
+      cells.push(`<div class="${cls}" data-date="${ds}">${inner}</div>`);
+    }
+
+    document.getElementById('cal-days').innerHTML = cells.join('');
+    $$('.calendar-day[data-date]').forEach(el => {
+      el.addEventListener('click', () => onDateClick(el.dataset.date));
+    });
+  }
+
+  function $$(sel) { return [...document.querySelectorAll(sel)]; }
+
+  function onDateClick(ds) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const date = new Date(ds + 'T00:00:00');
+    if (date < today || isDayFull(ds)) return;
+
+    selDate = ds;
+    selSlot = null;
+    renderCalendar();
+    refreshSlotUI();
+    refreshJetskiPricing();
+    updateSummary();
+    updateWizardSteps();
+  }
+
+  /* ── Desbloquea los pasos 2 y 3 del flujo una vez elegida la fecha (y turno, si aplica) ── */
+  function updateWizardSteps() {
+    const step1 = document.getElementById('wizard-step-1');
+    const step2 = document.getElementById('wizard-step-2');
+    const step3 = document.getElementById('wizard-step-3');
+    if (!step1 || !step2 || !step3) return;
+    const needsSlot = getSlotDefs().length > 1;
+    const ready = !!(selDate && (!needsSlot || selSlot));
+
+    step1.classList.toggle('is-complete', ready);
+    step2.classList.toggle('is-locked', !ready);
+    step3.classList.toggle('is-locked', !ready);
+    const sub2 = document.getElementById('wizard-step-2-sub');
+    if (sub2) sub2.textContent = ready ? 'Ajusta personas y extras a tu gusto' : 'Primero elige la fecha en el paso 1';
+
+    if (ready && !step2.dataset.wasReady) {
+      step2.dataset.wasReady = '1';
+      setTimeout(() => step2.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
+    }
+  }
+
+  function refreshSlotUI() {
+    const sec = document.getElementById('schedule-section');
+    const container = document.getElementById('schedule-options');
+    if (!selDate) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+
+    const defs = getSlotDefs();
+    const slots = bookedSlots[selDate] || [];
+
+    if (defs.length === 1) {
+      selSlot = defs[0].key;
+      document.getElementById('schedule-title').textContent = 'Turno';
+      container.style.gridTemplateColumns = '1fr';
+      container.innerHTML = `<div style="font-size:0.85rem;color:var(--cream-2);padding:0.85rem;border:1.5px solid var(--line-2);border-radius:var(--r-sm);">📅 Reserva de día completo — el horario exacto se coordina con el capitán.</div>`;
+      return;
+    }
+
+    document.getElementById('schedule-title').textContent = 'Selecciona el turno';
+    container.style.gridTemplateColumns = defs.length >= 3 ? 'repeat(auto-fit, minmax(150px, 1fr))' : '1fr 1fr';
+    container.innerHTML = defs.map(d => {
+      const booked = slots.includes(d.key);
+      const cls = 'schedule-btn' + (booked ? ' slot-booked' : '') + (selSlot === d.key ? ' slot-selected' : '');
+      const safeKey = d.key.replace(/'/g, "\\'");
+      return `<button type="button" class="${cls}" ${booked ? 'disabled' : ''} onclick="selectSlot('${safeKey}')">
+        <span class="slot-icon">${d.icon}</span>
+        <span class="slot-label">${d.shortLabel}</span>
+        <span class="slot-time">${d.label}</span>
+        <span class="slot-status" style="color:${booked ? 'var(--cream-3)' : '#198754'}">${booked ? 'Reservado' : 'Disponible'}</span>
+      </button>`;
+    }).join('');
+  }
+
+  window.selectSlot = function(slot) {
+    if (!selDate) return;
+    selSlot = slot;
+    refreshSlotUI();
+    updateSummary();
+    updateWizardSteps();
+  };
+
+  /* ── Paquetes de horas / horas extra / extras de comida (esquema especial) ── */
+  window.selectPackage = function (hours) {
+    selPackageHours = hours;
+    renderPackageOptions();
+    updateSummary();
+  };
+
+  function renderPackageOptions() {
+    const scheme = boat.pricing_scheme;
+    const sec = document.getElementById('package-section');
+    if (!scheme || !scheme.packages || !scheme.packages.length) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    if (!selPackageHours || !scheme.packages.some(p => p.hours === selPackageHours)) selPackageHours = scheme.packages[0].hours;
+    document.getElementById('package-options').innerHTML = scheme.packages.map(p => `
+      <label class="additional-item" style="cursor:pointer;">
+        <input type="radio" name="pkg-hours" value="${p.hours}" ${selPackageHours === p.hours ? 'checked' : ''} onchange="selectPackage(${p.hours})" style="display:none;" />
+        <div class="additional-icon">⏱️</div>
+        <div class="additional-info">
+          <div class="additional-name">${p.hours} horas</div>
+          <div class="additional-price">$${p.price.toLocaleString()}</div>
+        </div>
+      </label>`).join('');
+  }
+
+  function renderExtraHoursUI() {
+    const scheme = boat.pricing_scheme;
+    const sec = document.getElementById('extra-hours-section');
+    if (!scheme || !scheme.extra_hour_price) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    document.getElementById('extra-hours-price-label').textContent = `+$${scheme.extra_hour_price} usd / hora`;
+    document.getElementById('extra-hours-val').textContent = extraHours;
+  }
+
+  function renderMealAddonsUI() {
+    const scheme = boat.pricing_scheme;
+    const sec = document.getElementById('meal-addons-section');
+    if (!scheme || !scheme.meal_addons || !scheme.meal_addons.length) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    document.getElementById('meal-addons-options').innerHTML = scheme.meal_addons.map(m => `
+      <label class="additional-item">
+        <input type="checkbox" class="meal-addon-cb" data-key="${m.key}" data-price="${m.price}" data-pp="${m.per_person ? 1 : 0}" onchange="recalcTotal()" />
+        <div class="additional-icon">🍽️</div>
+        <div class="additional-info">
+          <div class="additional-name">${m.name}</div>
+          <div class="additional-price">+$${m.price}${m.per_person ? '/persona' : ''}</div>
+        </div>
+      </label>`).join('');
+  }
+
+  function getMealAddons() {
+    const guests = parseInt(document.getElementById('guests-input').value) || 1;
+    const cbs = document.querySelectorAll('.meal-addon-cb:checked');
+    return Array.from(cbs).map(c => {
+      const perPerson = c.dataset.pp === '1';
+      const unit = parseInt(c.dataset.price);
+      const price = perPerson ? unit * guests : unit;
+      return { key: c.dataset.key, price, name: c.closest('.additional-item').querySelector('.additional-name').textContent };
+    });
+  }
+
+  /* ── Contador de personas (+/-, editable, con tope de capacidad) ── */
+  function getMaxGuests() {
+    return (boat.pricing_scheme && boat.pricing_scheme.max_capacity) || boat.capacity || 99;
+  }
+
+  function clampGuests() {
+    const input = document.getElementById('guests-input');
+    const max = getMaxGuests();
+    let v = parseInt(input.value);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > max) { v = max; window.VBR?.toast('Máximo ' + max + ' personas para esta embarcación', 'error'); }
+    input.value = v;
+    return v;
+  }
+
+  function isWeekdaySelected() {
+    if (!selDate) return false;
+    const day = new Date(selDate + 'T00:00:00').getDay();
+    return day >= 1 && day <= 5;
+  }
+
+  function refreshJetskiPricing() {
+    const cb = document.querySelector('.additional-cb[data-key="jetski"]');
+    if (!cb) return;
+    const priceEl = cb.closest('.additional-item').querySelector('.additional-price');
+    if (isWeekdaySelected()) {
+      priceEl.textContent = 'GRATIS (lun–vie)';
+      priceEl.style.color = '#198754';
+    } else {
+      priceEl.textContent = '+$200';
+      priceEl.style.color = '';
+    }
+  }
+
+  function getAdditionals() {
+    const cbs = document.querySelectorAll('.additional-cb:checked');
+    const weekdayFree = isWeekdaySelected();
+    return Array.from(cbs).map(c => {
+      let price = parseInt(c.dataset.price);
+      if (c.dataset.key === 'jetski' && weekdayFree) price = 0;
+      return { key: c.dataset.key, price, name: c.closest('.additional-item').querySelector('.additional-name').textContent };
+    });
+  }
+
+  window.recalcTotal = function () { updateSummary(); };
+
+  /* ── Cálculo unificado del total (usado por el resumen y la reserva) ── */
+  function computeBooking() {
+    const scheme = boat.pricing_scheme;
+    const defs = getSlotDefs();
+    const needsSlot = defs.length > 1;
+    const guests = parseInt(document.getElementById('guests-input').value) || 1;
+    const ready = !!(selDate && (!needsSlot || selSlot));
+    if (!ready) return { ready: false };
+
+    const extraLines = [];
+    let base, durationLabel, scheduleLabel;
+
+    if (scheme) {
+      const pkg = (scheme.packages || []).find(p => p.hours === selPackageHours) || scheme.packages[0];
+      base = pkg.price;
+      durationLabel = pkg.hours + ' horas';
+      scheduleLabel = needsSlot ? selSlot : 'Día completo';
+
+      if (scheme.extra_hour_price && extraHours > 0) {
+        extraLines.push({ label: extraHours + 'h extra', price: extraHours * scheme.extra_hour_price });
+      }
+      if (scheme.overage_threshold && guests > scheme.overage_threshold) {
+        const overN = guests - scheme.overage_threshold;
+        extraLines.push({ label: '+' + overN + ' persona(s)', price: overN * scheme.overage_price_per_person });
+      }
+      getMealAddons().forEach(m => extraLines.push({ label: m.name, price: m.price }));
+    } else {
+      base = boat.price_per_day;
+      durationLabel = '1 turno (6 horas)';
+      scheduleLabel = selSlot === '9am-3pm' ? '9:00 AM – 3:00 PM' : '4:00 PM – 10:00 PM';
+      getAdditionals().forEach(a => extraLines.push({ label: a.name, price: a.price }));
+    }
+
+    const extraTotal = extraLines.reduce((s, l) => s + l.price, 0);
+    return { ready: true, scheme, guests, base, extraLines, extraTotal, total: base + extraTotal, durationLabel, scheduleLabel };
+  }
+
+  function updateSummary() {
+    const lines = document.getElementById('booking-lines');
+    const btn = document.getElementById('btn-reserve');
+    const calc = computeBooking();
+    if (calc.ready) {
+      document.getElementById('sum-start').textContent = fmt(selDate);
+      document.getElementById('sum-end').textContent = calc.scheduleLabel;
+      document.getElementById('sum-days').textContent = calc.durationLabel;
+      const addLine = document.getElementById('sum-additionals-line');
+      if (calc.extraLines.length) {
+        document.getElementById('sum-additionals').textContent = calc.extraLines.map(l => l.label + ' +$' + l.price.toLocaleString()).join(' · ');
+        addLine.style.display = 'flex';
+      } else {
+        addLine.style.display = 'none';
+      }
+      document.getElementById('sum-total').textContent = '$' + calc.total.toLocaleString() + ' USD';
+      lines.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Reservar ahora';
+
+      const hint = document.getElementById('overage-hint');
+      if (calc.scheme && calc.scheme.overage_threshold && calc.guests > calc.scheme.overage_threshold) {
+        hint.style.display = 'block';
+        hint.textContent = `Incluye ${calc.guests - calc.scheme.overage_threshold} persona(s) extra a $${calc.scheme.overage_price_per_person} c/u.`;
+      } else if (hint) hint.style.display = 'none';
+    } else {
+      lines.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = selDate ? 'Selecciona un turno' : 'Selecciona la fecha';
+    }
+  }
+
+  /* ── Cal nav (only wired when boat is rentable) ── */
+  function initBookingListeners() {
+    document.getElementById('cal-prev').addEventListener('click', () => {
+      const now = new Date();
+      if (calYear === now.getFullYear() && calMonth === now.getMonth()) return;
+      calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+      fetchAvailability();
+    });
+    document.getElementById('cal-next').addEventListener('click', () => {
+      calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+      fetchAvailability();
+    });
+    document.getElementById('btn-reserve').addEventListener('click', startBooking);
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('booking-modal').addEventListener('click', e => { if (e.target.id === 'booking-modal') closeModal(); });
+    document.getElementById('guests-input').addEventListener('input', () => { clampGuests(); updateSummary(); });
+    document.getElementById('guests-minus').addEventListener('click', () => {
+      document.getElementById('guests-input').value = Math.max(1, (parseInt(document.getElementById('guests-input').value) || 1) - 1);
+      clampGuests();
+      updateSummary();
+    });
+    document.getElementById('guests-plus').addEventListener('click', () => {
+      document.getElementById('guests-input').value = (parseInt(document.getElementById('guests-input').value) || 1) + 1;
+      clampGuests();
+      updateSummary();
+    });
+    document.getElementById('extra-hours-minus').addEventListener('click', () => {
+      extraHours = Math.max(0, extraHours - 1);
+      document.getElementById('extra-hours-val').textContent = extraHours;
+      updateSummary();
+    });
+    document.getElementById('extra-hours-plus').addEventListener('click', () => {
+      extraHours = Math.min(6, extraHours + 1);
+      document.getElementById('extra-hours-val').textContent = extraHours;
+      updateSummary();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // Gallery floating actions
+    document.getElementById('gallery-back').addEventListener('click', () => {
+      if (document.referrer && document.referrer.includes(location.host)) history.back();
+      else location.href = '/embarcaciones.html';
+    });
+    document.getElementById('gallery-share').addEventListener('click', async () => {
+      const shareData = { title: boat ? boat.name : 'VENDO BOTE RD', text: 'Mira esta embarcación en VENDO BOTE RD', url: location.href };
+      if (navigator.share) { try { await navigator.share(shareData); } catch {} }
+      else { navigator.clipboard.writeText(location.href).then(() => window.VBR?.toast('Enlace copiado', 'success')); }
+    });
+    document.getElementById('sticky-book-btn').addEventListener('click', () => {
+      document.getElementById('booking-sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // Lightbox
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') closeLightbox(); });
+    document.getElementById('lightbox-prev').addEventListener('click', () => { lightboxIdx = (lightboxIdx - 1 + lightboxImgs.length) % lightboxImgs.length; updateLightbox(); });
+    document.getElementById('lightbox-next').addEventListener('click', () => { lightboxIdx = (lightboxIdx + 1) % lightboxImgs.length; updateLightbox(); });
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('lightbox').classList.contains('is-open')) {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft')  { lightboxIdx = (lightboxIdx - 1 + lightboxImgs.length) % lightboxImgs.length; updateLightbox(); }
+        if (e.key === 'ArrowRight') { lightboxIdx = (lightboxIdx + 1) % lightboxImgs.length; updateLightbox(); }
+      }
+    });
+
+    loadBoat();
+  });
+
+  window.openLightbox = function (idx) {
+    lightboxIdx = idx;
+    updateLightbox();
+    document.getElementById('lightbox').classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  };
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('is-open');
+    document.body.style.overflow = '';
+    const v = document.getElementById('lightbox').querySelector('video');
+    if (v) v.pause();
+  }
+  function updateLightbox() {
+    const src = lightboxImgs[lightboxIdx];
+    const box = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    let vid = box.querySelector('.lightbox-vid');
+    if (/\.(mp4|webm|mov)$/i.test(src)) {
+      img.style.display = 'none';
+      if (!vid) { vid = document.createElement('video'); vid.className = 'lightbox-vid'; vid.controls = true; vid.style.cssText = 'max-width:90vw;max-height:80vh;border-radius:12px;'; box.insertBefore(vid, img.nextSibling); }
+      vid.src = src; vid.style.display = 'block'; vid.play();
+    } else {
+      img.src = src; img.style.display = 'block';
+      if (vid) { vid.pause(); vid.style.display = 'none'; }
+    }
+    document.getElementById('lightbox-counter').textContent = (lightboxIdx + 1) + ' / ' + lightboxImgs.length;
+  }
+
+  /* ── Reserve flow ── */
+  async function startBooking() {
+    const clerk = window.__clerk || window.Clerk;
+    if (!clerk?.user) { sessionStorage.setItem('vbr_redirect', location.href); location.href = '/auth.html'; return; }
+    const calc = computeBooking();
+    if (!calc.ready) { window.VBR.toast('Selecciona fecha y turno', 'error'); return; }
+    const maxCapacity = (boat.pricing_scheme && boat.pricing_scheme.max_capacity) || boat.capacity;
+    if (calc.guests > maxCapacity) { window.VBR.toast('Máximo ' + maxCapacity + ' personas', 'error'); return; }
+    showModal(calc);
+  }
+
+  function showModal(calc) {
+    const addHTML = calc.extraLines.length ? `
+      <div style="border-top:1px solid var(--line);margin-top:0.5rem;padding-top:0.5rem;">
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.4rem;">${boat.pricing_scheme ? 'Cargos adicionales' : 'Adicionales'}</div>
+        ${calc.extraLines.map(a => `<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--cream-2);padding:0.15rem 0;">${a.label}<span style="color:var(--gold);">+$${a.price.toLocaleString()}</span></div>`).join('')}
+      </div>` : '';
+    document.getElementById('modal-title').textContent = 'Confirmar Reserva';
+    document.getElementById('modal-body').innerHTML = `
+      <div style="background:var(--bg-2);border-radius:var(--r-sm);padding:1.25rem;margin-bottom:1.5rem;border:1px solid var(--line);">
+        <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.75rem;">${boat.name}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <div><div style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Fecha</div><div style="font-size:0.88rem;color:var(--cream);">${fmt(selDate)}</div></div>
+          <div><div style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Turno</div><div style="font-size:0.88rem;color:var(--cream);">${calc.scheduleLabel}</div></div>
+          <div><div style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Duración</div><div style="font-size:0.88rem;color:var(--cream);">${calc.durationLabel}</div></div>
+          <div><div style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Personas</div><div style="font-size:0.88rem;color:var(--cream);">${calc.guests}</div></div>
+        </div>
+        ${addHTML}
+        <div style="border-top:1px solid var(--line);margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);">Total</span>
+          <span style="font-family:var(--serif);font-size:1.5rem;font-style:italic;font-weight:700;color:var(--gold);">$${Number(calc.total).toLocaleString()} USD</span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label" for="special-requests">Solicitudes especiales (opcional)</label>
+        <textarea class="form-textarea" id="special-requests" placeholder="Decoración especial, peticiones del grupo..." rows="3" maxlength="500"></textarea>
+      </div>
+      <button class="btn btn-primary w-full" id="confirm-booking-btn" style="justify-content:center;">
+        Confirmar y ver datos de pago
+      </button>
+      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--cream-3);text-align:center;margin-top:0.75rem;">
+        Deberás realizar la transferencia bancaria para confirmar tu reserva.
+      </p>
+    `;
+    openModal();
+    document.getElementById('confirm-booking-btn').addEventListener('click', () => submitBooking(calc));
+  }
+
+  function submitBooking(calc) {
+    const btn = document.getElementById('confirm-booking-btn');
+    btn.disabled = true; btn.textContent = 'Procesando...';
+    const special = document.getElementById('special-requests')?.value;
+    const body = {
+      boat_id: boat.id, start_date: selDate, schedule: selSlot, guests: calc.guests, special_requests: special,
+    };
+    if (boat.pricing_scheme) {
+      body.package_hours = selPackageHours;
+      body.extra_hours = extraHours;
+      body.meal_addons = getMealAddons().map(m => m.key);
+    } else {
+      body.additionals = getAdditionals().map(a => a.key);
+    }
+    window.VBR.api('/bookings', {
+      method: 'POST',
+      body
+    }).then(data => {
+      if (data.error) { window.VBR.toast(data.error, 'error'); btn.disabled = false; btn.textContent = 'Confirmar'; return; }
+      sessionStorage.setItem('vbr_new_booking', JSON.stringify(data));
+      location.href = '/dashboard.html?booking=' + data.id + '&tab=payment';
+    }).catch(() => { window.VBR.toast('Error al crear la reserva', 'error'); btn.disabled = false; btn.textContent = 'Confirmar'; });
+  }
+
+  function openModal()  { document.getElementById('booking-modal').classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+  function closeModal() { document.getElementById('booking-modal').classList.remove('is-open'); document.body.style.overflow = ''; }
+
+  /* ── For-sale mode ── */
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function activateSaleMode() {
+    const wizard = document.getElementById('booking-sidebar');
+    if (!wizard) return;
+
+    const parent = wizard.parentElement;
+    wizard.style.display = 'none';
+
+    // WA link — boat.name is URL-encoded, safe in href
+    const waText = encodeURIComponent(
+      'Hola! Me interesa la embarcación ' + boat.name + ' que vi en VendoBoteRD.com. ¿Me pueden dar más información?'
+    );
+    const waLink = 'https://wa.me/18298912252?text=' + waText;
+
+    // price block — uses Number, no user content
+    const priceHtml = boat.sale_price
+      ? '<div style="font-family:var(--serif);font-size:2rem;font-style:italic;font-weight:700;color:var(--sky-2);">$' + Number(boat.sale_price).toLocaleString() + ' <span style="font-family:var(--mono);font-size:0.75rem;font-style:normal;font-weight:400;color:var(--text-muted);">USD</span></div>'
+      : '<div style="font-family:var(--serif);font-size:1.6rem;font-style:italic;font-weight:700;color:var(--sky-2);">Precio a consultar</div>';
+
+    const panel = document.createElement('div');
+    panel.className = 'booking-summary';
+    // innerHTML uses esc() for any field that comes from the DB
+    panel.innerHTML = `
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.18em;color:var(--sky-2);text-transform:uppercase;margin-bottom:0.5rem;">EN VENTA</div>
+        ${priceHtml}
+      </div>
+      <div style="border-top:1px solid var(--line-2);padding-top:1.25rem;margin-bottom:1.5rem;">
+        <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.15em;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.9rem;">Detalles de la embarcación</div>
+        <div style="display:flex;flex-direction:column;gap:0.55rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Capacidad</span>
+            <span style="font-weight:600;color:var(--text);">${esc(String(boat.capacity))} personas</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Eslora</span>
+            <span style="font-weight:600;color:var(--text);">${esc(String(boat.length_ft || '—'))} ft</span>
+          </div>
+          ${boat.year ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;"><span style="color:var(--text-muted);">Año</span><span style="font-weight:600;color:var(--text);">${esc(String(boat.year))}</span></div>` : ''}
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span style="color:var(--text-muted);">Ubicación</span>
+            <span style="font-weight:600;color:var(--text);">📍 ${esc(boat.location || '—')}</span>
+          </div>
+        </div>
+      </div>
+      <a href="${waLink}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:0.65rem;background:#25D366;color:#fff;border-radius:var(--r-sm);padding:0.9rem 1.25rem;font-family:var(--mono);font-size:0.78rem;font-weight:500;letter-spacing:0.04em;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='#1ebe5d'" onmouseout="this.style.background='#25D366'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Consultar por WhatsApp
+      </a>
+      <p style="font-family:var(--mono);font-size:0.63rem;color:var(--text-muted);text-align:center;margin-top:0.85rem;line-height:1.6;">Respuesta rápida · Sin compromiso</p>
+    `;
+    parent.insertBefore(panel, wizard);
+  }
+
+})();
+</script>
+</body>
+</html>

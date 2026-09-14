@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Panel — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260916b" />
+</head>
+<body>
+
+<nav class="nav is-scrolled" id="nav">
+  <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" /></a>
+  <div class="nav-actions">
+    <a href="/embarcaciones.html" class="nav-btn nav-btn-ghost">Ver catálogo</a>
+    <button class="nav-btn nav-btn-ghost" id="logout-btn" style="cursor:pointer;">Salir</button>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <div class="nav-mobile-links">
+    <a href="/embarcaciones.html" class="nav-mobile-link">Catálogo</a>
+    <a href="#" class="nav-mobile-link" id="logout-mobile">Salir</a>
+  </div>
+</div>
+
+<div class="page" style="background:var(--bg);">
+  <div class="page-hero">
+    <div class="page-hero-inner">
+      <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+        <div class="dashboard-avatar" id="user-avatar">—</div>
+        <div>
+          <h1 class="page-title" id="user-greeting">Mi Panel</h1>
+          <p class="page-subtitle" id="user-email-display"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" style="padding-top:2rem;">
+    <div class="dashboard-grid">
+
+      <!-- Sidebar -->
+      <div class="dashboard-sidebar">
+        <div class="dashboard-avatar" id="sidebar-avatar" style="margin:0 auto 0.75rem;">—</div>
+        <div class="dashboard-name" id="sidebar-name" style="text-align:center;"></div>
+        <div class="dashboard-email" id="sidebar-email" style="text-align:center;"></div>
+        <nav class="dashboard-nav">
+          <button class="dashboard-nav-item active" data-tab="bookings" onclick="showTab('bookings',this)">
+            <span>📋</span> Mis Reservas
+          </button>
+          <button class="dashboard-nav-item" data-tab="payment" onclick="showTab('payment',this)">
+            <span>💳</span> Enviar Pago
+          </button>
+          <button class="dashboard-nav-item" data-tab="profile" onclick="showTab('profile',this)">
+            <span>👤</span> Mi Perfil
+          </button>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line);">
+            <button class="dashboard-nav-item" onclick="logout()" style="color:var(--cream-3);">
+              <span>🚪</span> Cerrar sesión
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Main content -->
+      <div>
+
+        <!-- Bookings tab -->
+        <div id="tab-bookings" class="tab-content">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+            <h2 style="font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--cream);">Mis Reservas</h2>
+            <a href="/embarcaciones.html" class="btn btn-primary btn-sm">+ Nueva reserva</a>
+          </div>
+
+          <!-- Filters -->
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+            <button class="location-tab active" onclick="filterBookings('all',this)">Todas</button>
+            <button class="location-tab" onclick="filterBookings('pending',this)">Pendiente</button>
+            <button class="location-tab" onclick="filterBookings('confirmed',this)">Confirmadas</button>
+            <button class="location-tab" onclick="filterBookings('cancelled',this)">Canceladas</button>
+          </div>
+
+          <div id="bookings-list" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="skeleton" style="height:160px;border-radius:16px;"></div>
+            <div class="skeleton" style="height:160px;border-radius:16px;"></div>
+          </div>
+        </div>
+
+        <!-- Payment tab -->
+        <div id="tab-payment" class="tab-content hidden">
+          <h2 style="font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Enviar Comprobante de Pago</h2>
+
+          <div id="payment-select-booking" style="margin-bottom:2rem;">
+            <div class="form-group">
+              <label class="form-label">Selecciona tu reserva</label>
+              <select class="form-select" id="pay-booking-select">
+                <option value="">Cargando reservas...</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="payment-form-wrap" class="hidden">
+            <div class="bank-box" style="margin-bottom:2rem;">
+              <div class="bank-box-title">🏦 Datos para la Transferencia</div>
+              <div class="bank-box-tab">
+                <button class="bank-box-tab-btn active" onclick="switchBankD('popular',this)">Banco Popular</button>
+                <button class="bank-box-tab-btn" onclick="switchBankD('reservas',this)">Banreservas</button>
+              </div>
+              <!-- Banco Popular -->
+              <div class="bank-panel active" id="dash-popular">
+                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
+                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">745121483</span><button class="bank-copy" onclick="copyText('745121483')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+              </div>
+              <!-- Banreservas -->
+              <div class="bank-panel" id="dash-reservas">
+                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
+                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+              </div>
+              <!-- Referencia y monto (siempre visible) -->
+              <div style="border-top:1.5px solid var(--line);margin-top:0.5rem;padding-top:0.75rem;">
+                <div class="bank-row"><span class="bank-key">Referencia</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val" id="pay-ref">—</span><button class="bank-copy" id="copy-ref-btn">Copiar</button></div></div>
+                <div class="bank-row"><span class="bank-key">Monto a pagar</span><span class="bank-val" id="pay-amount" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--sky-2);">—</span></div>
+              </div>
+            </div>
+
+            <div style="background:var(--bg-card);border:1px solid var(--line-2);border-radius:var(--r);padding:2rem;">
+              <h3 style="font-family:var(--serif);font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Datos del comprobante</h3>
+              <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="form-group">
+                  <label class="form-label">Comprobante de pago *</label>
+                  <input type="file" class="form-input" id="pay-receipt" accept=".jpg,.jpeg,.png,.pdf,.webp" style="padding:0.6rem;" />
+                  <span style="font-size:0.72rem;color:var(--cream-3);margin-top:0.3rem;">Foto o captura de la transferencia — JPG, PNG o PDF, máx. 10MB</span>
+                </div>
+                <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:0.9rem 1.1rem;font-size:0.8rem;color:var(--cream-2);line-height:1.6;">
+                  💡 Recomendamos transferir desde una cuenta del <strong>mismo banco</strong> (Banco Popular o Banreservas) para que el pago se refleje de inmediato. Si transfieres desde un banco distinto, asegúrate de que sea una <strong>transferencia instantánea</strong>, ya que un depósito interbancario regular puede tardar en acreditarse.
+                </div>
+                <div id="pay-error" class="form-error hidden"></div>
+                <button class="btn btn-primary" id="submit-payment-btn" style="justify-content:center;">
+                  Enviar comprobante
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="payment-success" class="hidden" style="text-align:center;padding:3rem 1rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+            <h3 style="font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--cream);margin-bottom:0.75rem;">Comprobante enviado</h3>
+            <p style="color:var(--cream-3);line-height:1.7;margin-bottom:2rem;">Nuestro equipo verificará tu pago en menos de 24 horas. Recibirás la confirmación aquí en tu panel.</p>
+            <button class="btn btn-ghost" onclick="showTab('bookings',null)">Ver mis reservas</button>
+          </div>
+        </div>
+
+        <!-- Profile tab -->
+        <div id="tab-profile" class="tab-content hidden">
+          <h2 style="font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Mi Perfil</h2>
+          <div style="background:var(--bg-card);border:1px solid var(--line-2);border-radius:var(--r);padding:2rem;max-width:500px;">
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+              <div class="form-group">
+                <label class="form-label">Nombre completo</label>
+                <input type="text" class="form-input" id="profile-name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" class="form-input" id="profile-email" disabled style="opacity:0.5;" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" class="form-input" id="profile-phone" placeholder="+1 809 000 0000" />
+              </div>
+              <div id="profile-msg" class="hidden"></div>
+              <button class="btn btn-primary" id="save-profile-btn" style="justify-content:center;">Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Booking detail modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="position:relative;">
+    <button class="modal-close" onclick="closeDetailModal()" aria-label="Cerrar">✕</button>
+    <div class="modal-title">Detalle de Reserva</div>
+    <div id="detail-modal-body"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script type="module">
+(function () {
+  let allBookings = [];
+
+  const fmt = (d) => window.VBR.fmtDateLong(d);
+
+  function initUI(userName, userEmail) {
+    const first = (userName || userEmail || 'Usuario').split(' ')[0];
+    const initials = (userName || userEmail || 'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('user-greeting').textContent = 'Hola, ' + first;
+    document.getElementById('user-email-display').textContent = userEmail;
+    document.getElementById('sidebar-name').textContent = userName || userEmail;
+    document.getElementById('sidebar-email').textContent = userEmail;
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('profile-name').value = userName || '';
+    document.getElementById('profile-email').value = userEmail || '';
+  }
+
+  async function logout() {
+    const clerk = window.__clerk || window.Clerk;
+    if (clerk) await clerk.signOut();
+    location.href = '/';
+  }
+  window.logout = logout;
+  document.getElementById('logout-btn')?.addEventListener('click', logout);
+  document.getElementById('logout-mobile')?.addEventListener('click', logout);
+
+  // Bootstrap: wait for Clerk then verify session
+  window.VBR_getClerk().then(clerk => {
+    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
+    const u = clerk.user;
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    const email = u.emailAddresses?.[0]?.emailAddress || '';
+    initUI(name, email);
+    loadBookings();
+  });
+
+  /* ── Tab nav ── */
+  window.showTab = function (tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    document.querySelectorAll('.dashboard-nav-item').forEach(el => el.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    else {
+      const match = document.querySelector(`[data-tab="${tab}"]`);
+      if (match) match.classList.add('active');
+    }
+    if (tab === 'payment') initPaymentTab();
+    if (tab === 'profile') initProfileTab();
+  };
+
+  /* ── Load bookings ── */
+  function loadBookings() {
+    window.VBR.api('/bookings/my').then(data => {
+      allBookings = data;
+      renderBookings('all');
+      populatePaymentSelect(data);
+    }).catch(() => { document.getElementById('bookings-list').innerHTML = '<p class="text-muted">Error cargando reservas.</p>'; });
+  }
+
+  function badgeHtml(status, payStatus) {
+    const statusMap = { pending:'Pendiente', confirmed:'Confirmada', cancelled:'Cancelada' };
+    const payMap = { pending:'Sin pago', submitted:'En verificación', verified:'Pago verificado', rejected:'Pago rechazado' };
+    const statusClass = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
+    const payClass = payStatus === 'verified' ? 'verified' : payStatus === 'submitted' ? 'submitted' : payStatus === 'rejected' ? 'rejected' : 'pending';
+    return `<span class="badge badge-${statusClass}">${statusMap[status]||status}</span>
+            <span class="badge badge-${payClass}" style="margin-left:0.4rem;">${payMap[payStatus]||payStatus}</span>`;
+  }
+
+  function renderBookings(filter) {
+    const list = document.getElementById('bookings-list');
+    let bookings = allBookings;
+    if (filter !== 'all') bookings = bookings.filter(b => b.status === filter);
+    if (!bookings.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⛵</div><h3 class="empty-state-title">Sin reservas ${filter !== 'all' ? 'en esta categoría' : ''}</h3><p class="empty-state-desc">Explora nuestro catálogo y reserva tu embarcación ideal.</p><a href="/embarcaciones.html" class="btn btn-primary">Ver embarcaciones</a></div>`;
+      return;
+    }
+    const esc = window.VBR.esc;
+    list.innerHTML = bookings.map(b => {
+      const imgs = b.boat_images || [];
+      const img = imgs[0] || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=70';
+      const needsPay = b.status !== 'cancelled' && b.payment_status === 'pending';
+      return `<div class="booking-card" data-reveal>
+        <img class="booking-card-img" src="${esc(img)}" alt="${esc(b.boat_name)}" loading="lazy" />
+        <div class="booking-card-body">
+          <div class="booking-card-header">
+            <div>
+              <div class="booking-card-name">${esc(b.boat_name)}</div>
+              <div class="booking-card-ref">${esc(b.booking_ref)}</div>
+            </div>
+            <div style="text-align:right;">${badgeHtml(b.status, b.payment_status)}</div>
+          </div>
+          <div class="booking-card-location">📍 ${esc(b.boat_location)}</div>
+          <div class="booking-card-dates">
+            <div class="booking-card-date-item">
+              <div class="booking-card-date-label">Llegada</div>
+              <div class="booking-card-date-val">${fmt(b.start_date)}</div>
+            </div>
+            <span class="booking-card-arrow">→</span>
+            <div class="booking-card-date-item">
+              <div class="booking-card-date-label">Salida</div>
+              <div class="booking-card-date-val">${fmt(b.end_date)}</div>
+            </div>
+          </div>
+          <div class="booking-card-footer">
+            <div>
+              <div class="booking-card-price">$${Number(b.total_price).toLocaleString()} USD</div>
+              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${b.days} día${b.days>1?'s':''} · ${b.guests} persona${b.guests>1?'s':''}</div>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              ${needsPay ? `<button class="btn btn-primary btn-sm" onclick="goToPay(${b.id})">Enviar pago</button>` : ''}
+              <button class="btn btn-ghost btn-sm" onclick="openDetail(${b.id})">Ver detalle</button>
+              ${b.status === 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="cancelBooking(${b.id})" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    window.VBR.observeReveals();
+  }
+
+  window.filterBookings = function (filter, btn) {
+    document.querySelectorAll('.location-tab').forEach(t => t.classList.remove('active'));
+    btn?.classList.add('active');
+    renderBookings(filter);
+  };
+
+  window.goToPay = function (id) {
+    document.querySelector('[data-tab="payment"]').click();
+    setTimeout(() => {
+      const sel = document.getElementById('pay-booking-select');
+      sel.value = id;
+      sel.dispatchEvent(new Event('change'));
+    }, 100);
+  };
+
+  /* ── Booking detail modal ── */
+  window.openDetail = function (id) {
+    window.VBR.api('/bookings/' + id).then(b => {
+      const esc = window.VBR.esc;
+      const payStatusMap = { pending:'Pendiente de pago', submitted:'Comprobante enviado — en revisión', verified:'Pago verificado ✓', rejected:'Pago rechazado' };
+      document.getElementById('detail-modal-body').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="background:var(--bg-2);border-radius:var(--r-sm);padding:1.25rem;border:1px solid var(--line);">
+            <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.75rem;">${esc(b.boat_name)}</div>
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);">📍 ${esc(b.boat_location)}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="boat-spec-item"><div class="boat-spec-label">Ref. Reserva</div><div class="boat-spec-val" style="font-family:var(--mono);font-size:0.78rem;">${esc(b.booking_ref)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Estado</div><div class="boat-spec-val">${badgeHtml(b.status, b.payment_status)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Llegada</div><div class="boat-spec-val">${fmt(b.start_date)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Salida</div><div class="boat-spec-val">${fmt(b.end_date)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Duración</div><div class="boat-spec-val">${b.days} días</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests}</div></div>
+            <div class="boat-spec-item" style="grid-column:span 2;"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.2rem;color:var(--gold);">$${Number(b.total_price).toLocaleString()} USD</div></div>
+          </div>
+          ${b.pay_status === 'rejected' ? `<div style="background:rgba(139,26,26,0.15);border:1px solid rgba(224,90,90,0.3);border-radius:var(--r-sm);padding:1rem;"><p style="font-size:0.85rem;color:#E05A5A;">Pago rechazado: ${esc(b.rejection_reason || 'Ver detalles con el equipo')}</p></div>` : ''}
+          ${b.reference_number ? `<div class="boat-spec-item"><div class="boat-spec-label">Referencia banco</div><div class="boat-spec-val" style="font-family:var(--mono);font-size:0.78rem;">${esc(b.reference_number)}</div></div>` : ''}
+          ${b.special_requests ? `<div class="boat-spec-item"><div class="boat-spec-label">Solicitudes</div><div class="boat-spec-val" style="font-size:0.85rem;">${esc(b.special_requests)}</div></div>` : ''}
+        </div>
+      `;
+      document.getElementById('detail-modal').classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    });
+  };
+  window.closeDetailModal = function () {
+    document.getElementById('detail-modal').classList.remove('is-open');
+    document.body.style.overflow = '';
+  };
+  document.getElementById('detail-modal').addEventListener('click', e => { if (e.target.id === 'detail-modal') window.closeDetailModal(); });
+
+  /* ── Cancel booking ── */
+  window.cancelBooking = function (id) {
+    if (!confirm('¿Seguro que deseas cancelar esta reserva?')) return;
+    window.VBR.api('/bookings/' + id + '/cancel', { method: 'POST' }).then(d => {
+      if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+      window.VBR.toast('Reserva cancelada', 'info');
+      loadBookings();
+    });
+  };
+
+  /* ── Payment tab ── */
+  function populatePaymentSelect(bookings) {
+    const sel = document.getElementById('pay-booking-select');
+    const payable = bookings.filter(b => b.status !== 'cancelled' && (b.payment_status === 'pending' || b.payment_status === 'rejected'));
+    if (!payable.length) {
+      sel.innerHTML = '<option value="">No tienes reservas pendientes de pago</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Selecciona una reserva...</option>' + payable.map(b =>
+      `<option value="${b.id}">${b.boat_name} · ${fmt(b.start_date)} → ${fmt(b.end_date)} · $${Number(b.total_price).toLocaleString()}</option>`
+    ).join('');
+  }
+
+  function initPaymentTab() {
+    const sel = document.getElementById('pay-booking-select');
+    sel.addEventListener('change', function () {
+      const id = parseInt(this.value);
+      const booking = allBookings.find(b => b.id === id);
+      if (!booking) { document.getElementById('payment-form-wrap').classList.add('hidden'); return; }
+      document.getElementById('payment-form-wrap').classList.remove('hidden');
+      document.getElementById('pay-ref').textContent = booking.booking_ref;
+      document.getElementById('copy-ref-btn').onclick = () => copyText(booking.booking_ref);
+      document.getElementById('pay-amount').textContent = '$' + Number(booking.total_price).toLocaleString() + ' USD';
+    });
+
+    document.getElementById('submit-payment-btn').addEventListener('click', submitPayment);
+  }
+
+  async function submitPayment() {
+    const id = document.getElementById('pay-booking-select').value;
+    if (!id) { window.VBR.toast('Selecciona una reserva', 'error'); return; }
+    const file = document.getElementById('pay-receipt').files[0];
+    if (!file) { document.getElementById('pay-error').textContent = 'Adjunta la foto o captura del comprobante de pago'; document.getElementById('pay-error').classList.remove('hidden'); return; }
+    document.getElementById('pay-error').classList.add('hidden');
+
+    const formData = new FormData();
+    formData.append('receipt', file);
+
+    const btn = document.getElementById('submit-payment-btn');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+
+    const clerk = window.__clerk || window.Clerk;
+    let authToken = null;
+    try { if (clerk?.session) authToken = await clerk.session.getToken(); } catch {}
+    fetch('/api/bookings/' + id + '/payment', {
+      method: 'POST',
+      headers: authToken ? { Authorization: 'Bearer ' + authToken } : {},
+      body: formData
+    }).then(r => r.json()).then(data => {
+      if (data.error) { document.getElementById('pay-error').textContent = data.error; document.getElementById('pay-error').classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Enviar comprobante'; return; }
+      document.getElementById('payment-form-wrap').classList.add('hidden');
+      document.getElementById('payment-select-booking').classList.add('hidden');
+      document.getElementById('payment-success').classList.remove('hidden');
+      loadBookings();
+    }).catch(() => { btn.disabled = false; btn.textContent = 'Enviar comprobante'; window.VBR.toast('Error enviando comprobante', 'error'); });
+  }
+
+  /* ── Profile tab ── */
+  function initProfileTab() {
+    window.VBR.api('/auth/me').then(u => {
+      document.getElementById('profile-name').value = u.name;
+      document.getElementById('profile-email').value = u.email;
+      document.getElementById('profile-phone').value = u.phone || '';
+    });
+  }
+
+  document.getElementById('save-profile-btn').addEventListener('click', () => {
+    const name = document.getElementById('profile-name').value.trim();
+    const phone = document.getElementById('profile-phone').value.trim();
+    const msg = document.getElementById('profile-msg');
+    window.VBR.api('/auth/me', { method: 'PUT', body: { name, phone } }).then(u => {
+      msg.className = 'form-success'; msg.textContent = 'Perfil actualizado correctamente'; msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 3000);
+    });
+  });
+
+  /* ── Check URL params ── */
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('tab') === 'payment') {
+    setTimeout(() => {
+      const payTab = document.querySelector('[data-tab="payment"]');
+      if (payTab) { window.showTab('payment', payTab); }
+      const bid = urlParams.get('booking');
+      if (bid) setTimeout(() => {
+        const sel = document.getElementById('pay-booking-select');
+        if (sel) { sel.value = bid; sel.dispatchEvent(new Event('change')); }
+      }, 600);
+    }, 300);
+  }
+
+})();
+
+window.switchBankD = function(bank, btn) {
+  document.querySelectorAll('#dash-popular,#dash-reservas').forEach(p => p.classList.remove('active'));
+  document.getElementById('dash-' + bank).classList.add('active');
+  btn.closest('.bank-box-tab').querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
