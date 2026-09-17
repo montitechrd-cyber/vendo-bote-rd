@@ -1,8 +1,9 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { getDB } = require('../database');
-const { authRequired } = require('../middleware/auth');
+const { authRequired, adminRequired } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -92,6 +93,23 @@ router.get('/id-document/:userId', authRequired, async (req, res) => {
     const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);
     if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
     res.sendFile(path.join(__dirname, '../uploads/ids', user.id_document_filename));
+  } catch (e) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Permite a un admin borrar el documento de identidad de un usuario (por
+// ejemplo, a pedido del propio usuario o del cliente dueño de la plataforma).
+router.delete('/id-document/:userId', adminRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    const targetId = parseInt(req.params.userId);
+    const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);
+    if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
+
+    fs.unlink(path.join(__dirname, '../uploads/ids', user.id_document_filename), () => {});
+    await db.run('UPDATE users SET id_document_filename = NULL WHERE id = $1', [targetId]);
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
   }
