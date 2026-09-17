@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=2" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=2" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=2" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260917e" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917g" />
 </head>
 <body>
 
@@ -34,8 +34,9 @@
 </nav>
 <div class="nav-mobile" id="nav-mobile">
   <div class="nav-mobile-links">
-    <a href="/embarcaciones.html" class="nav-mobile-link">Catálogo</a>
-    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+    <a href="/embarcaciones.html" class="nav-mobile-link nav-mobile-link-primary">⛵ Catálogo</a>
+    <div class="nav-mobile-divider"></div>
+    <a href="/auth.html" class="nav-mobile-link nav-mobile-cta" id="nav-mobile-login-btn">🔑 Ingresar</a>
   </div>
 </div>
 
@@ -378,7 +379,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script src="/assets/js/main.js?v=20260917a" defer></script>
 <script defer>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -512,9 +513,6 @@
     // Specs
     const specsData = [
       ['👥', 'Capacidad', boat.capacity + ' personas'],
-      ['📏', 'Eslora', (boat.length_ft || '—') + ' ft'],
-      ['📅', 'Año', boat.year || '—'],
-      ['⚙️', 'Marca', boat.brand || '—'],
       boat.for_sale
         ? ['🏷️', 'Venta', boat.sale_price ? '$' + Number(boat.sale_price).toLocaleString() : 'Consultar']
         : ['💰', 'Precio', '$' + Number(boat.price_per_day).toLocaleString() + ' / día'],
@@ -1140,11 +1138,6 @@
             <span style="color:var(--text-muted);">Capacidad</span>
             <span style="font-weight:600;color:var(--text);">${esc(String(boat.capacity))} personas</span>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-            <span style="color:var(--text-muted);">Eslora</span>
-            <span style="font-weight:600;color:var(--text);">${esc(String(boat.length_ft || '—'))} ft</span>
-          </div>
-          ${boat.year ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;"><span style="color:var(--text-muted);">Año</span><span style="font-weight:600;color:var(--text);">${esc(String(boat.year))}</span></div>` : ''}
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
             <span style="color:var(--text-muted);">Ubicación</span>
             <span style="font-weight:600;color:var(--text);">📍 ${esc(boat.location || '—')}</span>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=2" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260917e" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917g" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -174,14 +174,18 @@
 
   <!-- Sidebar -->
   <aside class="admin-sidebar">
-    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="admin-sidebar-logo-img" />
-    <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:-1.5rem;margin-bottom:1.5rem;">ADMIN PANEL</div>
-    <div class="admin-nav-item active" onclick="showSection('dashboard',this)"><span class="admin-nav-icon">📊</span>Dashboard</div>
-    <div class="admin-nav-item" onclick="showSection('bookings',this)"><span class="admin-nav-icon">📋</span>Reservas</div>
-    <div class="admin-nav-item" onclick="showSection('payments',this)"><span class="admin-nav-icon">💳</span>Verificar Pagos</div>
-    <div class="admin-nav-item" onclick="showSection('boats',this)"><span class="admin-nav-icon">⛵</span>Embarcaciones</div>
-    <div class="admin-nav-item" onclick="showSection('calendar',this)"><span class="admin-nav-icon">📅</span>Calendario</div>
-    <div style="margin-top:auto;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.12);">
+    <a href="/" title="Ir a la página principal" class="admin-sidebar-brand">
+      <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="admin-sidebar-logo-img" />
+    </a>
+    <div class="admin-sidebar-label">ADMIN PANEL</div>
+    <div class="admin-nav-items">
+      <div class="admin-nav-item active" onclick="showSection('dashboard',this)"><span class="admin-nav-icon">📊</span>Dashboard</div>
+      <div class="admin-nav-item" onclick="showSection('bookings',this)"><span class="admin-nav-icon">📋</span>Reservas</div>
+      <div class="admin-nav-item" onclick="showSection('payments',this)"><span class="admin-nav-icon">💳</span>Verificar Pagos</div>
+      <div class="admin-nav-item" onclick="showSection('boats',this)"><span class="admin-nav-icon">⛵</span>Embarcaciones</div>
+      <div class="admin-nav-item" onclick="showSection('calendar',this)"><span class="admin-nav-icon">📅</span>Calendario</div>
+    </div>
+    <div class="admin-sidebar-footer">
       <div class="admin-nav-item" onclick="logout()"><span class="admin-nav-icon">🚪</span>Salir</div>
       <a href="/" class="admin-nav-item" style="display:flex;"><span class="admin-nav-icon">🌐</span>Ver Sitio</a>
     </div>
@@ -207,7 +211,7 @@
         <h2 style="font-family:var(--serif);font-size:1.3rem;font-style:italic;color:var(--cream);">Reservas Recientes</h2>
       </div>
       <div class="table-wrap">
-        <table class="data-table" id="recent-bookings-table">
+        <table class="data-table admin-mobile-table" id="recent-bookings-table">
           <thead><tr><th>Referencia</th><th>Embarcación</th><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Total</th><th>Estado</th><th>Pago</th></tr></thead>
           <tbody id="recent-bookings-body"><tr><td colspan="8" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas aún.</td></tr></tbody>
         </table>
@@ -220,25 +224,27 @@
         <h1 class="admin-title">Todas las Reservas</h1>
         <p class="admin-subtitle">Gestiona las reservas de la plataforma</p>
       </div>
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;">
-        <select class="filter-select" id="book-filter-status" style="width:auto;min-width:160px;">
+      <div class="admin-filter-bar">
+        <select class="filter-select" id="book-filter-status">
           <option value="">Todos los estados</option>
           <option value="pending">Pendiente</option>
           <option value="confirmed">Confirmadas</option>
           <option value="cancelled">Canceladas</option>
         </select>
-        <select class="filter-select" id="book-filter-pay" style="width:auto;min-width:200px;">
+        <select class="filter-select" id="book-filter-pay">
           <option value="">Todos los pagos</option>
           <option value="pending">Sin pago</option>
           <option value="submitted">Comprobante enviado</option>
           <option value="verified">Pago verificado</option>
           <option value="rejected">Pago rechazado</option>
         </select>
-        <button class="btn btn-primary btn-sm" onclick="loadAllBookings()">Filtrar</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('book-filter-status').value='';document.getElementById('book-filter-pay').value='';loadAllBookings()">Limpiar</button>
+        <div class="admin-filter-bar-actions">
+          <button class="btn btn-primary btn-sm" onclick="loadAllBookings()">Filtrar</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('book-filter-status').value='';document.getElementById('book-filter-pay').value='';loadAllBookings()">Limpiar</button>
+        </div>
       </div>
       <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table admin-mobile-table">
           <thead><tr><th>Ref</th><th>Embarcación</th><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Total</th><th>Estado</th><th>Pago</th><th>Acciones</th></tr></thead>
           <tbody id="all-bookings-body"><tr><td colspan="9" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas.</td></tr></tbody>
         </table>
@@ -424,7 +430,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script src="/assets/js/main.js?v=20260917a" defer></script>
 <script type="module">
 (function () {
   window.logout = async function () {
@@ -454,6 +460,13 @@
     document.getElementById('sec-' + id).classList.remove('hidden');
     document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
     if (el) el.classList.add('active');
+    // En móvil el sidebar queda en flujo normal arriba del contenido — sin esto,
+    // el usuario toca un módulo y la sección nueva queda fuera de la pantalla,
+    // pareciendo que nada pasó.
+    if (window.innerWidth <= 768) {
+      const main = document.querySelector('.admin-main');
+      if (main) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     if (id === 'dashboard')  loadDashboard();
     if (id === 'bookings')   loadAllBookings();
     if (id === 'payments')   loadPendingPayments();
@@ -478,14 +491,14 @@
       }
       tbody.innerHTML = stats.recent_bookings.map(b => `
         <tr onclick="openVerifyModal(${b.id})" style="cursor:pointer;">
-          <td style="font-family:var(--mono);font-size:0.72rem;">${esc(b.booking_ref)}</td>
-          <td>${esc(b.boat_name)}</td>
-          <td>${esc(b.user_name)}</td>
-          <td>${fmtDate(b.start_date)}</td>
-          <td style="font-family:var(--mono);font-size:0.7rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
-          <td>$${Number(b.total_price).toLocaleString()}</td>
-          <td>${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
-          <td>${badge(b.payment_status==='verified'?'Verificado':b.payment_status==='submitted'?'En revisión':b.payment_status==='rejected'?'Rechazado':'Sin pago', b.payment_status==='verified'?'verified':b.payment_status==='submitted'?'submitted':b.payment_status==='rejected'?'rejected':'pending')}</td>
+          <td data-label="Referencia" style="font-family:var(--mono);font-size:0.72rem;">${esc(b.booking_ref)}</td>
+          <td data-label="Embarcación">${esc(b.boat_name)}</td>
+          <td data-label="Cliente">${esc(b.user_name)}</td>
+          <td data-label="Fecha">${fmtDate(b.start_date)}</td>
+          <td data-label="Turno" style="font-family:var(--mono);font-size:0.7rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
+          <td data-label="Total">$${Number(b.total_price).toLocaleString()}</td>
+          <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
+          <td data-label="Pago">${badge(b.payment_status==='verified'?'Verificado':b.payment_status==='submitted'?'En revisión':b.payment_status==='rejected'?'Rechazado':'Sin pago', b.payment_status==='verified'?'verified':b.payment_status==='submitted'?'submitted':b.payment_status==='rejected'?'rejected':'pending')}</td>
         </tr>`).join('');
     }).catch(() => window.VBR.toast('Error cargando el dashboard', 'error'));
   }
@@ -506,15 +519,15 @@
       tbody.innerHTML = data.map(b => {
         const ps = b.pay_status || b.payment_status;
         return `<tr>
-          <td style="font-family:var(--mono);font-size:0.7rem;">${esc(b.booking_ref)}</td>
-          <td>${esc(b.boat_name)}</td>
-          <td><div>${esc(b.user_name)}</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${esc(b.user_email)}</div></td>
-          <td>${fmtDate(b.start_date)}</td>
-          <td style="font-family:var(--mono);font-size:0.68rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
-          <td>$${Number(b.total_price).toLocaleString()}</td>
-          <td>${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
-          <td>${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button></td>
+          <td data-label="Ref" style="font-family:var(--mono);font-size:0.7rem;">${esc(b.booking_ref)}</td>
+          <td data-label="Embarcación">${esc(b.boat_name)}</td>
+          <td data-label="Cliente"><div>${esc(b.user_name)}</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${esc(b.user_email)}</div></td>
+          <td data-label="Fecha">${fmtDate(b.start_date)}</td>
+          <td data-label="Turno" style="font-family:var(--mono);font-size:0.68rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
+          <td data-label="Total">$${Number(b.total_price).toLocaleString()}</td>
+          <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
+          <td data-label="Pago">${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
+          <td data-label="Acciones"><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button></td>
         </tr>`;
       }).join('');
     }).catch(() => window.VBR.toast('Error cargando reservas', 'error'));

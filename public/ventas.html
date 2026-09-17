@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=2" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=2" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=2" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260917e" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917g" />
   <style>
     /* ── Misma cuadrícula que el catálogo de renta (tarjetas 4:3) ── */
     #sale-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
@@ -123,9 +123,10 @@
 
 <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
   <div class="nav-mobile-links">
-    <a href="/embarcaciones.html" class="nav-mobile-link">Rentar</a>
-    <a href="/ventas.html" class="nav-mobile-link">Comprar</a>
-    <a href="/auth.html" class="nav-mobile-link">Ingresar</a>
+    <a href="/embarcaciones.html" class="nav-mobile-link nav-mobile-link-primary">⛵ Rentar</a>
+    <a href="/ventas.html" class="nav-mobile-link nav-mobile-link-primary">🛥️ Comprar</a>
+    <div class="nav-mobile-divider"></div>
+    <a href="/auth.html" class="nav-mobile-link nav-mobile-cta" id="nav-mobile-login-btn">🔑 Ingresar</a>
   </div>
 </div>
 
@@ -217,7 +218,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script src="/assets/js/main.js?v=20260917a" defer></script>
 <script defer>
 (function () {
   let allBoats = [];

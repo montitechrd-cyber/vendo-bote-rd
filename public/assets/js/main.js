@@ -117,6 +117,7 @@
     // Auth state via Clerk
     const loginBtn = $('#nav-login-btn');
     const registerBtn = $('#nav-register-btn');
+    const mobileLoginBtn = $('#nav-mobile-login-btn');
     getClerk().then(clerk => {
       if (!clerk?.user) return;
       const u = clerk.user;
@@ -126,6 +127,10 @@
       if (registerBtn) {
         if (role === 'admin') { registerBtn.textContent = 'Admin Panel'; registerBtn.href = '/admin.html'; }
         else { registerBtn.textContent = 'Mis Reservas'; registerBtn.href = '/dashboard.html'; }
+      }
+      if (mobileLoginBtn) {
+        if (role === 'admin') { mobileLoginBtn.innerHTML = '🛠️ Panel Admin'; mobileLoginBtn.href = '/admin.html'; }
+        else { mobileLoginBtn.innerHTML = '👤 ' + name; mobileLoginBtn.href = '/dashboard.html'; }
       }
     });
   }
