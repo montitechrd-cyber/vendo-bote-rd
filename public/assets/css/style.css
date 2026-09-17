@@ -1177,6 +1177,7 @@ ul { list-style: none; }
   .nav-hamburger { display: flex; }
   .hero-content { padding: calc(var(--nav-h) + 1rem) clamp(1.25rem, 6vw, 4rem) 2.5rem; }
   .hero-logo { margin: 0 auto 1rem; max-width: clamp(150px, 34vw, 200px); }
+  .hero-actions .btn { padding: 0.85rem 1.8rem; font-size: 0.88rem; }
   .hero-locations { margin-bottom: 1.25rem; }
   .hero-tagline { font-size: clamp(1.6rem, 7vw, 2.4rem); }
   .hero-scroll { display: none; }
