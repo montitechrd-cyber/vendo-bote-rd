@@ -23,7 +23,7 @@
   const fmtDateLong  = d => new Date(d + 'T00:00:00').toLocaleDateString('es-DO', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const fmtDateShort = d => new Date(d + 'T00:00:00').toLocaleDateString('es-DO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
   const API = '/api';
-  const CLERK_PK = 'pk_test_cG9saXRlLWRvZ2Zpc2gtMzYuY2xlcmsuYWNjb3VudHMuZGV2JA';
+  const CLERK_PK = 'pk_live_Y2xlcmsudmVuZG9ib3RlcmQuY29tJA';
 
   function safe(fn, name) {
     try { fn(); } catch (e) { console.warn('[VBR]', name, e); }
@@ -37,7 +37,7 @@
       if (window.__clerk) { resolve(window.__clerk); return; }
       const s = document.createElement('script');
       s.setAttribute('data-clerk-publishable-key', CLERK_PK);
-      s.src = 'https://polite-dogfish-36.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+      s.src = 'https://clerk.vendoboterd.com/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
       s.crossOrigin = 'anonymous';
       s.async = true;
       s.addEventListener('load', async () => {

@@ -61,7 +61,7 @@
 <script src="/assets/js/main.js?v=20260916b" defer></script>
 <script>
 (function () {
-  const CLERK_PK = 'pk_test_cG9saXRlLWRvZ2Zpc2gtMzYuY2xlcmsuYWNjb3VudHMuZGV2JA';
+  const CLERK_PK = 'pk_live_Y2xlcmsudmVuZG9ib3RlcmQuY29tJA';
   const params = new URLSearchParams(location.search);
   const tab = params.get('tab');
   const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
@@ -87,7 +87,7 @@
 
   const s = document.createElement('script');
   s.setAttribute('data-clerk-publishable-key', CLERK_PK);
-  s.src = 'https://polite-dogfish-36.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+  s.src = 'https://clerk.vendoboterd.com/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
   s.crossOrigin = 'anonymous';
   s.async = true;
   s.addEventListener('load', async function () {
