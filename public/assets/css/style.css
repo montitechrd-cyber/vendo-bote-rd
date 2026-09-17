@@ -192,32 +192,39 @@ ul { list-style: none; }
 /* ── Hero ── */
 .hero {
   position: relative;
+  /* En pantallas anchas (desktop) 100svh combina bien con un video 16:9 — el
+     recorte de "cover" es mínimo. En vertical (celular) esa misma altura vuelve
+     al contenedor mucho más angosto que el video y "cover" tiene que recortar
+     casi todo el ancho para cubrirlo. Se reduce la altura por rango de pantalla
+     para que el contenedor se parezca más a la proporción real del video. */
   min-height: 100svh;
+  max-height: 900px;
   display: grid; place-items: center;
   overflow: hidden;
 }
 .hero-bg {
   position: absolute; inset: 0; z-index: 0;
-  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 50%, var(--navy) 100%);
+  background: var(--navy);
   overflow: hidden;
 }
 .hero-bg img {
   width: 100%; height: 100%; object-fit: cover;
   animation: ambientZoom 32s ease-in-out infinite;
 }
-/* object-fit:cover recortaba la embarcación cada vez que el contenedor no
-   compartía el 16:9 del video (todo el rango móvil). Ahora el video principal
-   usa "contain" para mostrarla siempre completa, y una copia desenfocada del
-   mismo clip de fondo rellena el espacio sobrante — sin barras vacías. */
-.hero-video-backdrop {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; filter: blur(50px) brightness(0.55) saturate(1.3);
-  transform: scale(1.2);
-}
 .hero-video {
-  position: relative; z-index: 1;
-  width: 100%; height: 100%; object-fit: contain;
+  width: 100%; height: 100%; object-fit: cover;
+  object-position: center 42%;
   display: block;
+}
+@media (max-width: 1024px) {
+  .hero { min-height: 78vh; max-height: none; }
+}
+@media (max-width: 640px) {
+  .hero { min-height: 62vh; }
+  .hero-video { object-position: center 38%; }
+}
+@media (max-width: 640px) and (orientation: landscape) {
+  .hero { min-height: 100svh; }
 }
 @keyframes ambientZoom {
   0%, 100% { transform: scale(1.05) translate3d(0, 0, 0); }
