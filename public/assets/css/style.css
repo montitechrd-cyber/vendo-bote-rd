@@ -205,7 +205,14 @@ ul { list-style: none; }
 }
 .hero-video {
   width: 100%; height: 100%; object-fit: cover;
+  object-position: center center;
   display: block;
+}
+@media (max-width: 768px) {
+  /* En vertical, cover escala el video 16:9 tanto que solo se ve una franja
+     angosta del ancho total (a lo alto sí cabe completo) — se ajusta el eje X
+     para que esa franja capture el yate en vez del agua vacía. */
+  .hero-video { object-position: 30% center; }
 }
 @keyframes ambientZoom {
   0%, 100% { transform: scale(1.05) translate3d(0, 0, 0); }
