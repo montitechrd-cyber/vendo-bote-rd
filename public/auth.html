@@ -47,6 +47,10 @@
       <div id="clerk-mount"></div>
     </div>
 
+    <div id="auth-slow-hint" class="hidden" style="text-align:center;font-size:0.82rem;color:var(--text-muted);background:var(--sky-lighter);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:0.9rem 1.1rem;margin-top:1rem;line-height:1.6;">
+      ¿Se está quedando cargando? Intenta con <b>otro navegador</b> o desactiva temporalmente algún bloqueador de anuncios — a veces bloquean la verificación de seguridad.
+    </div>
+
     <p style="text-align:center;font-size:0.75rem;color:var(--cream-4);margin-top:2rem;">
       Al registrarte aceptas nuestros términos de servicio y política de privacidad.
     </p>
@@ -92,6 +96,22 @@
 
     if (window.Clerk.user) { afterSignIn(window.Clerk.user); return; }
 
+    // Enlace de acceso directo (generado por un admin) — respaldo para cuando la
+    // verificación anti-bots de Clerk no carga en el navegador del usuario.
+    const ticket = params.get('ticket');
+    if (ticket) {
+      try {
+        const attempt = await window.Clerk.client.signIn.create({ strategy: 'ticket', ticket });
+        if (attempt.status === 'complete') {
+          await window.Clerk.setActive({ session: attempt.createdSessionId });
+          afterSignIn(window.Clerk.user);
+          return;
+        }
+      } catch (e) {
+        console.error('Enlace de acceso inválido o vencido', e);
+      }
+    }
+
     const mount = document.getElementById('clerk-mount');
     const opts = {
       appearance: {
@@ -131,6 +151,15 @@
     window.Clerk.addListener(({ user }) => {
       if (user) afterSignIn(user);
     });
+
+    // Si a los 8s no hay ni campos de formulario ni sesión activa, probablemente
+    // la verificación anti-bots (Cloudflare Turnstile) no cargó en este navegador.
+    setTimeout(() => {
+      const hasForm = !!mount.querySelector('input');
+      if (!hasForm && !window.Clerk.user) {
+        document.getElementById('auth-slow-hint').classList.remove('hidden');
+      }
+    }, 8000);
   });
   document.head.appendChild(s);
 })();
