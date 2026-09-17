@@ -7,11 +7,11 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260917a" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917b" />
   <style>
     /* Estas reglas ganan sobre style.css por orden en la cascada (misma especificidad,
        este <style> va después del <link>), sin necesidad de !important. */
-    body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; }
+    body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .auth-page { background: transparent; }
     .auth-tagline { color: var(--text-muted); }
     .clerk-wrap {
@@ -20,8 +20,18 @@
       align-items: flex-start;
       min-height: 400px;
       padding: 1rem 0;
+      width: 100%;
     }
     .auth-logo-img { filter: none; }
+
+    /* El widget de Clerk trae un ancho mínimo interno que no cede en pantallas
+       angostas — sin esto, la tarjeta se recorta contra el padding de .auth-page
+       (overflow:hidden) y el usuario nunca ve los campos del lado derecho. */
+    .cl-rootBox, .cl-cardBox, .cl-card { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+    @media (max-width: 480px) {
+      .auth-page { padding: 1.25rem 0.75rem; }
+      .cl-card { padding: 1.5rem 1.1rem !important; }
+    }
   </style>
 </head>
 <body>
@@ -52,9 +62,22 @@
   const tab = params.get('tab');
   const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
 
-  function afterSignIn(user) {
-    sessionStorage.removeItem('vbr_redirect');
+  async function afterSignIn(user) {
     const role = user.publicMetadata?.role;
+
+    // El staff (admin) no pasa por el onboarding de cliente — solo los clientes reales.
+    if (role !== 'admin') {
+      try {
+        const me = await window.VBR.api('/auth/me');
+        if (!me?.profile_completed) {
+          sessionStorage.setItem('vbr_redirect', redirect);
+          location.href = '/complete-profile.html';
+          return;
+        }
+      } catch {}
+    }
+
+    sessionStorage.removeItem('vbr_redirect');
     location.href = role === 'admin' ? '/admin.html' : redirect;
   }
 

@@ -683,7 +683,11 @@ ul { list-style: none; }
   transition: border-color 0.2s, background 0.2s;
   background: var(--bg-card);
 }
-.additional-item:hover { border-color: var(--sky); background: var(--sky-lighter); }
+/* Solo en dispositivos con mouse real: en touch, :hover se queda "pegado" tras
+   el toque (no hay cursor que se aleje) y se confundía con el estado marcado. */
+@media (hover: hover) and (pointer: fine) {
+  .additional-item:hover { border-color: var(--sky); background: var(--sky-lighter); }
+}
 .additional-item input[type="checkbox"] { display: none; }
 .additional-item:has(input:checked) { border-color: var(--sky); background: var(--sky-lighter); }
 .additional-icon { font-size: 1.3rem; flex-shrink: 0; }

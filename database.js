@@ -37,6 +37,11 @@ async function createTables() {
   // Evita doble reserva del mismo turno a nivel de base de datos (la validación en la ruta
   // es check-then-insert y por sí sola no cierra la carrera entre dos solicitudes simultáneas).
   await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_unique_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending')`).catch(() => {});
+  // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
+  // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_document_filename TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,

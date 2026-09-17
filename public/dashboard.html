@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260917a" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917b" />
 </head>
 <body>
 
@@ -225,12 +225,23 @@
   document.getElementById('logout-mobile')?.addEventListener('click', logout);
 
   // Bootstrap: wait for Clerk then verify session
-  window.VBR_getClerk().then(clerk => {
+  window.VBR_getClerk().then(async clerk => {
     if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
-    const u = clerk.user;
-    const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
-    const email = u.emailAddresses?.[0]?.emailAddress || '';
-    initUI(name, email);
+    const email = clerk.user.emailAddresses?.[0]?.emailAddress || '';
+
+    // Si entra con sesión ya activa (sin pasar de nuevo por /auth.html) y aún no
+    // completó nombre/apellido/teléfono, lo mandamos a completarlo primero.
+    try {
+      const me = await window.VBR.api('/auth/me');
+      if (!me?.profile_completed) {
+        sessionStorage.setItem('vbr_redirect', location.href);
+        location.href = '/complete-profile.html';
+        return;
+      }
+      initUI([me.name, me.last_name].filter(Boolean).join(' '), email);
+    } catch {
+      initUI(email, email);
+    }
     loadBookings();
   });
 

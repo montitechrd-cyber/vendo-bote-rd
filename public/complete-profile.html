@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Completa tu perfil — VENDO BOTE RD</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260917b" />
+  <style>
+    body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
+    .cp-page { min-height: 100svh; display: grid; place-items: center; padding: 2rem 1rem; }
+    .cp-card {
+      background: white; border: 1.5px solid var(--line-2); border-radius: var(--r);
+      padding: clamp(1.75rem, 5vw, 2.75rem); max-width: 480px; width: 100%;
+      box-shadow: var(--shadow-lg);
+    }
+    .cp-logo { height: 90px; object-fit: contain; display: block; margin: 0 auto 1rem; }
+    .cp-title { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 1.5rem; color: var(--navy); text-align: center; margin-bottom: 0.5rem; }
+    .cp-sub { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.75rem; line-height: 1.6; }
+    .cp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+    @media (max-width: 480px) { .cp-row { grid-template-columns: 1fr; } }
+    .cp-optional-tag { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+    .cp-file-wrap {
+      border: 1.5px dashed var(--line-2); border-radius: var(--r-sm); padding: 1rem;
+      text-align: center; font-size: 0.82rem; color: var(--text-muted); cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .cp-file-wrap:hover { border-color: var(--sky); background: var(--sky-lighter); }
+    .cp-file-wrap input { display: none; }
+    .cp-file-name { font-weight: 600; color: var(--navy); margin-top: 0.35rem; }
+  </style>
+</head>
+<body>
+
+<div class="cp-page">
+  <div class="cp-card">
+    <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="cp-logo" />
+    <div class="cp-title">Completa tu perfil</div>
+    <p class="cp-sub">Necesitamos estos datos para confirmar tus reservas y contactarte sobre tu embarcación.</p>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="cp-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="cp-name" autocomplete="given-name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido *</label>
+          <input type="text" class="form-input" id="cp-lastname" autocomplete="family-name" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Número de teléfono *</label>
+        <input type="tel" class="form-input" id="cp-phone" placeholder="+1 809 000 0000" autocomplete="tel" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Foto de cédula o pasaporte <span class="cp-optional-tag">Opcional</span></label>
+        <label class="cp-file-wrap" id="cp-file-wrap">
+          <input type="file" id="cp-file" accept=".jpg,.jpeg,.png,.pdf,.webp" />
+          <div id="cp-file-placeholder">📄 Toca para subir una foto o PDF</div>
+          <div class="cp-file-name" id="cp-file-name" style="display:none;"></div>
+        </label>
+      </div>
+
+      <div id="cp-error" class="form-error hidden"></div>
+      <button class="btn btn-primary" id="cp-submit" style="justify-content:center;margin-top:0.5rem;">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20260916b" defer></script>
+<script defer>
+(function () {
+  const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
+
+  // main.js es un <script defer> igual que este — en teoría carga primero, pero
+  // se ha visto llegar tarde en algunos entornos; se espera en vez de asumirlo.
+  function whenClerkReady(fn) {
+    if (window.VBR_getClerk) fn();
+    else setTimeout(() => whenClerkReady(fn), 20);
+  }
+
+  whenClerkReady(() => window.VBR_getClerk().then(async clerk => {
+    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
+
+    // Si ya completó el perfil antes, no tiene nada que hacer aquí.
+    try {
+      const me = await window.VBR.api('/auth/me');
+      if (me?.profile_completed) {
+        const role = clerk.user.publicMetadata?.role;
+        location.href = role === 'admin' ? '/admin.html' : redirect;
+        return;
+      }
+      // Precarga si ya había algo guardado (ej. volvió sin terminar)
+      if (me?.name) document.getElementById('cp-name').value = me.name;
+      if (me?.last_name) document.getElementById('cp-lastname').value = me.last_name;
+      if (me?.phone) document.getElementById('cp-phone').value = me.phone;
+    } catch {}
+  }));
+
+  document.getElementById('cp-file').addEventListener('change', function () {
+    const file = this.files[0];
+    document.getElementById('cp-file-placeholder').style.display = file ? 'none' : 'block';
+    const nameEl = document.getElementById('cp-file-name');
+    nameEl.style.display = file ? 'block' : 'none';
+    nameEl.textContent = file ? file.name : '';
+  });
+
+  document.getElementById('cp-submit').addEventListener('click', async () => {
+    const name = document.getElementById('cp-name').value.trim();
+    const lastname = document.getElementById('cp-lastname').value.trim();
+    const phone = document.getElementById('cp-phone').value.trim();
+    const errEl = document.getElementById('cp-error');
+    errEl.classList.add('hidden');
+
+    if (!name || !lastname || !phone) {
+      errEl.textContent = 'Nombre, apellido y teléfono son obligatorios.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    const btn = document.getElementById('cp-submit');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('last_name', lastname);
+    formData.append('phone', phone);
+    const file = document.getElementById('cp-file').files[0];
+    if (file) formData.append('id_document', file);
+
+    try {
+      const clerk = window.__clerk || window.Clerk;
+      const token = clerk?.session ? await clerk.session.getToken() : null;
+      const r = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        body: formData,
+      });
+      const data = await r.json();
+      if (data.error) {
+        errEl.textContent = data.error;
+        errEl.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Continuar';
+        return;
+      }
+      sessionStorage.removeItem('vbr_redirect');
+      const role = clerk?.user?.publicMetadata?.role;
+      location.href = role === 'admin' ? '/admin.html' : redirect;
+    } catch (e) {
+      errEl.textContent = 'Error de conexión, intenta de nuevo.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Continuar';
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -108,6 +108,7 @@ app.use((err, req, res, next) => {
 
 // Crear directorios necesarios al arrancar
 fs.mkdirSync(path.join(__dirname, 'uploads', 'receipts'), { recursive: true });
+fs.mkdirSync(path.join(__dirname, 'uploads', 'ids'), { recursive: true });
 
 init().then(() => {
   app.listen(PORT, () => {
