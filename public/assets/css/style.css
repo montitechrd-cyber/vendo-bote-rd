@@ -198,21 +198,26 @@ ul { list-style: none; }
 }
 .hero-bg {
   position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 50%, var(--navy) 100%);
+  overflow: hidden;
 }
 .hero-bg img {
   width: 100%; height: 100%; object-fit: cover;
   animation: ambientZoom 32s ease-in-out infinite;
 }
-.hero-video {
-  width: 100%; height: 100%; object-fit: cover;
-  object-position: center center;
-  display: block;
+/* object-fit:cover recortaba la embarcación cada vez que el contenedor no
+   compartía el 16:9 del video (todo el rango móvil). Ahora el video principal
+   usa "contain" para mostrarla siempre completa, y una copia desenfocada del
+   mismo clip de fondo rellena el espacio sobrante — sin barras vacías. */
+.hero-video-backdrop {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; filter: blur(50px) brightness(0.55) saturate(1.3);
+  transform: scale(1.2);
 }
-@media (max-width: 768px) {
-  /* En vertical, cover escala el video 16:9 tanto que solo se ve una franja
-     angosta del ancho total (a lo alto sí cabe completo) — se ajusta el eje X
-     para que esa franja capture el yate en vez del agua vacía. */
-  .hero-video { object-position: 30% center; }
+.hero-video {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%; object-fit: contain;
+  display: block;
 }
 @keyframes ambientZoom {
   0%, 100% { transform: scale(1.05) translate3d(0, 0, 0); }
