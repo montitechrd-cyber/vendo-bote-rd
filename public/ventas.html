@@ -384,14 +384,21 @@
     (async () => { for (const w of wraps) await capturePoster(w); })();
 
     // Abrir el video completo (con controles) al hacer clic en la portada, sin navegar a la ficha.
+    // El listener se registra con { once: true }: si no se quita después de crear el
+    // <video>, cualquier clic posterior dentro del reproductor (incluido el botón nativo
+    // de pausa) volvía a caer en este mismo handler y reemplazaba el video por uno nuevo
+    // en autoplay — por eso nunca se podía pausar.
     document.querySelectorAll('.sale-card-video-wrap').forEach(wrap => {
       wrap.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (currentPlayingVideo && !currentPlayingVideo.paused) currentPlayingVideo.pause();
         const src = wrap.dataset.videoSrc;
         wrap.innerHTML = `<video src="${src}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
-      });
+        currentPlayingVideo = wrap.querySelector('video');
+      }, { once: true });
     });
   }
+  let currentPlayingVideo = null;
 
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-filter').addEventListener('click', applyFilters);
