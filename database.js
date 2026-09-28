@@ -160,9 +160,44 @@ async function seedData() {
   );
 }
 
+// Migraciones de datos de una sola vez: cada una se aplica exactamente una vez contra
+// la base real (Railway/Supabase), sin importar cuántas veces reinicie el servidor,
+// para no pisar cambios de precio/ubicación que el admin haga después a mano.
+async function runDataMigrationOnce(name, fn) {
+  await pool.query(`CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT NOW())`);
+  const already = await pool.query('SELECT 1 FROM migrations WHERE name = $1', [name]);
+  if (already.rowCount) return;
+  await fn();
+  await pool.query('INSERT INTO migrations (name) VALUES ($1)', [name]);
+  console.log('Migración de datos aplicada:', name);
+}
+
+// Boca Chica pasa de cotizar por extras a la carta (jet ski, parrillada, decoración,
+// buffet) a un precio fijo todo incluido: 1h de Jet Ski, parrillada, agua, hielo,
+// gasolina, tripulación y cocinero. Precios: Lupita $750, Elite $900, resto $1500.
+// Elite y Lupita quedan marcadas como Boca Chica (la ubicación estaba desactualizada).
+async function migrateBocaChicaPricing() {
+  const STANDARD_INCLUSIONS = ['1 hora de Jet Ski', 'Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+
+  await pool.query(`UPDATE boats SET location = 'Boca Chica' WHERE slug IN ('elite','lupita')`);
+  await pool.query(`UPDATE boats SET price_per_day = 750 WHERE slug = 'lupita'`);
+  await pool.query(`UPDATE boats SET price_per_day = 900 WHERE slug = 'elite'`);
+  await pool.query(`UPDATE boats SET price_per_day = 1500 WHERE location = 'Boca Chica' AND slug NOT IN ('elite','lupita')`);
+  await pool.query(`UPDATE boats SET description = REPLACE(description, '$700 usd', '$750 usd') WHERE slug = 'lupita'`);
+
+  const { rows: bocaChicaBoats } = await pool.query(`SELECT id, amenities FROM boats WHERE location = 'Boca Chica'`);
+  for (const boat of bocaChicaBoats) {
+    const current = JSON.parse(boat.amenities || '[]');
+    const merged = [...current];
+    STANDARD_INCLUSIONS.forEach(item => { if (!merged.includes(item)) merged.push(item); });
+    await pool.query('UPDATE boats SET amenities = $1 WHERE id = $2', [JSON.stringify(merged), boat.id]);
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
+  await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
