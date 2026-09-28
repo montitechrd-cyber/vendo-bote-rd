@@ -109,7 +109,11 @@ ul { list-style: none; }
   box-shadow: 0 1px 0 var(--line), 0 4px 20px rgba(14,165,233,0.08);
 }
 .nav-logo-img { height: 72px; object-fit: contain; }
-.nav-links { display: flex; align-items: center; gap: 2rem; }
+/* En desktop el nav tiene 3 elementos visibles (logo, links, botones) y "space-between"
+   los reparte a partes iguales, dejando Rentar/Comprar flotando solos en el centro de
+   la barra en vez de pegados al logo. El margin-right:auto absorbe el espacio libre acá
+   y empuja Ingresar/Reservar al extremo derecho, dejando logo+links agrupados a la izquierda. */
+.nav-links { display: flex; align-items: center; gap: 2rem; margin-left: 3rem; margin-right: auto; }
 .nav-link { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.03em; color: var(--text-muted); position: relative; padding: 0.25rem 0; transition: color 0.3s; }
 .nav-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--sky); transform: scaleX(0); transform-origin: right; transition: transform 0.4s var(--ease-soft); border-radius: 2px; }
 
