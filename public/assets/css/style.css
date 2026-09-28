@@ -451,6 +451,17 @@ ul { list-style: none; }
   pointer-events: none;
 }
 .card:hover .card-img img { transform: scale(1.05); filter: saturate(1.1) brightness(1.03); }
+/* ── Portada de video en tarjetas (catálogo/destacados): un cuadro estático en vez
+   de reproducir el video completo apenas carga la página ── */
+.card-video-wrap { position: relative; width: 100%; height: 100%; background: var(--bg-2); }
+.card-video-poster { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center; }
+.card-video-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(15,52,96,0.55); backdrop-filter: blur(2px);
+  color: #fff; font-size: 1.1rem; display: grid; place-items: center;
+  padding-left: 3px; pointer-events: none;
+}
 .card-badge {
   position: absolute; top: 1rem; left: 1rem; z-index: 2;
   font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em;

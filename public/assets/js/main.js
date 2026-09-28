@@ -249,13 +249,63 @@
     })(last);
   }
 
+  /* ── Portada de video en tarjetas: varios videos pesan decenas de MB, así que en
+     vez de reproducirlos apenas cargan (autoplay), se muestra un cuadro capturado
+     del propio video, cacheado en localStorage para no repetir la descarga parcial
+     en cada visita. Mismo mecanismo que usa ventas.html. ── */
+  const CARD_POSTER_CACHE_PREFIX = 'vbr_poster_';
+  function getCachedCardPoster(src) { try { return localStorage.getItem(CARD_POSTER_CACHE_PREFIX + src); } catch (e) { return null; } }
+  function setCachedCardPoster(src, dataUrl) { try { localStorage.setItem(CARD_POSTER_CACHE_PREFIX + src, dataUrl); } catch (e) { /* storage llena o bloqueada */ } }
+  function waitCardFrame() {
+    return new Promise(r => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; r(); } };
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+      setTimeout(finish, 300);
+    });
+  }
+  async function captureCardPoster(wrap) {
+    const src = wrap.dataset.videoSrc;
+    const img = wrap.querySelector('.card-video-poster');
+    if (!src || !img) return;
+    const cached = getCachedCardPoster(src);
+    if (cached) { img.src = cached; return; }
+    const vid = document.createElement('video');
+    vid.muted = true; vid.playsInline = true; vid.preload = 'metadata'; vid.src = src;
+    try {
+      await new Promise((resolve, reject) => {
+        vid.addEventListener('loadedmetadata', resolve, { once: true });
+        vid.addEventListener('error', reject, { once: true });
+      });
+      await new Promise((resolve, reject) => {
+        vid.addEventListener('seeked', resolve, { once: true });
+        vid.addEventListener('error', reject, { once: true });
+        vid.currentTime = Math.min(0.5, vid.duration || 0.5);
+      });
+      await waitCardFrame();
+      const canvas = document.createElement('canvas');
+      canvas.width = vid.videoWidth;
+      canvas.height = vid.videoHeight;
+      canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      img.src = dataUrl;
+      setCachedCardPoster(src, dataUrl);
+    } catch (e) { /* se deja el fondo por defecto */ }
+    vid.src = '';
+  }
+  function generateCardVideoPosters(container) {
+    const wraps = [...(container || document).querySelectorAll('.card-video-wrap')];
+    (async () => { for (const w of wraps) await captureCardPoster(w); })();
+  }
+  window.VBR.generateCardVideoPosters = generateCardVideoPosters;
+
   /* ── Boat card builder ── */
   function buildBoatCard(boat) {
     const imgs = Array.isArray(boat.images) ? boat.images : JSON.parse(boat.images || '[]');
     const src = imgs[0] || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=70';
     const isVid = /\.(mp4|webm|mov)$/i.test(src);
     const media = isVid
-      ? `<video src="${esc(src)}" muted autoplay loop playsinline></video>`
+      ? `<div class="card-video-wrap" data-video-src="${esc(src)}"><img class="card-video-poster" alt="${esc(boat.name)}" /><div class="card-video-play">▶</div></div>`
       : `<img src="${esc(src)}" alt="${esc(boat.name)}" loading="lazy" />`;
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
@@ -290,6 +340,7 @@
     api('/boats/featured').then(boats => {
       if (!Array.isArray(boats) || !boats.length) { grid.innerHTML = '<p class="text-muted">No hay embarcaciones disponibles.</p>'; return; }
       grid.innerHTML = boats.map(buildBoatCard).join('');
+      generateCardVideoPosters(grid);
       initReveals();
     }).catch(() => { grid.innerHTML = '<p class="text-muted">Error cargando embarcaciones.</p>'; });
   }

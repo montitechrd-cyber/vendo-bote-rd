@@ -181,6 +181,7 @@
       return;
     }
     grid.innerHTML = filtered.map(window.VBR.buildBoatCard).join('');
+    window.VBR.generateCardVideoPosters(grid);
     window.VBR.observeReveals();
   }
 
