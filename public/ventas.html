@@ -346,15 +346,31 @@
     });
   }
 
+  // Algunos videos de venta pesan 40-70MB: generar la portada desde el video
+  // en cada visita descarga buena parte de ese archivo solo para sacar un
+  // cuadro. Se cachea el resultado en localStorage (por src) para que solo
+  // el primer visitante de este navegador pague ese costo.
+  const POSTER_CACHE_PREFIX = 'vbr_poster_';
+
+  function getCachedPoster(src) {
+    try { return localStorage.getItem(POSTER_CACHE_PREFIX + src); } catch (e) { return null; }
+  }
+  function setCachedPoster(src, dataUrl) {
+    try { localStorage.setItem(POSTER_CACHE_PREFIX + src, dataUrl); } catch (e) { /* storage llena o bloqueada: no pasa nada */ }
+  }
+
   async function capturePoster(wrap) {
     const src = wrap.dataset.videoSrc;
     const img = wrap.querySelector('.sale-card-poster');
     if (!src || !img) return;
 
+    const cached = getCachedPoster(src);
+    if (cached) { img.src = cached; return; }
+
     const vid = document.createElement('video');
     vid.muted = true;
     vid.playsInline = true;
-    vid.preload = 'auto';
+    vid.preload = 'metadata';
     vid.src = src;
 
     try {
@@ -362,19 +378,21 @@
         vid.addEventListener('loadedmetadata', resolve, { once: true });
         vid.addEventListener('error', reject, { once: true });
       });
-      const dur = vid.duration || 8;
-      const target = Math.min(5, Math.max(dur - 0.5, 0.5));
+      // Cerca del inicio: alcanza para no caer en cuadro negro y evita forzar
+      // la descarga de tramos lejanos del archivo en videos sin "fast start".
       await new Promise((resolve, reject) => {
         vid.addEventListener('seeked', resolve, { once: true });
         vid.addEventListener('error', reject, { once: true });
-        vid.currentTime = target;
+        vid.currentTime = Math.min(0.5, vid.duration || 0.5);
       });
       await waitFrame();
       const canvas = document.createElement('canvas');
       canvas.width = vid.videoWidth;
       canvas.height = vid.videoHeight;
       canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
-      img.src = canvas.toDataURL('image/jpeg', 0.85);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      img.src = dataUrl;
+      setCachedPoster(src, dataUrl);
     } catch (e) { /* se deja el fondo por defecto */ }
     vid.src = '';
   }

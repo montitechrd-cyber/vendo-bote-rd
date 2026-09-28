@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -24,6 +25,10 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
+// Comprime HTML/CSS/JS/JSON (deja pasar mp4/jpeg tal cual: ya vienen comprimidos
+// y intentar recomprimirlos solo gasta CPU sin ganar tamaño).
+app.use(compression());
+
 // CORS: en producción solo el dominio propio
 const allowedOrigins = isDev
   ? true
@@ -33,6 +38,13 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(clerkMiddleware());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Fotos/videos/CSS/JS: cache largo en el navegador. Son cientos de MB de medios
+// (varios videos pesan 40-70MB) — sin esto, cada visita los vuelve a descargar
+// completos en vez de servirlos desde la caché local a partir de la segunda vista.
+// Sin "immutable": las fotos se reemplazan de vez en cuando bajo el mismo nombre
+// (ej. portada.jpg), así que el navegador revalida después de un día en vez de
+// ignorar por una semana un archivo que en realidad cambió.
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1d' }));
 app.use(express.static(path.join(__dirname, 'public')));
 // Los comprobantes de pago NO se sirven como archivos estáticos públicos (pueden
 // contener datos bancarios) — se sirven autenticados vía GET /api/bookings/:id/receipt.

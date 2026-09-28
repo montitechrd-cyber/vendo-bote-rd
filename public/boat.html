@@ -396,7 +396,12 @@
     const src = imgs[mainIdx];
     const gallery = document.getElementById('gallery');
     const mainHTML = isVid(src)
-      ? `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><video src="${src}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video></div>`
+      ? `<div class="gallery-main" onclick="openLightbox(${mainIdx})" style="position:relative;cursor:pointer;">
+           <video src="${src}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
+             <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">▶</div>
+           </div>
+         </div>`
       : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
     gallery.innerHTML = mainHTML + (gallery.dataset.thumbs || '');
     document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === mainIdx));
@@ -418,7 +423,10 @@
     hasRealImages = realImgs.length > 0;
     const imgs = realImgs.length ? realImgs : [FALLBACK_IMG];
     lightboxImgs = imgs;
-    mainIdx = 0;
+    // Arranca en la primera foto real si hay alguna: evita autoreproducir de entrada
+    // un video pesado (varios pesan 40-70MB) solo por ser el primer elemento.
+    const firstPhotoIdx = imgs.findIndex(src => !isVid(src));
+    mainIdx = firstPhotoIdx !== -1 ? firstPhotoIdx : 0;
     const gallery = document.getElementById('gallery');
     gallery.dataset.thumbs = `
       ${imgs[1] ? `<div class="gallery-thumb" onclick="openLightbox(1)">${mediaThumb(imgs[1],1)}</div>` : ''}
