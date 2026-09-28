@@ -194,10 +194,30 @@ async function migrateBocaChicaPricing() {
   }
 }
 
+// Pone como primera foto (portada) del catálogo la que el dueño eligió para
+// Perla Negra y Yate 3. Busca por nombre porque estos botes se cargaron desde
+// el panel de administración y no existen en ningún script de siembra.
+async function migrateBoatCoverPhotos() {
+  const covers = [
+    { nameLike: '%Perla Negra%', coverPath: '/assets/img/RENTAS/perla negra/foto-4.jpeg' },
+    { nameLike: '%Yate 3%', coverPath: '/assets/img/RENTAS/yate 3/portada.jpg' },
+  ];
+
+  for (const { nameLike, coverPath } of covers) {
+    const { rows } = await pool.query('SELECT id, images FROM boats WHERE name ILIKE $1', [nameLike]);
+    for (const boat of rows) {
+      const current = JSON.parse(boat.images || '[]');
+      const reordered = [coverPath, ...current.filter(img => img !== coverPath)];
+      await pool.query('UPDATE boats SET images = $1 WHERE id = $2', [JSON.stringify(reordered), boat.id]);
+    }
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
   await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
+  await runDataMigrationOnce('2026-09-28-boat-cover-photos', migrateBoatCoverPhotos);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
