@@ -29,17 +29,10 @@ function generateRef() {
   return 'VBR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
 }
 
-const ADDITIONALS_PRICES = { decoracion: 100, parrillada: 150, buffet: 300, jetski: 200 };
-
-function isWeekday(dateStr) {
-  const day = new Date(dateStr + 'T00:00:00').getDay(); // 0=Dom .. 6=Sáb
-  return day >= 1 && day <= 5;
-}
-
 router.post('/', authRequired, async (req, res) => {
   try {
     const db = getDB();
-    const { boat_id, start_date, schedule, guests, additionals, package_hours, extra_hours, meal_addons } = req.body;
+    const { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons } = req.body;
     let { special_requests } = req.body;
     if (!boat_id || !start_date || !schedule) return res.status(400).json({ error: 'Datos de reserva incompletos' });
     if (special_requests != null) {
@@ -110,15 +103,9 @@ router.post('/', authRequired, async (req, res) => {
       }
     } else {
       total = boatRow.price_per_day;
-      const freeJetski = boatRow.location === 'Boca Chica' && isWeekday(start_date);
-      const rawAdditionals = Array.isArray(additionals) ? additionals.filter(a => ADDITIONALS_PRICES[a]) : [];
-      rawAdditionals.forEach(key => {
-        const price = (key === 'jetski' && freeJetski) ? 0 : ADDITIONALS_PRICES[key];
-        additionals_price += price;
-        selectedAdditionals.push(key);
-        if (key === 'jetski' && freeJetski) metaParts.push('Jet Ski: gratis (lun–vie)');
-      });
-      total += additionals_price;
+      if (boatRow.location === 'Boca Chica') {
+        metaParts.push('Todo incluido: 1h de Jet Ski, parrillada, agua, hielo, gasolina, tripulación y cocinero');
+      }
     }
 
     const ref = generateRef();

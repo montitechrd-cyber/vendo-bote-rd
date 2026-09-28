@@ -197,43 +197,12 @@
               <div class="additionals-grid" id="meal-addons-options"></div>
             </div>
 
-            <!-- Adicionales (solo embarcaciones de Boca Chica) -->
-            <div style="margin-bottom:0.25rem;" id="additionals-block">
-              <div class="panel-subheading">Adicionales opcionales</div>
-              <div class="additionals-grid">
-                <label class="additional-item">
-                  <input type="checkbox" class="additional-cb" data-key="decoracion" data-price="100" onchange="recalcTotal()" />
-                  <div class="additional-icon">🎂</div>
-                  <div class="additional-info">
-                    <div class="additional-name">Decoración</div>
-                    <div class="additional-price">+$100</div>
-                  </div>
-                </label>
-                <label class="additional-item">
-                  <input type="checkbox" class="additional-cb" data-key="parrillada" data-price="150" onchange="recalcTotal()" />
-                  <div class="additional-icon">🔥</div>
-                  <div class="additional-info">
-                    <div class="additional-name">Parrillada</div>
-                    <div class="additional-price">+$150</div>
-                  </div>
-                </label>
-                <label class="additional-item">
-                  <input type="checkbox" class="additional-cb" data-key="buffet" data-price="300" onchange="recalcTotal()" />
-                  <div class="additional-icon">🍽️</div>
-                  <div class="additional-info">
-                    <div class="additional-name">Buffet</div>
-                    <div class="additional-price">+$300</div>
-                  </div>
-                </label>
-                <label class="additional-item">
-                  <input type="checkbox" class="additional-cb" data-key="jetski" data-price="200" onchange="recalcTotal()" />
-                  <div class="additional-icon">🚤</div>
-                  <div class="additional-info">
-                    <div class="additional-name">Jet Ski</div>
-                    <div class="additional-price">+$200</div>
-                  </div>
-                </label>
-              </div>
+            <!-- Todo incluido (embarcaciones de Boca Chica): precio fijo, sin extras de pago -->
+            <div style="margin-bottom:0.25rem;display:none;" id="included-block">
+              <div class="panel-subheading">Todo incluido en el precio</div>
+              <p style="font-family:var(--mono);font-size:0.75rem;color:var(--cream-3);line-height:1.7;">
+                1 hora de Jet Ski · Parrillada · Agua · Hielo · Gasolina · Tripulación · Cocinero
+              </p>
             </div>
           </div>
         </div>
@@ -484,12 +453,12 @@
     document.getElementById('boat-location-tag').textContent = '📍 ' + boat.location;
     document.getElementById('boat-brand-tag').textContent = '⛵ ' + (boat.brand || 'Embarcación');
     document.getElementById('panel-price').textContent = '$' + Number(boat.price_per_day).toLocaleString();
-    document.getElementById('panel-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : 'USD / día';
+    document.getElementById('panel-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : (boat.location === 'Boca Chica' ? 'USD / todo incluido' : 'USD / día');
     document.getElementById('boat-description').textContent = boat.description || '';
 
-    // Los adicionales (comida, jet ski, etc.) solo aplican a embarcaciones de Boca Chica
-    const additionalsBlock = document.getElementById('additionals-block');
-    if (additionalsBlock) additionalsBlock.style.display = (boat.location === 'Boca Chica') ? '' : 'none';
+    // Boca Chica: precio fijo todo incluido, sin extras de pago que elegir
+    const includedBlock = document.getElementById('included-block');
+    if (includedBlock) includedBlock.style.display = (boat.location === 'Boca Chica') ? '' : 'none';
 
     // Esquema de precio por paquete de horas (fuera de Boca Chica)
     if (!boat.for_sale) {
@@ -684,7 +653,6 @@
     selSlot = null;
     renderCalendar();
     refreshSlotUI();
-    refreshJetskiPricing();
     updateSummary();
     updateWizardSteps();
   }
@@ -825,35 +793,6 @@
     return v;
   }
 
-  function isWeekdaySelected() {
-    if (!selDate) return false;
-    const day = new Date(selDate + 'T00:00:00').getDay();
-    return day >= 1 && day <= 5;
-  }
-
-  function refreshJetskiPricing() {
-    const cb = document.querySelector('.additional-cb[data-key="jetski"]');
-    if (!cb) return;
-    const priceEl = cb.closest('.additional-item').querySelector('.additional-price');
-    if (isWeekdaySelected()) {
-      priceEl.textContent = 'GRATIS (lun–vie)';
-      priceEl.style.color = '#198754';
-    } else {
-      priceEl.textContent = '+$200';
-      priceEl.style.color = '';
-    }
-  }
-
-  function getAdditionals() {
-    const cbs = document.querySelectorAll('.additional-cb:checked');
-    const weekdayFree = isWeekdaySelected();
-    return Array.from(cbs).map(c => {
-      let price = parseInt(c.dataset.price);
-      if (c.dataset.key === 'jetski' && weekdayFree) price = 0;
-      return { key: c.dataset.key, price, name: c.closest('.additional-item').querySelector('.additional-name').textContent };
-    });
-  }
-
   window.recalcTotal = function () { updateSummary(); };
 
   /* ── Cálculo unificado del total (usado por el resumen y la reserva) ── */
@@ -886,7 +825,6 @@
       base = boat.price_per_day;
       durationLabel = '1 turno (6 horas)';
       scheduleLabel = selSlot === '9am-3pm' ? '9:00 AM – 3:00 PM' : '4:00 PM – 10:00 PM';
-      getAdditionals().forEach(a => extraLines.push({ label: a.name, price: a.price }));
     }
 
     const extraTotal = extraLines.reduce((s, l) => s + l.price, 0);
@@ -1082,8 +1020,6 @@
       body.package_hours = selPackageHours;
       body.extra_hours = extraHours;
       body.meal_addons = getMealAddons().map(m => m.key);
-    } else {
-      body.additionals = getAdditionals().map(a => a.key);
     }
     window.VBR.api('/bookings', {
       method: 'POST',
