@@ -27,7 +27,7 @@ app.use(helmet({
 }));
 // Permite que solo NEURALAB (portafolio) y el propio sitio embeban esta web en un iframe
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:8765");
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:* http://127.0.0.1:*");
   next();
 });
 
