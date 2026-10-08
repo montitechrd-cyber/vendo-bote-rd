@@ -23,7 +23,13 @@ if (!isDev) app.set('trust proxy', 1);
 app.use(helmet({
   contentSecurityPolicy: false, // gestionado por cada página
   crossOriginEmbedderPolicy: false,
+  frameguard: false, // el embebido lo controla frame-ancestors (abajo)
 }));
+// Permite que solo NEURALAB (portafolio) y el propio sitio embeban esta web en un iframe
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com");
+  next();
+});
 
 // Comprime HTML/CSS/JS/JSON (deja pasar mp4/jpeg tal cual: ya vienen comprimidos
 // y intentar recomprimirlos solo gasta CPU sin ganar tamaño).
