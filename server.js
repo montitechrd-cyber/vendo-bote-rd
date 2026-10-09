@@ -50,6 +50,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Sin "immutable": las fotos se reemplazan de vez en cuando bajo el mismo nombre
 // (ej. portada.jpg), así que el navegador revalida después de un día en vez de
 // ignorar por una semana un archivo que en realidad cambió.
+// SEO (robots.txt, sitemap.xml, metadatos por página): debe ir ANTES del static
+// para que las páginas HTML salgan con su title/description/JSON-LD propios.
+app.use(require('./routes/seo'));
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1d' }));
 app.use(express.static(path.join(__dirname, 'public')));
 // Los comprobantes de pago NO se sirven como archivos estáticos públicos (pueden
@@ -108,10 +111,12 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/boats', require('./routes/boats'));
 app.use('/api/bookings', require('./routes/bookings'));
 
-// SPA fallback
+// Rutas desconocidas: 404 real (antes devolvía el home con 200, lo que Google
+// interpreta como páginas duplicadas). Se muestra el home pero sin indexar.
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not found' });
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.setHeader('X-Robots-Tag', 'noindex');
+  res.status(404).type('html').send(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'));
 });
 
 // Manejador de errores global: cualquier error no atrapado por una ruta (JSON

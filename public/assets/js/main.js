@@ -309,14 +309,14 @@
       : `<img src="${esc(src)}" alt="${esc(boat.name)}" loading="lazy" />`;
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
-      <article class="card" onclick="location.href='/boat.html?slug=${encodeURIComponent(boat.slug)}'" data-reveal>
+      <article class="card" onclick="location.href='/embarcacion/${encodeURIComponent(boat.slug)}'" data-reveal>
         <div class="card-img">
           ${media}
           ${badge}
           <div class="card-location">📍 ${esc(boat.location)}</div>
         </div>
         <div class="card-body">
-          <div class="card-name">${esc(boat.name)}</div>
+          <h3 class="card-name"><a href="/embarcacion/${encodeURIComponent(boat.slug)}" style="color:inherit;text-decoration:none;">${esc(boat.name)}</a></h3>
           <div class="card-desc">${esc(boat.short_description || '')}</div>
           <div class="card-meta">
             <div class="card-specs">

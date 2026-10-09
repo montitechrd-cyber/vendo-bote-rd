@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261009c" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261009f" />
   <style>
     /* ── Misma cuadrícula que el catálogo de renta (tarjetas 4:3) ── */
     #sale-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
@@ -105,9 +105,9 @@
     <div class="nav-dropdown">
       <a href="/embarcaciones.html" class="nav-link">Rentar</a>
       <div class="nav-dropdown-menu">
-        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
-        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
-        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+        <a href="/renta-de-botes-en-boca-chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/renta-de-botes-en-punta-cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/renta-de-botes-en-la-romana" class="nav-dropdown-item">📍 La Romana</a>
       </div>
     </div>
     <a href="/ventas.html" class="nav-link active">Comprar</a>
@@ -234,7 +234,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20260928a" defer></script>
+<script src="/assets/js/main.js?v=20261009b" defer></script>
 <script defer>
 (function () {
   let allBoats = [];
@@ -288,14 +288,14 @@
     // solo que en vez de precio por día + reservar, se muestra el precio de
     // venta (o "Consultar") y un botón para pedir información por WhatsApp.
     return `
-      <article class="card" onclick="location.href='/boat.html?slug=${encodeURIComponent(boat.slug)}'" data-reveal>
+      <article class="card" onclick="location.href='/embarcacion/${encodeURIComponent(boat.slug)}'" data-reveal>
         <div class="card-img">
           ${media}
           <span class="card-badge sale">EN VENTA</span>
           <div class="card-location">📍 ${esc(boat.location || '')}</div>
         </div>
         <div class="card-body">
-          <div class="card-name">${esc(boat.name)}</div>
+          <h3 class="card-name"><a href="/embarcacion/${encodeURIComponent(boat.slug)}" style="color:inherit;text-decoration:none;">${esc(boat.name)}</a></h3>
           <div class="card-desc">${esc(boat.short_description || '')}</div>
           <div class="card-meta">
             <div class="card-specs">${specs}</div>

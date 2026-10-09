@@ -7,7 +7,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261009c" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261009f" />
+  <!--SEO_LOCATION-->
 </head>
 <body>
 
@@ -19,9 +20,9 @@
     <div class="nav-dropdown">
       <a href="/embarcaciones.html" class="nav-link active">Rentar</a>
       <div class="nav-dropdown-menu">
-        <a href="/embarcaciones.html?location=Boca Chica" class="nav-dropdown-item">📍 Boca Chica</a>
-        <a href="/embarcaciones.html?location=Punta Cana" class="nav-dropdown-item">📍 Punta Cana</a>
-        <a href="/embarcaciones.html?location=La Romana" class="nav-dropdown-item">📍 La Romana</a>
+        <a href="/renta-de-botes-en-boca-chica" class="nav-dropdown-item">📍 Boca Chica</a>
+        <a href="/renta-de-botes-en-punta-cana" class="nav-dropdown-item">📍 Punta Cana</a>
+        <a href="/renta-de-botes-en-la-romana" class="nav-dropdown-item">📍 La Romana</a>
       </div>
     </div>
     <a href="/ventas.html" class="nav-link">Comprar</a>
@@ -37,9 +38,9 @@
     <a href="/embarcaciones.html" class="nav-mobile-link nav-mobile-link-primary">⛵ Rentar</a>
     <a href="/ventas.html" class="nav-mobile-link nav-mobile-link-primary">🛥️ Comprar</a>
     <div class="nav-mobile-divider"></div>
-    <a href="/embarcaciones.html?location=Boca Chica" class="nav-mobile-link nav-mobile-link-loc">📍 Boca Chica</a>
-    <a href="/embarcaciones.html?location=Punta Cana" class="nav-mobile-link nav-mobile-link-loc">📍 Punta Cana</a>
-    <a href="/embarcaciones.html?location=La Romana" class="nav-mobile-link nav-mobile-link-loc">📍 La Romana</a>
+    <a href="/renta-de-botes-en-boca-chica" class="nav-mobile-link nav-mobile-link-loc">📍 Boca Chica</a>
+    <a href="/renta-de-botes-en-punta-cana" class="nav-mobile-link nav-mobile-link-loc">📍 Punta Cana</a>
+    <a href="/renta-de-botes-en-la-romana" class="nav-mobile-link nav-mobile-link-loc">📍 La Romana</a>
     <div class="nav-mobile-divider"></div>
     <a href="/auth.html" class="nav-mobile-link nav-mobile-cta" id="nav-mobile-login-btn">🔑 Ingresar</a>
   </div>
@@ -139,6 +140,8 @@
   </section>
 </div>
 
+<!--SEO_TEXT-->
+
 <footer class="footer">
   <div class="footer-inner">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
@@ -165,14 +168,15 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20260928a" defer></script>
+<script src="/assets/js/main.js?v=20261009b" defer></script>
 <script defer>
 (function () {
   let allBoats = [];
   let activeLocation = '';
 
   const params = new URLSearchParams(location.search);
-  if (params.get('location')) activeLocation = params.get('location');
+  if (window.__VBR_LOCATION) activeLocation = window.__VBR_LOCATION;
+  else if (params.get('location')) activeLocation = params.get('location');
 
   function applyFilters() {
     const capacity = parseInt(document.getElementById('filter-capacity').value) || 0;
