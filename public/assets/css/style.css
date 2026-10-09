@@ -992,6 +992,23 @@ ul { list-style: none; }
 .footer-social-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: grid; place-items: center; font-size: 0.85rem; color: rgba(255,255,255,0.55); transition: all 0.3s; }
 .footer-social-btn:hover { border-color: var(--sky); color: var(--sky); }
 
+/* Firma de desarrollo, integrada con la paleta del sitio. */
+.footer-credit { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 1.25rem; margin-top: 2rem; padding: 1.5rem 0 3.5rem; border-top: 1px solid rgba(255,255,255,0.12); }
+.footer-credit-brand { display: inline-flex; align-items: center; gap: 1rem; color: white; border-radius: 6px; }
+.footer-credit-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: #B4CBE0; }
+.footer-credit-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 700; line-height: 1.2; letter-spacing: 0.02em; }
+.footer-credit-logo img { object-fit: contain; }
+.footer-credit-logo > span > span { color: #7DD3FC; }
+.footer-credit-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; padding-left: 1.25rem; border-left: 1px solid rgba(255,255,255,0.18); }
+.footer-credit-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; min-height: 44px; padding: 0.6rem 1rem; border: 1px solid rgba(125,211,252,0.25); border-radius: 999px; color: #E0F2FE; font-size: 0.8rem; font-weight: 600; transition: color 0.2s, background 0.2s, border-color 0.2s; }
+.footer-credit-link svg { width: 19px; height: 19px; flex-shrink: 0; color: #7DD3FC; }
+.footer-credit-link:hover { color: white; background: rgba(14,165,233,0.15); border-color: #7DD3FC; }
+.footer-credit a:focus-visible { outline: 2px solid #7DD3FC; outline-offset: 5px; }
+@media (max-width: 640px) {
+  .footer-credit { justify-content: center; gap: 1rem; }
+  .footer-credit-links { width: 100%; justify-content: center; padding-left: 0; border-left: 0; }
+}
+
 /* Sección redes sociales */
 .social-section { text-align: center; background: var(--bg-2); border-top: 1px solid var(--line); }
 .social-card { display: inline-flex; align-items: center; gap: 1.2rem; margin-top: 2.5rem; padding: 1.2rem 1.6rem; border-radius: 18px; background: #fff; border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(15,52,96,0.08); text-align: left; transition: transform 0.3s, box-shadow 0.3s; }
