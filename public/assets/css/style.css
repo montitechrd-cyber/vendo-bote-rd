@@ -992,6 +992,17 @@ ul { list-style: none; }
 .footer-social-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: grid; place-items: center; font-size: 0.85rem; color: rgba(255,255,255,0.55); transition: all 0.3s; }
 .footer-social-btn:hover { border-color: var(--sky); color: var(--sky); }
 
+/* Sección redes sociales */
+.social-section { text-align: center; background: var(--bg-2); border-top: 1px solid var(--line); }
+.social-card { display: inline-flex; align-items: center; gap: 1.2rem; margin-top: 2.5rem; padding: 1.2rem 1.6rem; border-radius: 18px; background: #fff; border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(15,52,96,0.08); text-align: left; transition: transform 0.3s, box-shadow 0.3s; }
+.social-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(15,52,96,0.16); }
+.social-card-icon { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: linear-gradient(45deg, #f09433, #dc2743 50%, #bc1888); flex-shrink: 0; }
+.social-card-text { display: flex; flex-direction: column; color: var(--navy); }
+.social-card-text strong { font-size: 1.1rem; }
+.social-card-text small { color: var(--text-muted); }
+.social-card-cta { margin-left: 1rem; font-weight: 600; color: var(--sky); white-space: nowrap; }
+@media (max-width: 480px) { .social-card { flex-wrap: wrap; justify-content: center; text-align: center; } .social-card-cta { margin-left: 0; } }
+
 /* ── Page layouts ── */
 .page { padding-top: var(--nav-h); min-height: 100svh; }
 .page-hero {
