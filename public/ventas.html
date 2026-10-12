@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012b" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012c" />
   <style>
     /* ── Misma cuadrícula que el catálogo de renta (tarjetas 4:3) ── */
     #sale-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
@@ -417,21 +417,21 @@
     const wraps = [...document.querySelectorAll('.sale-card-video-wrap')];
     (async () => { for (const w of wraps) await capturePoster(w); })();
 
-    // Abrir el video completo (con controles) al hacer clic en la portada, sin navegar a la ficha.
-    // El listener debe quedarse (no { once: true }) para seguir frenando la propagación en
-    // cada clic dentro del reproductor — si no, un clic sobre el cuerpo del video (para
-    // pausarlo, por ejemplo) escapa y dispara el onclick de la tarjeta que navega a la
-    // ficha. Pero el reemplazo de la portada por el <video> sí debe correr una sola vez
-    // (con dataset.opened), o cada clic posterior lo reiniciaba en autoplay desde cero.
+    // Preview del video al hacer clic en la portada (ver el listener de abajo).
     document.querySelectorAll('.sale-card-video-wrap').forEach(wrap => {
       wrap.addEventListener('click', (e) => {
+        // Preview en la misma tarjeta: sin audio, en bucle y sin controles. Un clic sobre
+        // el video ya reproduciéndose deja pasar el evento y abre la ficha de la tarjeta.
+        const playing = wrap.querySelector('video');
+        if (playing && !playing.paused) return;
         e.stopPropagation();
-        if (wrap.dataset.opened) return;
-        wrap.dataset.opened = '1';
         if (currentPlayingVideo && !currentPlayingVideo.paused) currentPlayingVideo.pause();
-        const src = wrap.dataset.videoSrc;
-        wrap.innerHTML = `<video src="${src}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
-        currentPlayingVideo = wrap.querySelector('video');
+        if (playing) { playing.play().catch(() => {}); currentPlayingVideo = playing; return; }
+        wrap.innerHTML = `<video src="${wrap.dataset.videoSrc}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+        const vid = wrap.querySelector('video');
+        vid.muted = true;
+        vid.play().catch(() => {});
+        currentPlayingVideo = vid;
       });
     });
   }
