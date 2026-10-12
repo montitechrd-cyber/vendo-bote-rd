@@ -338,6 +338,7 @@
     const media = isVid
       ? `<div class="card-video-wrap" data-video-src="${esc(src)}"><img class="card-video-poster" alt="${esc(boat.name)}" /><div class="card-video-play">▶</div></div>`
       : `<img src="${esc(src)}" alt="${esc(boat.name)}" loading="lazy" />`;
+    const dayBased = !!(boat.pricing_scheme && boat.pricing_scheme.type === 'day_based');
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
       <article class="card" onclick="location.href='/embarcacion/${encodeURIComponent(boat.slug)}'" data-reveal>
@@ -355,8 +356,8 @@
               <span class="card-spec">⛵ ${boat.length_ft || '—'} ft</span>
             </div>
             <div class="card-price">
-              <div class="card-price-amount">$${Number(boat.price_per_day).toLocaleString()}</div>
-              <div class="card-price-unit">USD / día</div>
+              <div class="card-price-amount">$${Number(dayBased ? Math.min(...Object.values(boat.pricing_scheme.prices)) : boat.price_per_day).toLocaleString()}</div>
+              <div class="card-price-unit">${dayBased ? 'USD / desde' : 'USD / día'}</div>
             </div>
           </div>
         </div>

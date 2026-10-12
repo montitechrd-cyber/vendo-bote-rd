@@ -226,12 +226,36 @@ async function migratePerlaNegraCoverRename() {
   }
 }
 
+// Precios por día de la semana y combo de cumpleaños (tabla del dueño, 2026-10-12).
+// Se busca por nombre porque varias de estas embarcaciones se cargaron desde el panel.
+async function migrateDayBasedPricing() {
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Agua', 'Hielo', 'Refresco'];
+  const boats = [
+    { like: '%Lupita%',         weekday: 500, weekday_birthday: 650,  weekend: 550, weekend_birthday: 750,  capacity: 15 },
+    { like: '%Perla Negra%',    weekday: 700, weekday_birthday: 1100, weekend: 750, weekend_birthday: 1000, capacity: 12 },
+    { like: '%Refugio Marino%', weekday: 700, weekday_birthday: 1000, weekend: 800, weekend_birthday: 1200, capacity: 25 },
+    { like: '%Elite%',          weekday: 800, weekday_birthday: 1000, weekend: 900, weekend_birthday: 1200, capacity: 20 },
+  ];
+  for (const b of boats) {
+    const scheme = {
+      type: 'day_based',
+      prices: { weekday: b.weekday, weekday_birthday: b.weekday_birthday, weekend: b.weekend, weekend_birthday: b.weekend_birthday },
+      birthday_combo: COMBO,
+    };
+    await pool.query(
+      "UPDATE boats SET pricing_scheme = $1, price_per_day = $2, capacity = $3, location = 'Boca Chica' WHERE name ILIKE $4",
+      [JSON.stringify(scheme), b.weekday, b.capacity, b.like]
+    );
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
   await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
   await runDataMigrationOnce('2026-09-28-boat-cover-photos', migrateBoatCoverPhotos);
   await runDataMigrationOnce('2026-10-12-perla-negra-cover-rename', migratePerlaNegraCoverRename);
+  await runDataMigrationOnce('2026-10-12-day-based-pricing', migrateDayBasedPricing);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

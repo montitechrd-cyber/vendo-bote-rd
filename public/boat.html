@@ -162,6 +162,21 @@
             </div>
           </div>
           <div class="wizard-step-body">
+            <!-- Precios por día + combo de cumpleaños (embarcaciones con precio por día de la semana) -->
+            <div id="daybased-section" style="display:none;margin-bottom:1.25rem;">
+              <div class="panel-subheading">Tarifas</div>
+              <div id="daybased-prices" style="margin-bottom:0.9rem;"></div>
+              <label class="additional-item" style="cursor:pointer;">
+                <input type="checkbox" id="birthday-cb" onchange="toggleBirthday(this.checked)" />
+                <div class="additional-icon">🎂</div>
+                <div class="additional-info">
+                  <div class="additional-name">Combo de cumpleaños</div>
+                  <div class="additional-price" id="birthday-diff"></div>
+                </div>
+              </label>
+              <p id="birthday-items" style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);line-height:1.7;margin-top:0.6rem;"></p>
+            </div>
+
             <!-- Selector de paquete de horas (embarcaciones con esquema de precio especial) -->
             <div id="package-section" style="display:none;margin-bottom:1.25rem;">
               <div class="panel-subheading">Selecciona el paquete</div>
@@ -383,7 +398,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012c" defer></script>
+<script src="/assets/js/main.js?v=20261012d" defer></script>
 <script defer>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -394,7 +409,7 @@
   let bookedSlots = {}; // { 'YYYY-MM-DD': ['10am-4pm', '5pm-11pm'] }
   let calYear, calMonth;
   let selDate = null, selSlot = null;
-  let selPackageHours = null, extraHours = 0;
+  let selPackageHours = null, extraHours = 0, selBirthday = false;
   let lightboxImgs = [], lightboxIdx = 0;
 
   const fmt = (d) => window.VBR.fmtDateLong(d);
@@ -495,8 +510,9 @@
     document.getElementById('breadcrumb-name').textContent = boat.name;
     document.getElementById('boat-location-tag').textContent = '📍 ' + boat.location;
     document.getElementById('boat-brand-tag').textContent = '⛵ ' + (boat.brand || 'Embarcación');
-    document.getElementById('panel-price').textContent = '$' + Number(boat.price_per_day).toLocaleString();
-    document.getElementById('panel-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : (boat.location === 'Boca Chica' ? 'USD / todo incluido' : 'USD / día');
+    const dayBased = isDayBased();
+    document.getElementById('panel-price').textContent = '$' + Number(dayBased ? dayBasedMinPrice() : boat.price_per_day).toLocaleString();
+    document.getElementById('panel-price-unit').textContent = dayBased ? 'USD / desde' : boat.pricing_scheme ? 'USD / paquete' : (boat.location === 'Boca Chica' ? 'USD / todo incluido' : 'USD / día');
     document.getElementById('boat-description').textContent = boat.description || '';
 
     // Boca Chica: precio fijo todo incluido, sin extras de pago que elegir
@@ -505,6 +521,7 @@
 
     // Esquema de precio por paquete de horas (fuera de Boca Chica)
     if (!boat.for_sale) {
+      renderDayBasedUI();
       renderPackageOptions();
       renderExtraHoursUI();
       renderMealAddonsUI();
@@ -527,7 +544,7 @@
       ['👥', 'Capacidad', boat.capacity + ' personas'],
       boat.for_sale
         ? ['🏷️', 'Venta', boat.sale_price ? '$' + Number(boat.sale_price).toLocaleString() : 'Consultar']
-        : ['💰', 'Precio', '$' + Number(boat.price_per_day).toLocaleString() + ' / día'],
+        : ['💰', 'Precio', dayBased ? 'Desde $' + dayBasedMinPrice().toLocaleString() + ' / día' : '$' + Number(boat.price_per_day).toLocaleString() + ' / día'],
       ['📍', 'Puerto', boat.location],
     ];
     document.getElementById('boat-specs').innerHTML = specsData.map(([icon, label, v]) => `
@@ -544,8 +561,8 @@
       document.getElementById('sticky-price-unit').textContent = boat.sale_price ? 'USD' : 'precio';
       stickyBtn.textContent = 'Ver más';
     } else {
-      document.getElementById('sticky-price').textContent = '$' + Number(boat.price_per_day).toLocaleString();
-      document.getElementById('sticky-price-unit').textContent = boat.pricing_scheme ? 'USD / paquete' : 'USD / día';
+      document.getElementById('sticky-price').textContent = '$' + Number(dayBased ? dayBasedMinPrice() : boat.price_per_day).toLocaleString();
+      document.getElementById('sticky-price-unit').textContent = dayBased ? 'USD / desde' : boat.pricing_scheme ? 'USD / paquete' : 'USD / día';
       stickyBtn.textContent = 'Reservar';
     }
 
@@ -627,16 +644,52 @@
 
   function getSlotDefs() {
     const scheme = boat && boat.pricing_scheme;
+    if (scheme && scheme.type === 'day_based') return DEFAULT_SLOTS;
     if (scheme && scheme.time_slots && scheme.time_slots.length) {
       const icons = ['🌅', '☀️', '🌆', '🌙'];
       return scheme.time_slots.map((label, i) => ({ key: label, label, shortLabel: 'Turno ' + (i + 1), icon: icons[i] || '🕐' }));
     }
     if (scheme) return [{ key: 'full-day', label: 'Día completo', shortLabel: 'Día completo', icon: '📅' }];
-    return [
-      { key: '9am-3pm', label: '9:00 AM – 3:00 PM', shortLabel: 'Mañana/Tarde', icon: '🌅' },
-      { key: '4pm-10pm', label: '4:00 PM – 10:00 PM', shortLabel: 'Tarde/Noche', icon: '🌆' },
-    ];
+    return DEFAULT_SLOTS;
   }
+  const DEFAULT_SLOTS = [
+    { key: '9am-3pm', label: '9:00 AM – 3:00 PM', shortLabel: 'Mañana/Tarde', icon: '🌅' },
+    { key: '4pm-10pm', label: '4:00 PM – 10:00 PM', shortLabel: 'Tarde/Noche', icon: '🌆' },
+  ];
+
+  /* ── Precios por día de la semana + combo de cumpleaños ── */
+  const isDayBased = () => !!(boat && boat.pricing_scheme && boat.pricing_scheme.type === 'day_based');
+  const isWeekendDate = (ds) => [0, 6].includes(new Date(ds + 'T00:00:00').getDay());
+  const dayBasedMinPrice = () => Math.min(...Object.values(boat.pricing_scheme.prices));
+
+  function renderDayBasedUI() {
+    const sec = document.getElementById('daybased-section');
+    if (!isDayBased()) { sec.style.display = 'none'; return; }
+    const p = boat.pricing_scheme.prices;
+    sec.style.display = 'block';
+    const cur = selDate ? (isWeekendDate(selDate) ? 'weekend' : 'weekday') : null;
+    const row = (key, label) => `
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0.5rem;padding:0.45rem 0.6rem;border-radius:8px;${cur === key ? 'background:var(--bg-2);border:1px solid var(--sky);' : 'border:1px solid transparent;'}font-size:0.85rem;">
+        <span style="color:var(--cream);">${label}</span>
+        <span style="color:var(--cream-2);">$${p[key].toLocaleString()}</span>
+        <span style="color:var(--gold);">$${p[key + '_birthday'].toLocaleString()}</span>
+      </div>`;
+    document.getElementById('daybased-prices').innerHTML = `
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0.5rem;padding:0 0.6rem 0.3rem;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream-3);">
+        <span>Día</span><span>Normal</span><span>Con cumpleaños</span>
+      </div>
+      ${row('weekday', 'Lunes a viernes')}${row('weekend', 'Sábado y domingo')}`;
+    document.getElementById('birthday-items').textContent = 'Incluye: ' + (boat.pricing_scheme.birthday_combo || []).join(' · ');
+    const diff = document.getElementById('birthday-diff');
+    if (selDate) {
+      const k = isWeekendDate(selDate) ? 'weekend' : 'weekday';
+      diff.textContent = '+$' + (p[k + '_birthday'] - p[k]).toLocaleString() + ' sobre el precio normal';
+    } else {
+      diff.textContent = 'Selecciona la fecha para ver el precio';
+    }
+  }
+
+  window.toggleBirthday = function (checked) { selBirthday = !!checked; updateSummary(); };
 
   function isDayFull(ds) {
     const slots = bookedSlots[ds] || [];
@@ -694,6 +747,7 @@
 
     selDate = ds;
     selSlot = null;
+    renderDayBasedUI();
     renderCalendar();
     refreshSlotUI();
     updateSummary();
@@ -850,7 +904,13 @@
     const extraLines = [];
     let base, durationLabel, scheduleLabel;
 
-    if (scheme) {
+    if (scheme && scheme.type === 'day_based') {
+      const k = isWeekendDate(selDate) ? 'weekend' : 'weekday';
+      base = scheme.prices[k];
+      durationLabel = '1 turno (6 horas)';
+      scheduleLabel = selSlot === '9am-3pm' ? '9:00 AM – 3:00 PM' : '4:00 PM – 10:00 PM';
+      if (selBirthday) extraLines.push({ label: 'Combo de cumpleaños', price: scheme.prices[k + '_birthday'] - base });
+    } else if (scheme) {
       const pkg = (scheme.packages || []).find(p => p.hours === selPackageHours) || scheme.packages[0];
       base = pkg.price;
       durationLabel = pkg.hours + ' horas';
@@ -1059,7 +1119,9 @@
     const body = {
       boat_id: boat.id, start_date: selDate, schedule: selSlot, guests: calc.guests, special_requests: special,
     };
-    if (boat.pricing_scheme) {
+    if (isDayBased()) {
+      body.birthday_combo = selBirthday;
+    } else if (boat.pricing_scheme) {
       body.package_hours = selPackageHours;
       body.extra_hours = extraHours;
       body.meal_addons = getMealAddons().map(m => m.key);

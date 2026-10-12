@@ -32,7 +32,7 @@ function generateRef() {
 router.post('/', authRequired, async (req, res) => {
   try {
     const db = getDB();
-    const { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons } = req.body;
+    const { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons, birthday_combo } = req.body;
     let { special_requests } = req.body;
     if (!boat_id || !start_date || !schedule) return res.status(400).json({ error: 'Datos de reserva incompletos' });
     if (special_requests != null) {
@@ -44,7 +44,8 @@ router.post('/', authRequired, async (req, res) => {
     const scheme = boatRow.pricing_scheme ? JSON.parse(boatRow.pricing_scheme) : null;
 
     // El turno válido depende del esquema de la embarcación
-    const validSchedules = scheme?.time_slots?.length ? scheme.time_slots : (scheme ? ['full-day'] : ['9am-3pm', '4pm-10pm']);
+    const dayBased = scheme?.type === 'day_based';
+    const validSchedules = scheme?.time_slots?.length ? scheme.time_slots : ((scheme && !dayBased) ? ['full-day'] : ['9am-3pm', '4pm-10pm']);
     if (!validSchedules.includes(schedule)) return res.status(400).json({ error: 'Turno inválido' });
 
     const maxCapacity = scheme?.max_capacity || boatRow.capacity;
@@ -66,7 +67,21 @@ router.post('/', authRequired, async (req, res) => {
     let additionals_price = 0;
     const metaParts = [];
 
-    if (scheme) {
+    if (dayBased) {
+      // Precio según el día de la semana (sáb/dom = fin de semana) y si lleva combo de cumpleaños.
+      const weekend = [0, 6].includes(start.getDay());
+      const base = weekend ? scheme.prices.weekend : scheme.prices.weekday;
+      total = base;
+      metaParts.push(`${weekend ? 'Sábado y domingo' : 'Lunes a viernes'}: $${base}`);
+      if (birthday_combo === true) {
+        const withCombo = weekend ? scheme.prices.weekend_birthday : scheme.prices.weekday_birthday;
+        const amt = withCombo - base;
+        total = withCombo;
+        selectedAdditionals.push('birthday_combo');
+        additionals_price += amt;
+        metaParts.push(`Combo de cumpleaños (${(scheme.birthday_combo || []).join(', ')}): ${amt >= 0 ? '+' : '-'}$${Math.abs(amt)}`);
+      }
+    } else if (scheme) {
       const pkg = (scheme.packages || []).find(p => p.hours === Number(package_hours)) || scheme.packages?.[0];
       if (!pkg) return res.status(400).json({ error: 'Paquete de horas inválido' });
       total += pkg.price;
