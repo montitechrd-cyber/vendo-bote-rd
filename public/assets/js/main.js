@@ -299,6 +299,37 @@
   }
   window.VBR.generateCardVideoPosters = generateCardVideoPosters;
 
+  /* ── Preview del video en la tarjeta: al pulsar ▶ se reproduce sin audio dentro de
+     la misma tarjeta (en bucle). Va en fase de captura para que el clic no dispare la
+     navegación a la ficha. Clic en el video ya reproduciéndose sí abre la ficha. ── */
+  document.addEventListener('click', e => {
+    const wrap = e.target.closest && e.target.closest('.card-video-wrap');
+    if (!wrap || !wrap.dataset.videoSrc) return;
+    const play = wrap.querySelector('.card-video-play');
+    // Con el video ya reproduciéndose, el clic cae en la tarjeta (abre la ficha).
+    const existing = wrap.querySelector('video');
+    if (existing && !existing.paused) return;
+    e.stopPropagation();
+    e.preventDefault();
+    document.querySelectorAll('.card-video-wrap video').forEach(v => v.pause());
+    let vid = existing;
+    if (!vid) {
+      vid = document.createElement('video');
+      vid.className = 'card-video-poster';
+      vid.muted = true; vid.defaultMuted = true; vid.loop = true; vid.playsInline = true;
+      vid.setAttribute('muted', ''); vid.setAttribute('playsinline', '');
+      vid.preload = 'auto';
+      vid.src = wrap.dataset.videoSrc;
+      const poster = wrap.querySelector('.card-video-poster');
+      if (poster && poster.src) vid.poster = poster.src;
+      wrap.appendChild(vid);
+      const img = wrap.querySelector('img.card-video-poster');
+      if (img) img.style.display = 'none';
+    }
+    if (play) play.style.display = 'none';
+    vid.play().catch(() => { if (play) play.style.display = ''; });
+  }, true);
+
   /* ── Boat card builder ── */
   function buildBoatCard(boat) {
     const imgs = Array.isArray(boat.images) ? boat.images : JSON.parse(boat.images || '[]');
