@@ -249,6 +249,27 @@ async function migrateDayBasedPricing() {
   }
 }
 
+// Los textos de Lupita, Elite, Perla Negra y Refugio Marino tenían capacidad y precios viejos
+// (o la plantilla "PENDIENTE"). Se reescriben acordes a la tabla de precios por día.
+async function migrateDayBasedCopy() {
+  const boats = [
+    { like: '%Lupita%', type: 'lancha', name: 'Lupita', capacity: 15 },
+    { like: '%Perla Negra%', type: 'yate', name: 'Perla Negra', capacity: 12 },
+    { like: '%Refugio Marino%', type: 'bote', name: 'Refugio Marino', capacity: 25 },
+    { like: '%Elite%', type: 'yate', name: 'Elite', capacity: 20 },
+  ];
+  const amenities = ['1 hora de Jet Ski', 'Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+  for (const b of boats) {
+    const short = `${b.type[0].toUpperCase()}${b.type.slice(1)} ${b.name} en Boca Chica para hasta ${b.capacity} personas.`;
+    const desc = `Renta del ${b.type} ${b.name} en Boca Chica, con capacidad para ${b.capacity} personas. Incluye 1 hora de Jet Ski, parrillada, agua, hielo, gasolina, tripulación y cocinero. El precio varía según el día de la semana, y puedes agregar el combo de cumpleaños (1 hora de jetski, decoración, bizcocho, parrillada, agua, hielo y refresco).`;
+    const rules = [`Máximo ${b.capacity} personas`];
+    await pool.query(
+      'UPDATE boats SET short_description = $1, description = $2, rules = $3, amenities = $4 WHERE name ILIKE $5',
+      [short, desc, JSON.stringify(rules), JSON.stringify(amenities), b.like]
+    );
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -256,6 +277,7 @@ async function init() {
   await runDataMigrationOnce('2026-09-28-boat-cover-photos', migrateBoatCoverPhotos);
   await runDataMigrationOnce('2026-10-12-perla-negra-cover-rename', migratePerlaNegraCoverRename);
   await runDataMigrationOnce('2026-10-12-day-based-pricing', migrateDayBasedPricing);
+  await runDataMigrationOnce('2026-10-12-day-based-copy', migrateDayBasedCopy);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
