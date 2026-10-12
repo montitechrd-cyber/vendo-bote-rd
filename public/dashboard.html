@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261009f" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012a" />
 </head>
 <body>
 
@@ -106,24 +106,41 @@
           <div id="payment-form-wrap" class="hidden">
             <div class="bank-box" style="margin-bottom:2rem;">
               <div class="bank-box-title">🏦 Datos para la Transferencia</div>
-              <div class="bank-box-tab">
-                <button class="bank-box-tab-btn active" onclick="switchBankD('popular',this)">Banco Popular</button>
-                <button class="bank-box-tab-btn" onclick="switchBankD('reservas',this)">Banreservas</button>
-              </div>
-              <!-- Banco Popular -->
-              <div class="bank-panel active" id="dash-popular">
-                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
-                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">745121483</span><button class="bank-copy" onclick="copyText('745121483')">Copiar</button></div></div>
-                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
-              </div>
-              <!-- Banreservas -->
-              <div class="bank-panel" id="dash-reservas">
-                <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
-                <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-                <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
-                <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
-              </div>
+<div class="bank-box-tab" style="flex-wrap:wrap;">
+          <button class="bank-box-tab-btn active" onclick="switchBankD('popular',this)">Banco Popular</button>
+          <button class="bank-box-tab-btn" onclick="switchBankD('zelle',this)">Zelle</button>
+          <button class="bank-box-tab-btn" onclick="switchBankD('reservas',this)">Banreservas</button>
+          <button class="bank-box-tab-btn" onclick="switchBankD('reservasusd',this)">Banreservas USD</button>
+          <button class="bank-box-tab-btn" onclick="switchBankD('bhd',this)">Banco BHD</button>
+        </div>
+        <div class="bank-panel active" id="dash-popular">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta corriente</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" onclick="copyText('0832468474')">Copiar</button></div></div>
+        </div>
+        <div class="bank-panel" id="dash-zelle">
+          <div class="bank-row"><span class="bank-key">Método</span><span class="bank-val">Zelle</span></div>
+          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" onclick="copyText('vendobote@icloud.com')">Copiar</button></div></div>
+        </div>
+        <div class="bank-panel" id="dash-reservas">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en pesos (DOP)</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+        </div>
+        <div class="bank-panel" id="dash-reservasusd">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en dólares (USD)</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" onclick="copyText('9609859038')">Copiar</button></div></div>
+        </div>
+        <div class="bank-panel" id="dash-bhd">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco BHD</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
+        </div>
               <!-- Referencia y monto (siempre visible) -->
               <div style="border-top:1.5px solid var(--line);margin-top:0.5rem;padding-top:0.75rem;">
                 <div class="bank-row"><span class="bank-key">Referencia</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val" id="pay-ref">—</span><button class="bank-copy" id="copy-ref-btn">Copiar</button></div></div>
@@ -140,7 +157,7 @@
                   <span style="font-size:0.72rem;color:var(--cream-3);margin-top:0.3rem;">Foto o captura de la transferencia — JPG, PNG o PDF, máx. 10MB</span>
                 </div>
                 <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:0.9rem 1.1rem;font-size:0.8rem;color:var(--cream-2);line-height:1.6;">
-                  💡 Recomendamos transferir desde una cuenta del <strong>mismo banco</strong> (Banco Popular o Banreservas) para que el pago se refleje de inmediato. Si transfieres desde un banco distinto, asegúrate de que sea una <strong>transferencia instantánea</strong>, ya que un depósito interbancario regular puede tardar en acreditarse.
+                  💡 Recomendamos transferir desde una cuenta del <strong>mismo banco</strong> (Banco Popular, Banreservas o BHD) para que el pago se refleje de inmediato. Si transfieres desde un banco distinto, asegúrate de que sea una <strong>transferencia instantánea</strong>, ya que un depósito interbancario regular puede tardar en acreditarse.
                 </div>
                 <div id="pay-error" class="form-error hidden"></div>
                 <button class="btn btn-primary" id="submit-payment-btn" style="justify-content:center;">
@@ -484,7 +501,7 @@
 })();
 
 window.switchBankD = function(bank, btn) {
-  document.querySelectorAll('#dash-popular,#dash-reservas').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#dash-popular,#dash-zelle,#dash-reservas,#dash-reservasusd,#dash-bhd').forEach(p => p.classList.remove('active'));
   document.getElementById('dash-' + bank).classList.add('active');
   btn.closest('.bank-box-tab').querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');

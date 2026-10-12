@@ -620,7 +620,7 @@ ul { list-style: none; }
 }
 .bank-box-title { font-family: var(--serif); font-size: 1.1rem; font-style: italic; color: var(--navy); margin-bottom: 1.25rem; }
 .bank-box-tab { display: flex; gap: 0; border-bottom: 1.5px solid var(--line); margin-bottom: 1.25rem; }
-.bank-box-tab-btn { flex: 1; padding: 0.6rem 0.5rem; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all 0.25s; white-space: nowrap; text-align: center; }
+.bank-box-tab-btn { flex: 1 1 auto; padding: 0.6rem 0.5rem; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all 0.25s; white-space: nowrap; text-align: center; }
 .bank-box-tab-btn.active { color: var(--sky-2); border-bottom-color: var(--sky-2); }
 .bank-panel { display: none; }
 .bank-panel.active { display: block; }

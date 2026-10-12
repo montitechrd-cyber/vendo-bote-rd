@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261009f" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012a" />
 </head>
 <body>
 
@@ -172,73 +172,45 @@
       </div>
       <div class="bank-box">
         <div class="bank-box-title">🏦 Datos Bancarios</div>
-        <div class="bank-box-tab">
+<div class="bank-box-tab" style="flex-wrap:wrap;">
           <button class="bank-box-tab-btn active" onclick="switchBank('popular',this)">Banco Popular</button>
+          <button class="bank-box-tab-btn" onclick="switchBank('zelle',this)">Zelle</button>
           <button class="bank-box-tab-btn" onclick="switchBank('reservas',this)">Banreservas</button>
+          <button class="bank-box-tab-btn" onclick="switchBank('reservasusd',this)">Banreservas USD</button>
+          <button class="bank-box-tab-btn" onclick="switchBank('bhd',this)">Banco BHD</button>
         </div>
-        <!-- Banco Popular -->
         <div class="bank-panel active" id="bank-popular">
-          <div class="bank-row">
-            <span class="bank-key">Banco</span>
-            <span class="bank-val">Banco Popular Dominicano</span>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Titular</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">Juan Alberto Romero</span>
-              <button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Cuenta</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">745121483</span>
-              <button class="bank-copy" onclick="copyText('745121483')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Cédula</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">226-0007735-2</span>
-              <button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Referencia</span>
-            <span class="bank-val" style="color:var(--sky-2);">Número de reserva</span>
-          </div>
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta corriente</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" onclick="copyText('0832468474')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
-        <!-- Banreservas -->
+        <div class="bank-panel" id="bank-zelle">
+          <div class="bank-row"><span class="bank-key">Método</span><span class="bank-val">Zelle</span></div>
+          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" onclick="copyText('vendobote@icloud.com')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
+        </div>
         <div class="bank-panel" id="bank-reservas">
-          <div class="bank-row">
-            <span class="bank-key">Banco</span>
-            <span class="bank-val">Banco de Reservas (BanReservas)</span>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Titular</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">Juan Alberto Romero</span>
-              <button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Cuenta</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">9606655039</span>
-              <button class="bank-copy" onclick="copyText('9606655039')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Cédula</span>
-            <div style="display:flex;gap:0.6rem;align-items:center;">
-              <span class="bank-val">226-0007735-2</span>
-              <button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button>
-            </div>
-          </div>
-          <div class="bank-row">
-            <span class="bank-key">Referencia</span>
-            <span class="bank-val" style="color:var(--sky-2);">Número de reserva</span>
-          </div>
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en pesos (DOP)</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
+        </div>
+        <div class="bank-panel" id="bank-reservasusd">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
+          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en dólares (USD)</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" onclick="copyText('9609859038')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
+        </div>
+        <div class="bank-panel" id="bank-bhd">
+          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco BHD</span></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
       </div>
     </div>
@@ -369,7 +341,7 @@
     </div>
     <div class="chatbot-faqs" id="chatbot-faqs">
       <button class="chatbot-faq-btn" data-q="¿Cómo reservo una embarcación?" data-a="Para reservar, crea una cuenta gratuita, elige tu embarcación, selecciona las fechas en el calendario y confirma tu reserva. Luego realiza la transferencia bancaria y sube el comprobante desde tu panel personal.">¿Cómo reservo una embarcación?</button>
-      <button class="chatbot-faq-btn" data-q="¿Cuáles son los métodos de pago?" data-a="Aceptamos transferencia bancaria únicamente. Puedes transferir al Banco Popular (cuenta 745121483) o BanReservas (cuenta 9606655039), ambas a nombre de Juan Alberto Romero. Sube tu comprobante y verificamos en menos de 24 horas.">¿Cuáles son los métodos de pago?</button>
+      <button class="chatbot-faq-btn" data-q="¿Cuáles son los métodos de pago?" data-a="Aceptamos transferencia bancaria y Zelle. Puedes pagar a Banco Popular (cuenta corriente 0832468474) o Banco BHD (36727140016), ambas a nombre de Penelope Gonzalez Then; a BanReservas (pesos 9606655039, dólares 9609859038) a nombre de Juan Alberto Romero; o por Zelle a vendobote@icloud.com. Sube tu comprobante y verificamos en menos de 24 horas.">¿Cuáles son los métodos de pago?</button>
       <button class="chatbot-faq-btn" data-q="¿Qué incluye el alquiler?" data-a="Todas nuestras embarcaciones incluyen capitán profesional. Según la embarcación pueden incluir equipo de snorkel, kayaks, nevera, sistema de sonido y más. Revisa los amenities de cada embarcación en su página de detalle.">¿Qué incluye el alquiler?</button>
       <button class="chatbot-faq-btn" data-q="¿Cuáles destinos tienen disponibles?" data-a="Operamos en tres destinos del sur y este de República Dominicana: 📍 Boca Chica, 📍 Punta Cana y 📍 La Romana. Cada paseo sale y se disfruta anclado frente a las playas de esa misma zona.">¿Cuáles destinos tienen disponibles?</button>
       <button class="chatbot-faq-btn" data-q="¿Cuánto tiempo tarda la confirmación?" data-a="Una vez que subas tu comprobante de pago, nuestro equipo lo verifica en un máximo de 24 horas. Al confirmar, recibirás todos los detalles del capitán y punto de salida.">¿Cuánto tiempo tarda la confirmación?</button>
