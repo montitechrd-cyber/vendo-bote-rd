@@ -213,11 +213,25 @@ async function migrateBoatCoverPhotos() {
   }
 }
 
+// La foto de portada de Perla Negra se renombró (foto-4.jpeg -> portada perla negra.jpeg)
+// y la ruta vieja quedó rota en la base. Reemplaza la ruta rota y la deja como portada.
+async function migratePerlaNegraCoverRename() {
+  const oldPath = '/assets/img/RENTAS/perla negra/foto-4.jpeg';
+  const newPath = '/assets/img/RENTAS/perla negra/portada perla negra.jpeg';
+  const { rows } = await pool.query("SELECT id, images FROM boats WHERE name ILIKE '%Perla Negra%'");
+  for (const boat of rows) {
+    const current = JSON.parse(boat.images || '[]');
+    const reordered = [newPath, ...current.filter(img => img !== oldPath && img !== newPath)];
+    await pool.query('UPDATE boats SET images = $1 WHERE id = $2', [JSON.stringify(reordered), boat.id]);
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
   await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
   await runDataMigrationOnce('2026-09-28-boat-cover-photos', migrateBoatCoverPhotos);
+  await runDataMigrationOnce('2026-10-12-perla-negra-cover-rename', migratePerlaNegraCoverRename);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
