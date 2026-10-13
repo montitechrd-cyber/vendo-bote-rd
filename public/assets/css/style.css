@@ -1837,3 +1837,10 @@ ul { list-style: none; }
   .gallery-nav { width: 30px; height: 30px; font-size: 1.15rem; }
   .gallery-fabs { left: 0.75rem; right: 0.75rem; }
 }
+
+/* Calendario: el día de la semana va solo en el encabezado; las celdas solo muestran el número */
+.boat-top .cal-day-name, .boat-top .booking-wizard .cal-day-name { display: none; }
+.boat-top .calendar-day:not(.empty) { min-height: 38px; }
+.boat-top .cal-day-num { font-size: 1rem; }
+@media (min-width: 1001px) { .boat-top .calendar-day:not(.empty) { min-height: 34px; } }
+@media (max-width: 1000px) { .boat-top .calendar-day:not(.empty) { min-height: 42px; } }
