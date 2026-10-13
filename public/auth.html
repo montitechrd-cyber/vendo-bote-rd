@@ -31,6 +31,11 @@
     .auth-links a, .auth-links button { color: var(--sky-2); font-weight: 600; cursor: pointer; font-size: inherit; }
     .auth-view { display: none; }
     .auth-view.active { display: block; }
+    .google-block { margin-bottom: 1.1rem; }
+    .google-block[hidden] { display: none; }
+    #google-btn { display: flex; justify-content: center; min-height: 44px; }
+    .auth-or { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; color: var(--text-muted); font-size: 0.8rem; }
+    .auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
     @media (max-width: 480px) { .auth-page { padding: 1.25rem 0.75rem; } .auth-card { padding: 1.5rem 1.1rem; } }
   </style>
 </head>
@@ -45,6 +50,12 @@
 
     <div class="auth-card">
       <div id="auth-msg" class="auth-msg hidden" role="alert"></div>
+
+      <!-- Acceso con Google (solo aparece si el servidor tiene GOOGLE_CLIENT_ID) -->
+      <div id="google-block" class="google-block" hidden>
+        <div id="google-btn"></div>
+        <div class="auth-or"><span>o con tu correo</span></div>
+      </div>
 
       <!-- Ingresar -->
       <form class="auth-view active" id="view-login" novalidate>
@@ -183,6 +194,30 @@
     if (d.error) return show('error', d.error);
     afterSignIn();
   }); });
+
+  // Acceso con Google: se carga solo si el servidor lo tiene configurado
+  fetch('/api/auth/config').then(r => r.json()).then(cfg => {
+    if (!cfg || !cfg.googleClientId) return;
+    const sc = document.createElement('script');
+    sc.src = 'https://accounts.google.com/gsi/client';
+    sc.async = true;
+    sc.onload = () => {
+      if (!window.google || !google.accounts || !google.accounts.id) return;
+      google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        callback: async (resp) => {
+          clearMsg();
+          const d = await post('google', { credential: resp.credential });
+          if (d.error) return show('error', d.error);
+          afterSignIn();
+        },
+      });
+      const w = Math.min(340, Math.max(220, document.querySelector('.auth-card').clientWidth - 48));
+      google.accounts.id.renderButton($('google-btn'), { theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', locale: 'es', width: w });
+      $('google-block').hidden = false;
+    };
+    document.head.appendChild(sc);
+  }).catch(() => {});
 
   // Si ya hay sesión, no mostrar el formulario
   if (!resetToken) {

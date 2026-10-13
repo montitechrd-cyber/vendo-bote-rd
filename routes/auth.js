@@ -67,6 +67,52 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Configuración pública para el navegador (el ID de cliente de Google no es secreto)
+router.get('/config', (req, res) => {
+  res.json({ googleClientId: process.env.GOOGLE_CLIENT_ID || null });
+});
+
+// Inicio de sesión con Google: el navegador manda el "credential" (JWT firmado por Google) y aquí se verifica.
+// Google confirma que el correo es de esa persona, así que sirve también para entrar a cuentas anteriores.
+let googleClient = null;
+router.post('/google', async (req, res) => {
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) return res.status(503).json({ error: 'El acceso con Google aún no está configurado' });
+    const credential = String(req.body.credential || '');
+    if (!credential) return res.status(400).json({ error: 'Falta la credencial de Google' });
+
+    if (!googleClient) {
+      const { OAuth2Client } = require('google-auth-library');
+      googleClient = new OAuth2Client(clientId);
+    }
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: clientId });
+    const p = ticket.getPayload();
+    const email = normEmail(p && p.email);
+    if (!p || !p.email_verified || !EMAIL_RE.test(email)) {
+      return res.status(401).json({ error: 'Google no pudo verificar tu correo' });
+    }
+
+    const db = getDB();
+    let user = await db.queryOne('SELECT id FROM users WHERE email = $1', [email]);
+    if (!user) {
+      const name = String(p.given_name || p.name || email.split('@')[0]).trim().slice(0, 80);
+      const lastName = String(p.family_name || '').trim().slice(0, 80) || null;
+      const role = email === ADMIN_EMAIL ? 'admin' : 'user';
+      const r = await db.run(
+        'INSERT INTO users (name, last_name, email, role) VALUES ($1, $2, $3, $4) RETURNING id',
+        [name, lastName, email, role]
+      );
+      user = { id: r.lastInsertRowid };
+    }
+    setSession(res, user.id);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[auth] google:', e.message);
+    res.status(401).json({ error: 'No se pudo iniciar sesión con Google' });
+  }
+});
+
 router.post('/login', async (req, res) => {
   try {
     const db = getDB();
