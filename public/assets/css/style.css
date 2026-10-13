@@ -964,35 +964,37 @@ ul { list-style: none; }
 .toast-msg { flex: 1; line-height: 1.5; }
 
 /* ── Image Gallery ── */
-.gallery { height: clamp(220px, 30vw, 360px); border-radius: var(--r); overflow: hidden; background: var(--bg-2); }
-.gallery-main { position: relative; overflow: hidden; cursor: zoom-in; width: 100%; height: 100%; }
-/* La foto se muestra completa (sin recortar); lo que sobra se rellena con la misma foto desenfocada */
-.gallery-main img { position: relative; width: 100%; height: 100%; object-fit: contain; }
-.gallery-bg { position: absolute; inset: -30px; background-size: cover; background-position: center; filter: blur(28px) brightness(0.9); transform: scale(1.1); }
+/* Galería: escenario claro con la foto COMPLETA (sin recortar) centrada, con esquinas redondeadas y sombra suave */
+.gallery { height: clamp(250px, 38vw, 440px); border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #f5f9fd 0%, #e8f1f9 100%); border: 1px solid var(--line); }
+.gallery-main { position: relative; width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); place-items: center; padding: 16px; box-sizing: border-box; cursor: zoom-in; }
+.gallery-main img { display: block; max-width: 100%; max-height: 100%; min-height: 0; width: auto; height: auto; object-fit: contain; border-radius: 14px; box-shadow: 0 10px 32px rgba(15,52,96,0.22); }
+.gallery-main video { max-width: 100%; max-height: 100%; border-radius: 14px; box-shadow: 0 10px 32px rgba(15,52,96,0.22); background: #0f2036; }
+.gallery-bg { display: none; }
 
-/* Flechas sobre la foto principal */
+/* Flechas */
 .gallery-nav {
-  position: absolute; top: calc(50% - 22px); z-index: 6; width: 44px; height: 44px; border-radius: 50%;
-  display: grid; place-items: center; padding: 0 0 4px; font-size: 1.8rem; line-height: 1; color: var(--navy);
-  background: rgba(255,255,255,0.85); backdrop-filter: blur(6px); box-shadow: 0 2px 12px rgba(15,52,96,0.22);
-  opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
+  position: absolute; top: calc(50% - 21px); z-index: 6; width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center; padding: 0 0 3px; font-size: 1.7rem; line-height: 1; color: var(--navy);
+  background: #fff; box-shadow: 0 3px 14px rgba(15,52,96,0.22);
+  opacity: 0.85; transition: opacity 0.2s, transform 0.2s;
 }
 .gallery-nav:hover { opacity: 1; transform: scale(1.08); }
-.gallery-nav-prev { left: 1.1rem; }
-.gallery-nav-next { right: 1.1rem; }
+.gallery-nav-prev { left: 0.9rem; }
+.gallery-nav-next { right: 0.9rem; }
 
-/* Tira de miniaturas */
-.gallery-strip { display: flex; gap: 0.5rem; overflow-x: auto; width: min(100% - 2 * clamp(1.5rem, 6vw, 4rem), 1100px); margin: 0 auto; padding: 0.6rem 0.15rem 0.3rem; scrollbar-width: thin; }
+/* Miniaturas: chips uniformes (la foto completa se ve arriba) */
+.gallery-strip { display: flex; gap: 0.55rem; overflow-x: auto; width: min(100% - 2 * clamp(1.5rem, 6vw, 4rem), 1100px); margin: 0 auto; padding: 0.7rem 4px 0.4rem; scrollbar-width: none; -ms-overflow-style: none; }
+.gallery-strip::-webkit-scrollbar { display: none; }
 .gallery-strip:empty { display: none; }
 .gallery-thumb-btn {
-  position: relative; flex: 0 0 auto; width: 84px; height: 58px; border-radius: 8px; overflow: hidden; padding: 0;
-  border: 2px solid transparent; opacity: 0.6; cursor: pointer; background: var(--bg-2);
-  transition: opacity 0.2s, border-color 0.2s, transform 0.2s;
+  position: relative; flex: 0 0 auto; width: 76px; height: 54px; border-radius: 10px; overflow: hidden; padding: 0;
+  border: 0; opacity: 0.6; cursor: pointer; background: var(--bg-2);
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
 }
-.gallery-thumb-btn:hover { opacity: 0.95; transform: translateY(-2px); }
-.gallery-thumb-btn.active { opacity: 1; border-color: var(--sky-2); }
-.gallery-thumb-btn img, .gallery-thumb-btn video { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
-.gallery-thumb-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 1rem; background: rgba(15,52,96,0.3); }
+.gallery-thumb-btn:hover { opacity: 1; transform: translateY(-2px); }
+.gallery-thumb-btn.active { opacity: 1; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sky-2); }
+.gallery-thumb-btn img, .gallery-thumb-btn video { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.gallery-thumb-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 0.9rem; background: rgba(15,52,96,0.3); }
 .gallery-more {
   position: absolute; inset: 0; background: rgba(15,52,96,0.55);
   display: grid; place-items: center;
@@ -1247,8 +1249,8 @@ ul { list-style: none; }
   padding: 0.35rem 0.8rem; border-radius: 50px; display: none; align-items: center; gap: 0.3rem;
 }
 .gallery-dots { position: absolute; bottom: 1.1rem; left: 50%; transform: translateX(-50%); z-index: 6; display: none; gap: 0.4rem; }
-.gallery-dot { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.55); cursor: pointer; transition: all 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-.gallery-dot.active { width: 18px; background: #fff; }
+.gallery-dot { width: 6px; height: 6px; border-radius: 3px; background: rgba(15,52,96,0.25); cursor: pointer; transition: all 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.gallery-dot.active { width: 18px; background: var(--navy); }
 @media (max-width: 768px) {
   .gallery-badge-count, .gallery-dots { display: flex; }
 }
@@ -1424,8 +1426,8 @@ ul { list-style: none; }
   .hero-actions .btn { padding: 0.85rem 1.8rem; font-size: 0.88rem; }
   .hero-locations { margin-bottom: 1.25rem; }
   .hero-tagline { font-size: clamp(1.6rem, 7vw, 2.4rem); }
-  .gallery-nav { width: 38px; height: 38px; font-size: 1.5rem; }
-  .gallery-thumb-btn { width: 68px; height: 48px; }
+  .gallery-nav { width: 36px; height: 36px; font-size: 1.4rem; }
+  .gallery-thumb-btn { width: 64px; height: 46px; }
   .form-grid { grid-template-columns: 1fr; }
   .booking-card { flex-direction: column; }
   .booking-card-img { width: 100%; height: 200px; }

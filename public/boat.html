@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013c" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261013e" />
 </head>
 <body>
 
@@ -454,7 +454,7 @@
              <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">▶</div>
            </div>
          </div>`
-      : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><div class="gallery-bg" style="background-image:url('${src.replace(/'/g, '%27')}')"></div><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
+      : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
     gallery.innerHTML = mainHTML;
     document.querySelectorAll('.gallery-thumb-btn').forEach((t, i) => {
       t.classList.toggle('active', i === mainIdx);
