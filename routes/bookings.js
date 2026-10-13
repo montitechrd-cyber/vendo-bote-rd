@@ -25,6 +25,8 @@ const upload = multer({
   }
 });
 
+const { isSlotClosed } = require('../utils/booking-time');
+
 function generateRef() {
   return 'VBR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
 }
@@ -53,8 +55,11 @@ router.post('/', authRequired, async (req, res) => {
     if (guestsNum > maxCapacity) return res.status(400).json({ error: `Máximo ${maxCapacity} personas` });
 
     const start = new Date(start_date + 'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
-    if (start < today) return res.status(400).json({ error: 'La fecha debe ser futura' });
+    if (isNaN(start)) return res.status(400).json({ error: 'Fecha inválida' });
+    // Hora de República Dominicana: no se cotiza/reserva un turno que ya pasó ni con menos de 2 horas de antelación.
+    if (isSlotClosed(start_date, schedule)) {
+      return res.status(400).json({ error: 'Este turno ya no está disponible: hay que reservar al menos 2 horas antes del horario.' });
+    }
 
     const conflict = await db.queryOne(
       `SELECT id FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND start_date = $2 AND schedule = $3`,

@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012g" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
 </head>
 <body>
 
@@ -70,9 +70,12 @@
         <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
       </div>
     </div>
+    <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
+    <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
     <div class="gallery-badge-count" id="gallery-badge-count"></div>
     <div class="gallery-dots" id="gallery-dots"></div>
   </div>
+  <div class="gallery-strip" id="gallery-strip"></div>
 
   <!-- Lightbox -->
   <div class="lightbox-overlay" id="lightbox">
@@ -452,7 +455,11 @@
            </div>
          </div>`
       : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
-    gallery.innerHTML = mainHTML + (gallery.dataset.thumbs || '');
+    gallery.innerHTML = mainHTML;
+    document.querySelectorAll('.gallery-thumb-btn').forEach((t, i) => {
+      t.classList.toggle('active', i === mainIdx);
+      if (i === mainIdx && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    });
     document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === mainIdx));
     document.getElementById('gallery-badge-count').textContent = hasRealImages ? `📷 ${mainIdx + 1}/${imgs.length}` : '';
   }
@@ -476,14 +483,18 @@
     // un video pesado (varios pesan 40-70MB) solo por ser el primer elemento.
     const firstPhotoIdx = imgs.findIndex(src => !isVid(src));
     mainIdx = firstPhotoIdx !== -1 ? firstPhotoIdx : 0;
-    const gallery = document.getElementById('gallery');
-    gallery.dataset.thumbs = `
-      ${imgs[1] ? `<div class="gallery-thumb" onclick="openLightbox(1)">${mediaThumb(imgs[1],1)}</div>` : ''}
-      ${imgs[2] ? `<div class="gallery-thumb" onclick="openLightbox(2)" style="position:relative;">
-        ${mediaThumb(imgs[2],2)}
-        ${imgs.length > 3 ? `<div class="gallery-more">+${imgs.length - 2} fotos</div>` : ''}
-      </div>` : ''}
-    `;
+    const multi = imgs.length > 1;
+    // Tira de miniaturas (todas las fotos/videos); clic = ver esa foto arriba
+    document.getElementById('gallery-strip').innerHTML = multi
+      ? imgs.map((src, i) => `<button type="button" class="gallery-thumb-btn" data-i="${i}" aria-label="Ver foto ${i + 1}">
+          ${isVid(src) ? '<video src="' + src + '" muted playsinline preload="metadata"></video><span class="gallery-thumb-play">▶</span>' : '<img src="' + src + '" alt="" loading="lazy" />'}
+        </button>`).join('')
+      : '';
+    document.querySelectorAll('.gallery-thumb-btn').forEach(b => b.addEventListener('click', () => { mainIdx = parseInt(b.dataset.i, 10); paintMain(); }));
+    document.getElementById('gallery-prev').style.display = multi ? '' : 'none';
+    document.getElementById('gallery-next').style.display = multi ? '' : 'none';
+    document.getElementById('gallery-prev').onclick = () => shiftMain(-1);
+    document.getElementById('gallery-next').onclick = () => shiftMain(1);
     document.getElementById('gallery-dots').innerHTML = realImgs.length > 1
       ? imgs.slice(0, 10).map((_, i) => `<span class="gallery-dot${i === 0 ? ' active' : ''}" data-i="${i}"></span>`).join('')
       : '';
@@ -689,6 +700,28 @@
 
   window.toggleBirthday = function (checked) { selBirthday = !!checked; renderIncluded(); updateSummary(); };
 
+  /* ── Hora de República Dominicana: no se cotiza un turno ya pasado ni con menos de 2 h de antelación ── */
+  const DR_TZ = 'America/Santo_Domingo', MIN_LEAD_MIN = 120;
+  function nowDR() {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: DR_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(new Date()).map(x => [x.type, x.value]));
+    return { date: p.year + '-' + p.month + '-' + p.day, minutes: parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10) };
+  }
+  function slotStartMin(key) {
+    const m = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i.exec(String(key || ''));
+    if (!m) return 8 * 60;
+    let h = parseInt(m[1], 10) % 12;
+    if (m[3].toLowerCase() === 'pm') h += 12;
+    return h * 60 + (m[2] ? parseInt(m[2], 10) : 0);
+  }
+  function isSlotClosed(ds, key) {
+    const n = nowDR();
+    if (ds < n.date) return true;
+    if (ds > n.date) return false;
+    return n.minutes > slotStartMin(key) - MIN_LEAD_MIN;
+  }
+  const isDayClosed = (ds) => getSlotDefs().every(d => isSlotClosed(ds, d.key));
+
   function isDayFull(ds) {
     const slots = bookedSlots[ds] || [];
     return getSlotDefs().every(d => slots.includes(d.key));
@@ -709,6 +742,7 @@
     const last  = new Date(calYear, calMonth + 1, 0);
     const today = new Date(); today.setHours(0,0,0,0);
     const cells = [];
+    const drToday = nowDR().date;
 
     for (let i = 0; i < first.getDay(); i++) cells.push('<div class="calendar-day empty"></div>');
 
@@ -717,9 +751,9 @@
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(calYear, calMonth, d);
       const ds = ymd(date);
-      const isPast = date < today;
+      const isPast = ds < drToday || isDayClosed(ds);
       const isFull = isDayFull(ds);
-      const isToday = ds === todayStr;
+      const isToday = ds === drToday;
       const dayName = DAYS_SHORT[date.getDay()];
       const inner = `<span class="cal-day-name">${dayName}</span><span class="cal-day-num">${d}</span>`;
       let cls = 'calendar-day';
@@ -739,9 +773,7 @@
   function $$(sel) { return [...document.querySelectorAll(sel)]; }
 
   function onDateClick(ds) {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const date = new Date(ds + 'T00:00:00');
-    if (date < today || isDayFull(ds)) return;
+    if (ds < nowDR().date || isDayClosed(ds) || isDayFull(ds)) return;
 
     selDate = ds;
     selSlot = null;
@@ -793,14 +825,15 @@
     document.getElementById('schedule-title').textContent = 'Selecciona el turno';
     container.style.gridTemplateColumns = defs.length >= 3 ? 'repeat(auto-fit, minmax(150px, 1fr))' : '1fr 1fr';
     container.innerHTML = defs.map(d => {
-      const booked = slots.includes(d.key);
-      const cls = 'schedule-btn' + (booked ? ' slot-booked' : '') + (selSlot === d.key ? ' slot-selected' : '');
+      const closed = isSlotClosed(selDate, d.key);
+      const booked = slots.includes(d.key) || closed;
+      const cls = 'schedule-btn' + (booked ? ' slot-booked' : '') + (selSlot === d.key && !closed ? ' slot-selected' : '');
       const safeKey = d.key.replace(/'/g, "\\'");
       return `<button type="button" class="${cls}" ${booked ? 'disabled' : ''} onclick="selectSlot('${safeKey}')">
         <span class="slot-icon">${d.icon}</span>
         <span class="slot-label">${d.shortLabel}</span>
         <span class="slot-time">${d.label}</span>
-        <span class="slot-status" style="color:${booked ? 'var(--cream-3)' : '#198754'}">${booked ? 'Reservado' : 'Disponible'}</span>
+        <span class="slot-status" style="color:${booked ? 'var(--cream-3)' : '#198754'}">${closed ? 'Cerrado' : booked ? 'Reservado' : 'Disponible'}</span>
       </button>`;
     }).join('');
   }
@@ -1068,6 +1101,7 @@
     if (!clerk?.user) { sessionStorage.setItem('vbr_redirect', location.href); location.href = '/auth.html'; return; }
     const calc = computeBooking();
     if (!calc.ready) { window.VBR.toast('Selecciona fecha y turno', 'error'); return; }
+    if (isSlotClosed(selDate, selSlot)) { window.VBR.toast('Este turno ya no está disponible: reserva al menos 2 horas antes del horario.', 'error'); selSlot = null; refreshSlotUI(); updateSummary(); return; }
     const maxCapacity = (boat.pricing_scheme && boat.pricing_scheme.max_capacity) || boat.capacity;
     if (calc.guests > maxCapacity) { window.VBR.toast('Máximo ' + maxCapacity + ' personas', 'error'); return; }
     showModal(calc);
