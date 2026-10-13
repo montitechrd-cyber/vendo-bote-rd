@@ -1812,3 +1812,14 @@ ul { list-style: none; }
 /* Compartir y favoritos: juntos, abajo a la derecha de la galería (volver queda arriba a la izquierda) */
 .gallery-fabs { top: 1rem; bottom: 1rem; align-items: flex-start; }
 .gallery-fabs-right { align-self: flex-end; }
+
+/* Firma de Neuralab en celular: compacta (marca en una línea y dos enlaces pequeños lado a lado) */
+@media (max-width: 700px) {
+  .footer-credit { flex-direction: column; align-items: center; justify-content: center; gap: 0.7rem; padding: 0.9rem 0 3.6rem; margin-top: 0.75rem; }
+  .footer-credit-brand { flex-direction: row; gap: 0.6rem; }
+  .footer-credit-logo { flex-direction: row; gap: 0.4rem; align-items: center; }
+  .footer-credit-logo img { width: 30px; height: 26px; }
+  .footer-credit-links { width: auto; flex-wrap: nowrap; justify-content: center; gap: 0.5rem; padding: 0; border-left: 0; }
+  .footer-credit-link { min-height: 40px; padding: 0.35rem 0.85rem; gap: 0.4rem; font-size: 0.78rem; }
+  .footer-credit-link svg { width: 16px; height: 16px; }
+}
