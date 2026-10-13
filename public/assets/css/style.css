@@ -1469,3 +1469,132 @@ ul { list-style: none; }
 .seo-faq-item summary::after { content: '+'; font-size: 1.2rem; line-height: 1; color: var(--accent, #0EA5E9); }
 .seo-faq-item[open] summary::after { content: '−'; }
 .seo-faq-item p { margin-top: 0.75rem; color: var(--text-muted); line-height: 1.8; font-size: 0.95rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Página de embarcación: galería a la izquierda + reserva a la derecha,
+   todo compacto para ver la información de renta sin hacer scroll.
+   ═══════════════════════════════════════════════════════════════ */
+.boat-top {
+  max-width: 1280px; margin: 0 auto; padding: 10px clamp(1rem, 3vw, 2rem) 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 392px; gap: 22px; align-items: start;
+}
+.boat-top-left { min-width: 0; }
+.boat-top-right { position: sticky; top: calc(var(--nav-h) + 8px); }
+.boat-headline { margin-bottom: 0.4rem; }
+.boat-headline h1 { font-size: clamp(1.35rem, 2.3vw, 1.85rem) !important; line-height: 1.15 !important; }
+.boat-headline > div { margin-bottom: 0.35rem !important; gap: 0.5rem !important; }
+.boat-headline #boat-rating-badge { padding: 0.25rem 0.7rem !important; }
+.boat-top .gallery-section { width: 100%; margin: 0; }
+.boat-top .gallery { --gal-h: clamp(300px, calc(100vh - 300px), 520px); }
+.boat-top .gallery-strip { max-width: 100%; padding-top: 0.45rem; padding-bottom: 0.2rem; }
+
+/* Panel de reserva compacto (una sola tarjeta, sin pasos bloqueados) */
+.boat-top .booking-wizard { gap: 0; margin: 0; padding: 12px 14px 14px; background: #fff; border: 1.5px solid var(--line-2); border-radius: 18px; box-shadow: var(--shadow); }
+.boat-top .wizard-step { background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; opacity: 1; }
+.boat-top .wizard-step.is-locked { opacity: 1; }
+.boat-top .wizard-step.is-locked .wizard-step-body { display: block; }
+.boat-top .wizard-step-body { margin: 0; padding: 0; border: 0; }
+.boat-top .wizard-step + .wizard-step { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.boat-top .wizard-step-num, .boat-top .wizard-step-sub, .boat-top .wizard-next-hint { display: none; }
+.boat-top #wizard-step-2 .wizard-step-head, .boat-top #wizard-step-3 .wizard-step-head { display: none; }
+.boat-top #wizard-step-1 .wizard-step-head { margin-bottom: 6px; gap: 0.5rem; flex-wrap: nowrap; }
+.boat-top .wizard-step-headtext { min-width: 0; }
+.boat-top .wizard-step-title { font-size: 1rem; }
+.boat-top .wizard-step-price { width: auto; }
+.boat-top .wizard-step-price #panel-price { font-size: 1.25rem; }
+
+/* Calendario compacto */
+.boat-top .calendar-wrapper { padding: 4px 2px 0; border: 0; box-shadow: none; max-width: 100%; border-radius: 0; }
+.boat-top .calendar-header { margin-bottom: 4px; padding-bottom: 4px; }
+.boat-top .calendar-title { font-size: 1rem; }
+.boat-top .calendar-nav { width: 28px; height: 28px; font-size: 0.9rem; }
+.boat-top .calendar-days-header { margin-bottom: 0; gap: 2px; }
+.boat-top .calendar-day-name { font-size: 0.6rem; padding: 0.15rem 0; }
+.boat-top .calendar-days { gap: 2px; }
+.boat-top .calendar-day { border-radius: 8px; }
+.boat-top .calendar-day:not(.empty) { aspect-ratio: auto; min-height: 36px; }
+.boat-top .cal-day-name { display: none; }
+.boat-top .cal-day-num { font-size: 0.85rem; }
+.boat-top .calendar-legend { margin-top: 4px; gap: 0.7rem; padding-top: 4px; }
+.boat-top .calendar-legend-item { font-size: 0.58rem; }
+
+/* Turnos en dos columnas, bajos */
+.boat-top #schedule-section { margin-top: 6px !important; }
+.boat-top #schedule-section .panel-subheading { margin-bottom: 4px; font-size: 0.58rem; }
+.boat-top #schedule-options { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+.boat-top .schedule-btn { padding: 0.4rem 0.3rem; gap: 0.1rem; }
+.boat-top .slot-icon, .boat-top .slot-label { display: none; }
+.boat-top .slot-time { font-size: 0.78rem; }
+
+/* Paso 2: personas + combo + incluido */
+.boat-top #wizard-step-2 .form-group { margin-bottom: 6px !important; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.boat-top #wizard-step-2 .form-label { margin: 0; font-size: 0.78rem; }
+.boat-top #wizard-step-2 .form-group > div:first-of-type { gap: 0.4rem !important; }
+.boat-top #guests-input { max-width: 56px !important; padding: 0.3rem 0.2rem; font-size: 0.9rem; }
+.boat-top #wizard-step-2 .calendar-nav { width: 28px; height: 28px; }
+.boat-top #daybased-section { margin-bottom: 6px !important; }
+.boat-top #daybased-section .additional-item { padding: 0.4rem 0.6rem; }
+.boat-top #daybased-section .additional-icon { font-size: 1.05rem; }
+.boat-top #daybased-section .additional-check { width: 22px; height: 22px; }
+.boat-top #birthday-items { font-size: 0.62rem !important; line-height: 1.45 !important; margin-top: 0.3rem !important; }
+.boat-top #included-block { margin-bottom: 0 !important; }
+.boat-top #included-block .panel-subheading { margin-bottom: 2px; font-size: 0.56rem; }
+.boat-top #included-text { font-size: 0.64rem !important; line-height: 1.45 !important; }
+.boat-top #package-section, .boat-top #extra-hours-section, .boat-top #meal-addons-section { margin-bottom: 6px !important; }
+
+/* Paso 3: resumen y botón */
+.boat-top .booking-line { padding: 0.18rem 0; }
+.boat-top .booking-line-label { font-size: 0.78rem; }
+.boat-top .booking-line-val { font-size: 0.82rem; }
+.boat-top .booking-line.total { margin-top: 0.2rem; padding-top: 0.4rem; }
+.boat-top .booking-line.total .booking-line-val { font-size: 1.25rem; }
+.boat-top #btn-reserve { margin-top: 0.4rem !important; padding: 0.7rem 1rem; }
+.boat-top #wizard-step-3 .wizard-step-body > p { margin-top: 0.4rem !important; font-size: 0.58rem !important; }
+
+/* Pantallas con poca altura: aún más compacto */
+@media (min-width: 1001px) and (max-height: 860px) {
+  .boat-top .calendar-day:not(.empty) { min-height: 30px; }
+  .boat-top .calendar-legend { display: none; }
+  .boat-top .gallery { --gal-h: clamp(280px, calc(100vh - 280px), 440px); }
+}
+
+/* Tablet / teléfono: una sola columna */
+@media (max-width: 1000px) {
+  .boat-top { grid-template-columns: 1fr; gap: 14px; }
+  .boat-top-right { position: static; }
+  .boat-top .gallery { --gal-h: clamp(240px, 56vw, 420px); }
+  .boat-top .calendar-day:not(.empty) { min-height: 40px; }
+}
+
+/* — ajustes de altura del panel de reserva — */
+.boat-top .calendar-day:not(.empty) { min-height: 32px; }
+.boat-top .calendar-legend { display: none; }
+.boat-top #wizard-step-2 .form-group { flex-wrap: nowrap; }
+.boat-top #wizard-step-2 .form-group > div:first-of-type { margin-left: auto; }
+.boat-top #wizard-step-2 #overage-hint { position: absolute; }
+.boat-top #wizard-step-2 .form-label { white-space: nowrap; text-align: left; letter-spacing: 0; text-transform: none; font-size: 0.82rem; font-weight: 600; font-family: inherit; }
+.boat-top #daybased-section:has(#birthday-cb:checked) #birthday-items { display: none; }
+.boat-top #guests-max-label { font-size: 0.6rem !important; }
+/* resumen en 2 columnas */
+.boat-top #booking-lines { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+.boat-top #booking-lines .booking-line { flex-direction: column; align-items: flex-start; gap: 0; border-bottom: 0; padding: 0.15rem 0; }
+.boat-top #booking-lines .booking-line-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.boat-top #booking-lines .booking-line-val { font-size: 0.8rem; text-align: left; line-height: 1.25; }
+.boat-top #booking-lines .booking-line.total { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+.boat-top #booking-lines .booking-line.total .booking-line-label { text-transform: none; font-size: 0.8rem; letter-spacing: 0; }
+.boat-top #booking-lines #sum-additionals-line { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: baseline; }
+.boat-top #booking-lines #sum-additionals-line { grid-column: auto; flex-direction: column; align-items: flex-start; }
+.boat-top #booking-lines .booking-line:nth-child(3), .boat-top #booking-lines .booking-line:nth-child(4) { min-width: 0; }
+.boat-top #guests-input { height: 30px; min-height: 0; line-height: 1; }
+.boat-top #wizard-step-2 .form-group { min-height: 0; }
+.boat-top .schedule-btn { padding: 0.28rem 0.3rem; }
+.boat-top #booking-lines[style*="block"] { display: grid !important; }
+.boat-top #wizard-step-2 .form-label { width: auto !important; flex: 0 0 auto; display: inline-block; }
+.boat-top #wizard-step-2 .form-group > div:first-of-type { flex: 0 0 auto; margin-left: auto; }
+@media (min-width: 1001px) { .boat-top .calendar-day:not(.empty) { min-height: 29px; } }
+.boat-top #wizard-step-2 .form-group { flex-direction: row; }
+.boat-top #schedule-options { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important; }
+.boat-top #schedule-options > div { padding: 0.45rem 0.6rem !important; font-size: 0.74rem !important; line-height: 1.35; }
+/* Si aun así la pantalla es muy baja, el panel se desplaza por dentro (la página no) */
+.boat-top-right { max-height: calc(100vh - var(--nav-h) - 16px); overflow-y: auto; scrollbar-width: thin; border-radius: 18px; }
+@media (max-width: 1000px) { .boat-top-right { max-height: none; overflow: visible; } }

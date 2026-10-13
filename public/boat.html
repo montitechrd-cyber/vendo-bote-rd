@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261013o" />
 </head>
 <body>
 
@@ -58,39 +58,12 @@
 <!-- Main content (hidden until loaded) -->
 <div id="boat-page" class="page hidden">
 
-  <!-- Gallery -->
-  <div class="gallery-section" id="gallery-section">
-    <div class="gallery" id="gallery">
-      <!-- built by JS -->
-    </div>
-    <div class="gallery-fabs">
-      <button class="gallery-fab" id="gallery-back" aria-label="Volver al catálogo" title="Volver al catálogo">←</button>
-      <div class="gallery-fabs-right">
-        <button class="gallery-fab" id="gallery-share" aria-label="Compartir" title="Compartir">⤴</button>
-        <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
-      </div>
-    </div>
-    <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
-    <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
-    <div class="gallery-badge-count" id="gallery-badge-count"></div>
-    <div class="gallery-dots" id="gallery-dots"></div>
-  </div>
-  <div class="gallery-strip" id="gallery-strip"></div>
-
-  <!-- Lightbox -->
-  <div class="lightbox-overlay" id="lightbox">
-    <button class="lightbox-close" id="lightbox-close" aria-label="Cerrar">✕</button>
-    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
-    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Foto anterior">‹</button>
-    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Foto siguiente">›</button>
-    <div class="lightbox-counter" id="lightbox-counter"></div>
-  </div>
-
-  <section class="section">
-    <div class="boat-detail-grid" id="boat-detail-grid">
-
+  <!-- Parte superior: galería a la izquierda + reserva a la derecha (todo visible sin scroll) -->
+  <section class="boat-top" id="boat-top">
+    <div class="boat-top-left">
+      <div class="boat-headline">
       <!-- Breadcrumb -->
-      <div style="display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);margin-bottom:0.35rem;">
         <a href="/" style="color:var(--cream-3);transition:color 0.2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--cream-3)'">Inicio</a>
         <span>›</span>
         <a href="/embarcaciones.html" style="color:var(--cream-3);transition:color 0.2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--cream-3)'">Catálogo</a>
@@ -112,9 +85,28 @@
         <span id="boat-brand-tag" style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);background:var(--bg-card);border:1px solid var(--line);border-radius:50px;padding:0.3rem 0.85rem;"></span>
       </div>
 
-      <!-- Specs grid -->
-      <div class="boat-detail-specs" id="boat-specs" style="margin-bottom:2.5rem;"></div>
+      </div>
+  <!-- Gallery -->
+  <div class="gallery-section" id="gallery-section">
+    <div class="gallery" id="gallery">
+      <!-- built by JS -->
+    </div>
+    <div class="gallery-fabs">
+      <button class="gallery-fab" id="gallery-back" aria-label="Volver al catálogo" title="Volver al catálogo">←</button>
+      <div class="gallery-fabs-right">
+        <button class="gallery-fab" id="gallery-share" aria-label="Compartir" title="Compartir">⤴</button>
+        <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
+      </div>
+    </div>
+    <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
+    <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
+    <div class="gallery-badge-count" id="gallery-badge-count"></div>
+    <div class="gallery-dots" id="gallery-dots"></div>
+  </div>
+  <div class="gallery-strip" id="gallery-strip"></div>
 
+    </div>
+    <aside class="boat-top-right" id="boat-top-right">
       <!-- ══ Flujo de reserva paso a paso ══ -->
       <div id="booking-sidebar" class="booking-wizard">
 
@@ -270,8 +262,32 @@
               <span>Próximo paso: al reservar te llevaremos a subir tu comprobante de transferencia y confirmar tu reserva.</span>
             </div>
 
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </section>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Cerrar">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Foto anterior">‹</button>
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Foto siguiente">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+  </div>
+
+  <section class="section">
+    <div class="boat-detail-grid" id="boat-detail-grid">
+
+      <!-- Specs grid -->
+      <div class="boat-detail-specs" id="boat-specs" style="margin-bottom:2rem;"></div>
+
+      <!-- Datos bancarios (referencia) -->
+      <div style="margin-bottom:2.5rem;" data-reveal>
             <!-- Bank info de referencia -->
-            <div class="bank-box" style="margin-top:1.5rem;">
+            <div class="bank-box" style="max-width:560px;">
               <div class="bank-box-title">🏦 Datos Bancarios</div>
 <div class="bank-box-tab" style="flex-wrap:wrap;">
           <button class="bank-box-tab-btn active" onclick="switchBankB('popular',this)">Banco Popular</button>
@@ -318,8 +334,6 @@
               btn.classList.add('active');
             }
             </script>
-          </div>
-        </div>
       </div>
 
       <!-- Description -->
@@ -800,10 +814,6 @@
     const sub2 = document.getElementById('wizard-step-2-sub');
     if (sub2) sub2.textContent = ready ? 'Ajusta personas y extras a tu gusto' : 'Primero elige la fecha en el paso 1';
 
-    if (ready && !step2.dataset.wasReady) {
-      step2.dataset.wasReady = '1';
-      setTimeout(() => step2.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
-    }
   }
 
   function refreshSlotUI() {
