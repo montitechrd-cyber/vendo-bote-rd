@@ -1647,3 +1647,66 @@ ul { list-style: none; }
   .hero-content { padding-bottom: 1.5rem; }
 }
 @media (max-width: 340px) { .hero-actions { flex-wrap: wrap; } }
+
+/* ═══ Página de embarcación — v3: panel fijo + tipografía unificada ═══ */
+/* El panel ya no se mueve: sin sticky ni scroll interno; arranca a la altura de la foto */
+.boat-top-right { position: static !important; max-height: none !important; overflow: visible !important; }
+.boat-headline { margin: 0.7rem 0 0; }
+.boat-headline h1 { font-size: clamp(1.25rem, 2.2vw, 1.7rem) !important; }
+
+/* Tipografía del panel (una sola familia y escala) */
+.boat-top .booking-wizard, .boat-top .booking-wizard * { font-family: var(--sans) !important; font-style: normal !important; letter-spacing: 0; }
+.boat-top .wizard-step-title { font-size: 0.98rem; font-weight: 700; color: var(--navy); }
+.boat-top .wizard-step-price #panel-price { font-size: 1.25rem; font-weight: 700; color: var(--sky-2); }
+.boat-top .wizard-step-price-unit { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); }
+.boat-top .calendar-title { font-size: 0.95rem; font-weight: 700; color: var(--navy); }
+.boat-top .calendar-day-name { font-size: 0.66rem; font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); }
+.boat-top .cal-day-num { font-size: 0.85rem; font-weight: 600; }
+/* etiquetas de sección */
+.boat-top .panel-subheading, .boat-top #included-block .panel-subheading {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+}
+/* etiquetas de control y textos de apoyo */
+.boat-top #wizard-step-2 .form-label { font-size: 0.85rem; font-weight: 600; color: var(--navy); text-transform: none; }
+.boat-top #included-text, .boat-top #birthday-items, .boat-top #guests-max-label, .boat-top #overage-hint {
+  font-size: 0.76rem !important; font-weight: 400; line-height: 1.45 !important; color: var(--text-muted) !important; letter-spacing: 0;
+}
+.boat-top .additional-name { font-size: 0.85rem; font-weight: 600; color: var(--navy); }
+.boat-top .additional-price { font-size: 0.74rem; font-weight: 600; color: var(--sky-2); }
+.boat-top #guests-input { font-size: 0.95rem; font-weight: 600; color: var(--navy); }
+
+/* Turnos: emoji + horario en UNA línea */
+.boat-top .schedule-btn { flex-direction: row; justify-content: center; gap: 0.4rem; padding: 0.5rem 0.4rem; white-space: nowrap; }
+.boat-top .slot-icon { display: inline; font-size: 1rem; line-height: 1; }
+.boat-top .slot-time { font-size: 0.8rem; font-weight: 600; color: var(--navy); }
+.boat-top .slot-status { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+.slot-dot { width: 7px; height: 7px; border-radius: 50%; background: #22a06b; flex-shrink: 0; }
+.boat-top #schedule-options > div { font-size: 0.78rem !important; }
+
+/* Resumen: cada dato en una línea (etiqueta izquierda, valor derecha) */
+.boat-top #booking-lines, .boat-top #booking-lines[style*="block"] { display: block !important; }
+.boat-top #booking-lines .booking-line, .boat-top #booking-lines #sum-additionals-line {
+  display: flex; flex-direction: row !important; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+  padding: 0.28rem 0; border-bottom: 0; grid-column: auto;
+}
+.boat-top #booking-lines .booking-line-label { font-size: 0.8rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); white-space: nowrap; }
+.boat-top #booking-lines .booking-line-val { font-size: 0.85rem; font-weight: 600; color: var(--navy); text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.boat-top #booking-lines .booking-line.total { border-top: 1px solid var(--line-2); margin-top: 0.25rem; padding-top: 0.5rem; }
+.boat-top #booking-lines .booking-line.total .booking-line-label { font-size: 0.9rem; font-weight: 600; color: var(--navy); }
+.boat-top #booking-lines .booking-line.total .booking-line-val { font-size: 1.2rem; font-weight: 800; color: var(--sky-2); }
+.boat-top #btn-reserve { font-size: 0.95rem; font-weight: 700; }
+.boat-top #wizard-step-3 .wizard-step-body > p { font-size: 0.68rem !important; font-weight: 400; color: var(--text-muted) !important; line-height: 1.4 !important; }
+
+/* Celular: todo cómodo y proporcionado */
+@media (max-width: 1000px) {
+  .boat-top { padding-top: 6px; }
+  .boat-top .booking-wizard { padding: 14px 14px 16px; }
+  .boat-top .calendar-day:not(.empty) { min-height: 42px; }
+  .boat-top .cal-day-num { font-size: 0.95rem; }
+  .boat-top .calendar-nav { width: 34px; height: 34px; }
+  .boat-top .slot-time { font-size: 0.82rem; }
+  .boat-top .schedule-btn { padding: 0.6rem 0.4rem; }
+  .boat-top #booking-lines .booking-line-val { white-space: normal; text-align: right; }
+}
+@media (max-width: 380px) { .boat-top .slot-time { font-size: 0.74rem; } .boat-top .schedule-btn { gap: 0.25rem; } }
+@media (max-width: 420px) { .boat-top #guests-max-label { display: none; } }

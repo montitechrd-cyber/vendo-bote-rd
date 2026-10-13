@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013p" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261013r" />
 </head>
 <body>
 
@@ -61,6 +61,24 @@
   <!-- Parte superior: galería a la izquierda + reserva a la derecha (todo visible sin scroll) -->
   <section class="boat-top" id="boat-top">
     <div class="boat-top-left">
+  <!-- Gallery -->
+  <div class="gallery-section" id="gallery-section">
+    <div class="gallery" id="gallery">
+      <!-- built by JS -->
+    </div>
+    <div class="gallery-fabs">
+      <button class="gallery-fab" id="gallery-back" aria-label="Volver al catálogo" title="Volver al catálogo">←</button>
+      <div class="gallery-fabs-right">
+        <button class="gallery-fab" id="gallery-share" aria-label="Compartir" title="Compartir">⤴</button>
+        <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
+      </div>
+    </div>
+    <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
+    <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
+    <div class="gallery-badge-count" id="gallery-badge-count"></div>
+    <div class="gallery-dots" id="gallery-dots"></div>
+  </div>
+  <div class="gallery-strip" id="gallery-strip"></div>
       <div class="boat-headline">
       <!-- Breadcrumb -->
       <div style="display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--cream-3);margin-bottom:0.35rem;">
@@ -86,24 +104,6 @@
       </div>
 
       </div>
-  <!-- Gallery -->
-  <div class="gallery-section" id="gallery-section">
-    <div class="gallery" id="gallery">
-      <!-- built by JS -->
-    </div>
-    <div class="gallery-fabs">
-      <button class="gallery-fab" id="gallery-back" aria-label="Volver al catálogo" title="Volver al catálogo">←</button>
-      <div class="gallery-fabs-right">
-        <button class="gallery-fab" id="gallery-share" aria-label="Compartir" title="Compartir">⤴</button>
-        <button class="gallery-fab" id="gallery-fav" aria-label="Guardar en favoritos" title="Guardar en favoritos">♡</button>
-      </div>
-    </div>
-    <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
-    <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
-    <div class="gallery-badge-count" id="gallery-badge-count"></div>
-    <div class="gallery-dots" id="gallery-dots"></div>
-  </div>
-  <div class="gallery-strip" id="gallery-strip"></div>
 
     </div>
     <aside class="boat-top-right" id="boat-top-right">
@@ -842,9 +842,8 @@
       const safeKey = d.key.replace(/'/g, "\\'");
       return `<button type="button" class="${cls}" ${booked ? 'disabled' : ''} onclick="selectSlot('${safeKey}')">
         <span class="slot-icon">${d.icon}</span>
-        <span class="slot-label">${d.shortLabel}</span>
         <span class="slot-time">${d.label}</span>
-        <span class="slot-status" style="color:${booked ? 'var(--cream-3)' : '#198754'}">${closed ? 'Cerrado' : booked ? 'Reservado' : 'Disponible'}</span>
+        ${booked ? '<span class="slot-status">' + (closed ? 'Cerrado' : 'Reservado') + '</span>' : '<span class="slot-dot" title="Disponible"></span>'}
       </button>`;
     }).join('');
   }
@@ -981,7 +980,7 @@
     const btn = document.getElementById('btn-reserve');
     const calc = computeBooking();
     if (calc.ready) {
-      document.getElementById('sum-start').textContent = fmt(selDate);
+      document.getElementById('sum-start').textContent = window.VBR.fmtDateShort(selDate);
       document.getElementById('sum-end').textContent = calc.scheduleLabel;
       document.getElementById('sum-days').textContent = calc.durationLabel;
       const addLine = document.getElementById('sum-additionals-line');
