@@ -1823,3 +1823,17 @@ ul { list-style: none; }
   .footer-credit-link { min-height: 40px; padding: 0.35rem 0.85rem; gap: 0.4rem; font-size: 0.78rem; }
   .footer-credit-link svg { width: 16px; height: 16px; }
 }
+
+/* Botones de la galería: más pequeños y discretos; compartir encima de favoritos */
+.gallery-fab { width: 34px; height: 34px; font-size: 0.85rem; box-shadow: 0 1px 6px rgba(15,52,96,0.18); background: rgba(255,255,255,0.94); }
+.gallery-fabs-right { flex-direction: column; gap: 0.45rem; }
+.gallery-nav { width: 32px; height: 32px; font-size: 1.25rem; padding-bottom: 2px; background: rgba(15,52,96,0.55); box-shadow: none; opacity: 0.9; }
+.gallery-nav-prev { left: 0.6rem; }
+.gallery-nav-next { right: 0.6rem; }
+.gallery-badge-count { font-size: 0.6875rem; padding: 0.22rem 0.6rem; bottom: 1rem; left: 1rem; background: rgba(15,52,96,0.6); }
+.gallery-dots { display: none !important; }
+@media (max-width: 768px) {
+  .gallery-fab { width: 32px; height: 32px; font-size: 0.8rem; }
+  .gallery-nav { width: 30px; height: 30px; font-size: 1.15rem; }
+  .gallery-fabs { left: 0.75rem; right: 0.75rem; }
+}
