@@ -214,8 +214,8 @@
 
             <!-- Todo incluido (embarcaciones de Boca Chica): precio fijo, sin extras de pago -->
             <div style="margin-bottom:0.25rem;display:none;" id="included-block">
-              <div class="panel-subheading">Todo incluido en el precio</div>
-              <p style="font-family:var(--mono);font-size:0.75rem;color:var(--cream-3);line-height:1.7;">
+              <div class="panel-subheading" id="included-title">Todo incluido en el precio</div>
+              <p id="included-text" style="font-family:var(--mono);font-size:0.75rem;color:var(--cream-3);line-height:1.7;">
                 1 hora de Jet Ski · Parrillada · Agua · Hielo · Gasolina · Tripulación · Cocinero
               </p>
             </div>
@@ -522,6 +522,7 @@
     // Esquema de precio por paquete de horas (fuera de Boca Chica)
     if (!boat.for_sale) {
       renderDayBasedUI();
+      renderIncluded();
       renderPackageOptions();
       renderExtraHoursUI();
       renderMealAddonsUI();
@@ -689,7 +690,17 @@
     }
   }
 
-  window.toggleBirthday = function (checked) { selBirthday = !!checked; updateSummary(); };
+  // Lo incluido depende del servicio elegido: normal (sin jetski) o con combo de cumpleaños.
+  function renderIncluded() {
+    if (!isDayBased()) return;
+    const s = boat.pricing_scheme;
+    const base = s.included || ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+    const items = selBirthday ? [...base, ...(s.birthday_combo || []).filter(i => !base.includes(i))] : base;
+    document.getElementById('included-text').textContent = items.join(' · ');
+    document.getElementById('included-title').textContent = selBirthday ? 'Incluido con el combo de cumpleaños' : 'Incluido en el precio';
+  }
+
+  window.toggleBirthday = function (checked) { selBirthday = !!checked; renderIncluded(); updateSummary(); };
 
   function isDayFull(ds) {
     const slots = bookedSlots[ds] || [];

@@ -270,6 +270,21 @@ async function migrateDayBasedCopy() {
   }
 }
 
+// Servicio normal (sin combo) NO incluye la hora de jetski; el combo de cumpleaños sí.
+// Se guarda en el esquema lo que incluye el servicio normal y se ajustan descripción y amenidades.
+async function migrateDayBasedIncluded() {
+  const included = ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE pricing_scheme LIKE '%day_based%'");
+  for (const boat of rows) {
+    const scheme = JSON.parse(boat.pricing_scheme);
+    scheme.included = included;
+    const { rows: [b] } = await pool.query('SELECT name, capacity FROM boats WHERE id = $1', [boat.id]);
+    const desc = `Renta de ${b.name} en Boca Chica, con capacidad para ${b.capacity} personas. El servicio normal incluye parrillada, agua, hielo, gasolina, tripulación y cocinero. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho y refresco.`;
+    await pool.query('UPDATE boats SET pricing_scheme = $1, amenities = $2, description = $3 WHERE id = $4',
+      [JSON.stringify(scheme), JSON.stringify(included), desc, boat.id]);
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -278,6 +293,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-12-perla-negra-cover-rename', migratePerlaNegraCoverRename);
   await runDataMigrationOnce('2026-10-12-day-based-pricing', migrateDayBasedPricing);
   await runDataMigrationOnce('2026-10-12-day-based-copy', migrateDayBasedCopy);
+  await runDataMigrationOnce('2026-10-12-day-based-included', migrateDayBasedIncluded);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

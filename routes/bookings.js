@@ -74,6 +74,7 @@ router.post('/', authRequired, async (req, res) => {
       total = base;
       metaParts.push(`${weekend ? 'Sábado y domingo' : 'Lunes a viernes'}: $${base}`);
       if (birthday_combo === true) {
+        if (boatRow.location !== 'Boca Chica') return res.status(400).json({ error: 'El combo de cumpleaños solo aplica en Boca Chica' });
         const withCombo = weekend ? scheme.prices.weekend_birthday : scheme.prices.weekday_birthday;
         const amt = withCombo - base;
         total = withCombo;
