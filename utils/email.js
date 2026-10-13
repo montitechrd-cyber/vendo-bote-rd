@@ -10,6 +10,8 @@ const transporter = nodemailer.createTransport({
 
 const SITE_URL = (process.env.SITE_URL || 'https://vendoboterd.com').replace(/[/]+$/, '');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'montitechrd@gmail.com';
+// Avisos de reservas y comprobantes: llegan al correo admin y a Penélope (se pueden sumar más en NOTIFY_EMAILS, separados por coma)
+const ADMIN_RECIPIENTS = [...new Set([ADMIN_EMAIL, 'penelope.1021@hotmail.com', ...(process.env.NOTIFY_EMAILS || '').split(',')].map(e => e.trim()).filter(Boolean))];
 
 function slotLabel(s) {
   if (s === '9am-3pm')   return '9:00 AM – 3:00 PM';
@@ -91,7 +93,7 @@ async function sendNewBookingAdmin(booking, user) {
   if (!process.env.EMAIL_USER) return;
   await transporter.sendMail({
     from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
-    to: ADMIN_EMAIL,
+    to: ADMIN_RECIPIENTS,
     subject: `🆕 Nueva reserva: ${booking.booking_ref}`,
     html: wrap('Nueva Reserva Recibida', `
       <p class="greeting">Nueva reserva de ${user.name}</p>
@@ -116,7 +118,7 @@ async function sendPaymentSubmittedAdmin(booking, user, receipt) {
   if (!process.env.EMAIL_USER) return;
   await transporter.sendMail({
     from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
-    to: ADMIN_EMAIL,
+    to: ADMIN_RECIPIENTS,
     subject: `💳 Comprobante enviado: ${booking.booking_ref}`,
     attachments: receipt ? [{ filename: receipt.filename, content: receipt.content, contentType: receipt.contentType }] : [],
     html: wrap('Comprobante de Pago Recibido', `
@@ -179,7 +181,7 @@ async function sendPaymentApproved(booking, user) {
     }),
     transporter.sendMail({
       from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
-      to: ADMIN_EMAIL,
+      to: ADMIN_RECIPIENTS,
       subject: `✅ Reserva confirmada: ${booking.booking_ref}`,
       html: adminHtml,
     }),
