@@ -474,6 +474,30 @@ async function migrateOutsideBocaChicaDetails() {
   }
 }
 
+// Catamarán 36 (salida desde Cap Cana): $1,950 por 4 horas, 18 personas.
+async function migrateCatamaran36() {
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
+  for (const b of rows) {
+    const scheme = b.pricing_scheme ? JSON.parse(b.pricing_scheme) : {};
+    scheme.type = 'hourly';
+    scheme.packages = [{ hours: 4, price: 1950 }];
+    const amenities = [
+      'Catamarán y gasolina',
+      'Capitán y marino',
+      'Transporte privado de ida y vuelta desde tu hotel o villa',
+      'Equipo de snorkel',
+      'Hielo, agua y refrescos',
+    ];
+    const description = 'Catamarán 36 con salida desde Cap Cana, para hasta 18 personas. Recorrido de 4 horas que incluye catamarán y gasolina, capitán y marino, transporte privado de ida y vuelta desde tu hotel o villa, equipo de snorkel, hielo, agua y refrescos. Visita las piscinas naturales de Punta Cana y la zona de snorkel. Puedes traer tu propia bebida al catamarán.';
+    await pool.query(
+      'UPDATE boats SET pricing_scheme = $1, price_per_day = 1950, capacity = 18, amenities = $2, description = $3, short_description = $4, rules = $5 WHERE id = $6',
+      [JSON.stringify(scheme), JSON.stringify(amenities), description,
+       'Catamarán 36 desde Cap Cana: 4 horas, snorkel y piscinas naturales. Hasta 18 personas.',
+       JSON.stringify(['Duración: 4 horas', 'Máximo 18 personas', 'Puedes traer tu propia bebida al catamarán']), b.id]
+    );
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -492,6 +516,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-perla-negra-photo-order', migratePerlaNegraPhotoOrder);
   await runDataMigrationOnce('2026-10-13-andrea-del-mar-combo', migrateAndreaDelMarCombo);
   await runDataMigrationOnce('2026-10-13-outside-boca-chica-details', migrateOutsideBocaChicaDetails);
+  await runDataMigrationOnce('2026-10-13-catamaran-36', migrateCatamaran36);
   await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
