@@ -22,6 +22,10 @@ app.use(helmet({
   contentSecurityPolicy: false, // gestionado por cada página
   crossOriginEmbedderPolicy: false,
   frameguard: false, // el embebido lo controla frame-ancestors (abajo)
+  // El inicio de sesión con Google abre una ventana emergente que responde por postMessage:
+  // con COOP "same-origin" (valor por defecto) esa ventana queda aislada y se congela.
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 // Permite que solo NEURALAB (portafolio) y el propio sitio embeban esta web en un iframe
 app.use((req, res, next) => {
