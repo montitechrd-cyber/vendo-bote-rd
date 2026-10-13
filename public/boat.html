@@ -164,8 +164,6 @@
           <div class="wizard-step-body">
             <!-- Precios por día + combo de cumpleaños (embarcaciones con precio por día de la semana) -->
             <div id="daybased-section" style="display:none;margin-bottom:1.25rem;">
-              <div class="panel-subheading">Tarifas</div>
-              <div id="daybased-prices" style="margin-bottom:0.9rem;"></div>
               <label class="additional-item" style="cursor:pointer;">
                 <input type="checkbox" id="birthday-cb" onchange="toggleBirthday(this.checked)" />
                 <div class="additional-icon">🎂</div>
@@ -398,7 +396,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012e" defer></script>
+<script src="/assets/js/main.js?v=20261012f" defer></script>
 <script defer>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -668,18 +666,6 @@
     if (!isDayBased()) { sec.style.display = 'none'; return; }
     const p = boat.pricing_scheme.prices;
     sec.style.display = 'block';
-    const cur = selDate ? (isWeekendDate(selDate) ? 'weekend' : 'weekday') : null;
-    const row = (key, label) => `
-      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0.5rem;padding:0.45rem 0.6rem;border-radius:8px;${cur === key ? 'background:var(--bg-2);border:1px solid var(--sky);' : 'border:1px solid transparent;'}font-size:0.85rem;">
-        <span style="color:var(--cream);">${label}</span>
-        <span style="color:var(--cream-2);">$${p[key].toLocaleString()}</span>
-        <span style="color:var(--gold);">$${p[key + '_birthday'].toLocaleString()}</span>
-      </div>`;
-    document.getElementById('daybased-prices').innerHTML = `
-      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0.5rem;padding:0 0.6rem 0.3rem;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream-3);">
-        <span>Día</span><span>Normal</span><span>Con cumpleaños</span>
-      </div>
-      ${row('weekday', 'Lunes a viernes')}${row('weekend', 'Sábado y domingo')}`;
     document.getElementById('birthday-items').textContent = 'Incluye: ' + (boat.pricing_scheme.birthday_combo || []).join(' · ');
     const diff = document.getElementById('birthday-diff');
     if (selDate) {
