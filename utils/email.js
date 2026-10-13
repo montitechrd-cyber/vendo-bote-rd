@@ -8,6 +8,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const SITE_URL = (process.env.SITE_URL || 'https://vendoboterd.com').replace(/[/]+$/, '');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'montitechrd@gmail.com';
 
 function slotLabel(s) {
@@ -105,18 +106,19 @@ async function sendNewBookingAdmin(booking, user) {
         <div class="row"><span class="lbl">Email</span><span class="val">${user.email}</span></div>
         <div class="row"><span class="lbl">Teléfono</span><span class="val">${user.phone || '—'}</span></div>
       </div>
-      <div class="cta"><a class="btn" href="http://localhost:3001/admin.html">Ver en Admin</a></div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Ver en Admin</a></div>
     `),
   });
 }
 
 /* ── 2. Comprobante enviado → Admin ── */
-async function sendPaymentSubmittedAdmin(booking, user) {
+async function sendPaymentSubmittedAdmin(booking, user, receipt) {
   if (!process.env.EMAIL_USER) return;
   await transporter.sendMail({
     from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
     to: ADMIN_EMAIL,
     subject: `💳 Comprobante enviado: ${booking.booking_ref}`,
+    attachments: receipt ? [{ filename: receipt.filename, content: receipt.content, contentType: receipt.contentType }] : [],
     html: wrap('Comprobante de Pago Recibido', `
       <p class="greeting">Comprobante de ${user.name}</p>
       <p class="intro"><strong>${user.name}</strong> ha enviado el comprobante de pago para la reserva <strong>${booking.booking_ref}</strong>. Por favor verifica la transferencia en el panel de administración.</p>
@@ -124,7 +126,7 @@ async function sendPaymentSubmittedAdmin(booking, user) {
         <div class="box-title">Detalles de la Reserva</div>
         ${bookingRows(booking)}
       </div>
-      <div class="cta"><a class="btn" href="http://localhost:3001/admin.html">Verificar Pago</a></div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Verificar Pago</a></div>
     `),
   });
 }
@@ -150,7 +152,7 @@ async function sendPaymentApproved(booking, user) {
       Para cualquier consulta o petición especial, contáctanos al WhatsApp o responde este correo.<br/>
       <strong>¡Nos vemos en el mar! ⛵</strong>
     </p>
-    <div class="cta"><a class="btn" href="http://localhost:3001/dashboard.html">Ver mi reserva</a></div>
+    <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html">Ver mi reserva</a></div>
   `);
 
   const adminHtml = wrap('Reserva Confirmada', `
@@ -205,7 +207,7 @@ async function sendPaymentRejected(booking, user, reason) {
       <p style="font-size:13px;color:#5B84A8;line-height:1.7;">
         Por favor realiza la transferencia de <strong>${fmtMoney(booking.total_price)}</strong> y sube el nuevo comprobante desde tu panel. Si tienes dudas, contáctanos.
       </p>
-      <div class="cta"><a class="btn" href="http://localhost:3001/dashboard.html?tab=payment">Subir nuevo comprobante</a></div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html?tab=payment">Subir nuevo comprobante</a></div>
     `),
   });
 }

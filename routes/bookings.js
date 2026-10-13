@@ -8,13 +8,8 @@ const email = require('../utils/email');
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '../uploads/receipts'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `receipt_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`);
-  }
-});
+const storage = multer.memoryStorage();
+const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
 
 const upload = multer({
   storage,
@@ -268,10 +263,12 @@ router.get('/:id/receipt', authRequired, async (req, res) => {
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
     if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
 
-    const payment = await db.queryOne('SELECT receipt_filename FROM payments WHERE booking_id = $1', [req.params.id]);
-    if (!payment?.receipt_filename) return res.status(404).json({ error: 'Sin comprobante' });
+    const payment = await db.queryOne('SELECT receipt_filename, receipt_data, receipt_mime FROM payments WHERE booking_id = $1', [req.params.id]);
+    if (!payment?.receipt_data) return res.status(404).json({ error: 'Sin comprobante' });
 
-    res.sendFile(path.join(__dirname, '../uploads/receipts', payment.receipt_filename));
+    res.set('Content-Type', payment.receipt_mime || 'application/octet-stream');
+    res.set('Content-Disposition', `inline; filename="${payment.receipt_filename}"`);
+    res.send(payment.receipt_data);
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
   }
@@ -282,7 +279,7 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
     const db = getDB();
     const booking = await db.queryOne('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
-    if (booking.payment_status !== 'pending') return res.status(400).json({ error: 'Pago ya procesado' });
+    if (!['pending', 'rejected'].includes(booking.payment_status)) return res.status(400).json({ error: 'Pago ya procesado' });
 
     if (!req.file) return res.status(400).json({ error: 'Adjunta la foto o captura del comprobante de pago' });
 
@@ -293,16 +290,20 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
     const account_holder = req.body.account_holder || requester?.name || null;
     const reference_number = req.body.reference_number || null;
 
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const receiptName = `receipt_${booking.booking_ref}${ext}`;
+    const receiptMime = MIME[ext] || 'application/octet-stream';
+
     const existing = await db.queryOne('SELECT id FROM payments WHERE booking_id = $1', [booking.id]);
     if (existing) {
       await db.run(
-        `UPDATE payments SET bank_name=$1, account_holder=$2, reference_number=$3, receipt_filename=$4, status='pending', submitted_at=NOW() WHERE booking_id=$5`,
-        [bank_name, account_holder, reference_number, req.file.filename, booking.id]
+        `UPDATE payments SET bank_name=$1, account_holder=$2, reference_number=$3, receipt_filename=$4, receipt_data=$5, receipt_mime=$6, status='pending', rejection_reason=NULL, submitted_at=NOW() WHERE booking_id=$7`,
+        [bank_name, account_holder, reference_number, receiptName, req.file.buffer, receiptMime, booking.id]
       );
     } else {
       await db.run(
-        'INSERT INTO payments (booking_id,amount,bank_name,account_holder,reference_number,receipt_filename) VALUES ($1,$2,$3,$4,$5,$6)',
-        [booking.id, booking.total_price, bank_name, account_holder, reference_number, req.file.filename]
+        'INSERT INTO payments (booking_id,amount,bank_name,account_holder,reference_number,receipt_filename,receipt_data,receipt_mime) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+        [booking.id, booking.total_price, bank_name, account_holder, reference_number, receiptName, req.file.buffer, receiptMime]
       );
     }
 
@@ -312,7 +313,7 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
       `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
       [booking.id]
     );
-    email.sendPaymentSubmittedAdmin(fullBooking, user).catch(console.error);
+    email.sendPaymentSubmittedAdmin(fullBooking, user, { filename: receiptName, content: req.file.buffer, contentType: receiptMime }).catch(console.error);
     res.json({ success: true, message: 'Comprobante enviado. El host verificará tu pago en breve.' });
   } catch (e) {
     console.error(e);

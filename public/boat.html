@@ -743,7 +743,7 @@
 
   function isDayFull(ds) {
     const slots = bookedSlots[ds] || [];
-    return getSlotDefs().every(d => slots.includes(d.key));
+    return getSlotDefs().every(d => slots.includes(d.key) || isSlotClosed(ds, d.key));
   }
 
   /* ── Calendar ── */

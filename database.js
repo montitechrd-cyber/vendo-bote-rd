@@ -34,6 +34,9 @@ async function createTables() {
   // Esquema de precio por paquete de horas (renta fuera de Boca Chica: 3h/4h, hora extra, cargo por persona extra, extras de comida)
   await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS pricing_scheme TEXT`).catch(() => {});
   await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_meta TEXT`).catch(() => {});
+  // Comprobantes de pago guardados en la base de datos (el disco del servidor se borra en cada despliegue)
+  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_data BYTEA`).catch(() => {});
+  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_mime TEXT`).catch(() => {});
   // Evita doble reserva del mismo turno a nivel de base de datos (la validación en la ruta
   // es check-then-insert y por sí sola no cierra la carrera entre dos solicitudes simultáneas).
   await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_unique_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending')`).catch(() => {});
