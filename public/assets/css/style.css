@@ -113,9 +113,9 @@ ul { list-style: none; }
    los reparte a partes iguales, dejando Rentar/Comprar flotando solos en el centro de
    la barra en vez de pegados al logo. El margin-right:auto absorbe el espacio libre acá
    y empuja Ingresar/Reservar al extremo derecho, dejando logo+links agrupados a la izquierda. */
-.nav-links { display: flex; align-items: center; gap: 2rem; margin-left: 3rem; margin-right: auto; }
-.nav-link { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.03em; color: var(--text-muted); position: relative; padding: 0.25rem 0; transition: color 0.3s; }
-.nav-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--sky); transform: scaleX(0); transform-origin: right; transition: transform 0.4s var(--ease-soft); border-radius: 2px; }
+.nav-links { display: flex; align-items: center; gap: 0.5rem; margin-left: 2rem; margin-right: auto; }
+.nav-link { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; color: var(--text-2); position: relative; padding: 0.55rem 1.15rem; border-radius: 50px; border: 1.5px solid transparent; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.25s var(--ease-soft); }
+.nav-link::after { content: none; }
 
 /* ── Nav dropdown ── */
 .nav-dropdown { position: relative; display: flex; align-items: center; }
@@ -149,9 +149,10 @@ ul { list-style: none; }
   transition: background 0.15s, color 0.15s;
 }
 .nav-dropdown-item:hover { background: var(--sky-lighter); color: var(--sky-2); }
-.nav-link:hover { color: var(--sky); }
-.nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); transform-origin: left; }
-.nav-link.active { color: var(--sky-2); }
+.nav-link:hover { color: var(--sky-2); background: var(--sky-lighter); border-color: var(--line-2); transform: translateY(-1px); }
+.nav-dropdown:hover > .nav-link, .nav-dropdown:focus-within > .nav-link { color: var(--sky-2); background: var(--sky-lighter); border-color: var(--line-2); }
+.nav-dropdown > .nav-link::after { content: ''; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); margin-left: 0.5rem; position: static; background: none; height: 6px; border-radius: 0; display: inline-block; }
+.nav-link.active { color: var(--sky-2); background: var(--sky-light); border-color: var(--line-2); }
 .nav-actions { display: flex; align-items: center; gap: 0.6rem; }
 .nav-btn { font-size: 0.83rem; padding: 0.6rem 1.4rem; border-radius: 50px; transition: all 0.3s var(--ease-soft); font-weight: 600; letter-spacing: 0.02em; }
 .nav-btn-ghost { border: 1.5px solid var(--line-2); background: var(--sky-lighter); color: var(--text-2); }
