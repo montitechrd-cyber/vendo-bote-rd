@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013o" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261013p" />
   <!--SEO_LOCATION-->
 </head>
 <body>
@@ -55,71 +55,62 @@
     </div>
   </div>
 
-  <!-- Location filter bar -->
-  <div class="loc-filter-bar">
-    <div class="loc-filter-inner" id="location-tabs">
-      <button class="loc-btn active" data-location="">
-        <span class="loc-btn-icon">🌊</span>
-        <span class="loc-btn-name">Todas</span>
-        <span class="loc-btn-sub">las ubicaciones</span>
-      </button>
-      <button class="loc-btn" data-location="Boca Chica">
-        <span class="loc-btn-icon">🌊</span>
-        <span class="loc-btn-name">Boca Chica</span>
-        <span class="loc-btn-sub">República Dominicana</span>
-      </button>
-      <button class="loc-btn" data-location="Punta Cana">
-        <span class="loc-btn-icon">🌊</span>
-        <span class="loc-btn-name">Punta Cana</span>
-        <span class="loc-btn-sub">República Dominicana</span>
-      </button>
-      <button class="loc-btn" data-location="La Romana">
-        <span class="loc-btn-icon">🌊</span>
-        <span class="loc-btn-name">La Romana</span>
-        <span class="loc-btn-sub">República Dominicana</span>
-      </button>
-      <button class="loc-btn" data-location="Miami">
-        <span class="loc-btn-icon">🌊</span>
-        <span class="loc-btn-name">Miami</span>
-        <span class="loc-btn-sub">Florida, USA</span>
-      </button>
+  <!-- Barra de filtros: ubicación + búsqueda + filtros + orden -->
+  <div class="cat-toolbar">
+    <div class="cat-toolbar-inner">
+      <div class="cat-chips" id="location-tabs" role="tablist" aria-label="Ubicación">
+        <button class="cat-chip active" data-location="" role="tab">Todas <span class="cat-chip-n"></span></button>
+        <button class="cat-chip" data-location="Boca Chica" role="tab">Boca Chica <span class="cat-chip-n"></span></button>
+        <button class="cat-chip" data-location="Punta Cana" role="tab">Punta Cana <span class="cat-chip-n"></span></button>
+        <button class="cat-chip" data-location="La Romana" role="tab">La Romana <span class="cat-chip-n"></span></button>
+        <button class="cat-chip" data-location="Miami" role="tab">Miami <span class="cat-chip-n"></span></button>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-search">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="filter-search" placeholder="Buscar" autocomplete="off" aria-label="Buscar embarcación" />
+        </div>
+        <button type="button" class="cat-btn" id="btn-toggle-filters" aria-expanded="false" aria-controls="filters-panel">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <span>Filtros</span><span class="cat-badge" id="filter-badge" hidden>0</span>
+        </button>
+        <select id="filter-sort" class="cat-btn cat-sort" aria-label="Ordenar">
+          <option value="featured">Destacadas</option>
+          <option value="price-asc">Precio: menor</option>
+          <option value="price-desc">Precio: mayor</option>
+          <option value="capacity-desc">Más capacidad</option>
+        </select>
+      </div>
+
+      <div class="cat-panel" id="filters-panel" hidden>
+        <div class="cat-group">
+          <div class="cat-group-label">Personas</div>
+          <div class="cat-opts" data-filter="capacity">
+            <button type="button" class="cat-opt active" data-value="">Todas</button>
+            <button type="button" class="cat-opt" data-value="6">6+</button>
+            <button type="button" class="cat-opt" data-value="10">10+</button>
+            <button type="button" class="cat-opt" data-value="15">15+</button>
+            <button type="button" class="cat-opt" data-value="20">20+</button>
+          </div>
+        </div>
+        <div class="cat-group">
+          <div class="cat-group-label">Precio máximo por día</div>
+          <div class="cat-opts" data-filter="price">
+            <button type="button" class="cat-opt active" data-value="">Cualquiera</button>
+            <button type="button" class="cat-opt" data-value="1200">$1,200</button>
+            <button type="button" class="cat-opt" data-value="2000">$2,000</button>
+            <button type="button" class="cat-opt" data-value="3000">$3,000</button>
+            <button type="button" class="cat-opt" data-value="5000">$5,000</button>
+          </div>
+        </div>
+        <button type="button" class="cat-clear" id="btn-clear">Limpiar filtros</button>
+      </div>
     </div>
   </div>
 
   <section class="section">
     <div class="section-inner">
-
-      <!-- Filters -->
-      <div class="filters">
-        <div class="filter-group">
-          <label class="filter-label">Capacidad mínima</label>
-          <select class="filter-select" id="filter-capacity">
-            <option value="">Cualquiera</option>
-            <option value="6">6+ personas</option>
-            <option value="10">10+ personas</option>
-            <option value="15">15+ personas</option>
-            <option value="20">20+ personas</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Precio máximo / día</label>
-          <select class="filter-select" id="filter-price">
-            <option value="">Sin límite</option>
-            <option value="1200">Hasta $1,200</option>
-            <option value="2000">Hasta $2,000</option>
-            <option value="3000">Hasta $3,000</option>
-            <option value="5000">Hasta $5,000</option>
-          </select>
-        </div>
-        <div class="filter-group" style="flex:2;min-width:200px;">
-          <label class="filter-label">Buscar</label>
-          <input type="text" class="filter-input" id="filter-search" placeholder="Nombre, marca, característica..." />
-        </div>
-        <div class="filter-group" style="justify-content:flex-end;">
-          <label class="filter-label">&nbsp;</label>
-          <button class="btn btn-primary filter-btn" id="btn-filter">Filtrar</button>
-        </div>
-      </div>
 
       <!-- Results count -->
       <div style="margin-bottom:1.5rem;">
@@ -172,32 +163,68 @@
 <script defer>
 (function () {
   let allBoats = [];
-  let activeLocation = '';
+  const state = { location: '', capacity: '', price: '', search: '', sort: 'featured' };
 
   const params = new URLSearchParams(location.search);
-  if (window.__VBR_LOCATION) activeLocation = window.__VBR_LOCATION;
-  else if (params.get('location')) activeLocation = params.get('location');
+  if (window.__VBR_LOCATION) state.location = window.__VBR_LOCATION;
+  else if (params.get('location')) state.location = params.get('location');
+  if (params.get('search')) state.search = params.get('search');
 
-  function applyFilters() {
-    const capacity = parseInt(document.getElementById('filter-capacity').value) || 0;
-    const maxPrice = parseFloat(document.getElementById('filter-price').value) || Infinity;
-    const search = document.getElementById('filter-search').value.toLowerCase().trim();
+  const $ = (id) => document.getElementById(id);
 
-    let filtered = allBoats.filter(b =>
-      (!activeLocation || b.location === activeLocation) &&
-      b.capacity >= capacity &&
-      b.price_per_day <= maxPrice &&
-      (!search || b.name.toLowerCase().includes(search) || (b.description || '').toLowerCase().includes(search) || (b.short_description || '').toLowerCase().includes(search) || (b.brand || '').toLowerCase().includes(search))
-    );
+  // precio mostrado en la tarjeta: el más bajo si la embarcación tiene precio por día de la semana
+  const priceOf = (b) => (b.pricing_scheme && b.pricing_scheme.type === 'day_based')
+    ? Math.min(...Object.values(b.pricing_scheme.prices)) : b.price_per_day;
 
-    filtered.sort((a,b) => (b.featured||0) - (a.featured||0));
+  function matches(b, ignoreLocation) {
+    const q = state.search.toLowerCase().trim();
+    return (ignoreLocation || !state.location || b.location === state.location) &&
+      b.capacity >= (parseInt(state.capacity) || 0) &&
+      priceOf(b) <= (parseFloat(state.price) || Infinity) &&
+      (!q || [b.name, b.description, b.short_description, b.brand].some(t => (t || '').toLowerCase().includes(q)));
+  }
 
-    const count = document.getElementById('results-count');
-    count.textContent = `${filtered.length} ${filtered.length !== 1 ? 'embarcaciones' : 'embarcación'} encontrada${filtered.length !== 1 ? 's' : ''}`;
+  function sortBoats(list) {
+    const s = state.sort;
+    const by = {
+      'price-asc': (a, b) => priceOf(a) - priceOf(b),
+      'price-desc': (a, b) => priceOf(b) - priceOf(a),
+      'capacity-desc': (a, b) => b.capacity - a.capacity,
+      featured: (a, b) => (b.featured || 0) - (a.featured || 0),
+    }[s];
+    return list.slice().sort(by);
+  }
 
-    const grid = document.getElementById('boats-grid');
+  function activeFilterCount() {
+    return (state.capacity ? 1 : 0) + (state.price ? 1 : 0);
+  }
+
+  function render() {
+    // contadores por ubicación (respetan búsqueda, personas y precio)
+    document.querySelectorAll('.cat-chip').forEach(chip => {
+      const loc = chip.dataset.location;
+      const n = allBoats.filter(b => matches(b, true) && (!loc || b.location === loc)).length;
+      chip.querySelector('.cat-chip-n').textContent = allBoats.length ? n : '';
+      // oculta ubicaciones sin embarcaciones (salvo "Todas" y la activa)
+      chip.hidden = !!allBoats.length && loc !== '' && n === 0 && state.location !== loc;
+      chip.classList.toggle('active', loc === state.location);
+    });
+
+    const filtered = sortBoats(allBoats.filter(b => matches(b)));
+    $('results-count').textContent = filtered.length + ' ' + (filtered.length !== 1 ? 'embarcaciones' : 'embarcación');
+
+    const badge = $('filter-badge');
+    const n = activeFilterCount();
+    badge.hidden = !n; badge.textContent = n;
+    $('btn-clear').hidden = !(n || state.search || state.location);
+
+    document.querySelectorAll('.cat-opts').forEach(g => {
+      g.querySelectorAll('.cat-opt').forEach(o => o.classList.toggle('active', o.dataset.value === state[g.dataset.filter]));
+    });
+
+    const grid = $('boats-grid');
     if (!filtered.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⛵</div><h3 class="empty-state-title">Sin resultados</h3><p class="empty-state-desc">No encontramos embarcaciones con esos filtros. Intenta ampliar la búsqueda.</p><button class="btn btn-ghost" onclick="resetFilters()">Limpiar filtros</button></div>`;
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⛵</div><h3 class="empty-state-title">Sin resultados</h3><p class="empty-state-desc">No encontramos embarcaciones con esos filtros. Intenta ampliar la búsqueda.</p><button class="btn btn-primary" onclick="resetFilters()">Limpiar filtros</button></div>';
       return;
     }
     grid.innerHTML = filtered.map(window.VBR.buildBoatCard).join('');
@@ -206,34 +233,39 @@
   }
 
   window.resetFilters = function () {
-    document.getElementById('filter-capacity').value = '';
-    document.getElementById('filter-price').value = '';
-    document.getElementById('filter-search').value = '';
-    activeLocation = '';
-    document.querySelectorAll('.loc-btn').forEach(t => t.classList.toggle('active', !t.dataset.location));
-    applyFilters();
+    Object.assign(state, { location: '', capacity: '', price: '', search: '', sort: 'featured' });
+    $('filter-search').value = '';
+    $('filter-sort').value = 'featured';
+    render();
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    const tabs = document.querySelectorAll('.loc-btn');
-    tabs.forEach(tab => {
-      if (tab.dataset.location === activeLocation) { tabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); }
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        activeLocation = tab.dataset.location;
-        applyFilters();
-      });
+    $('filter-search').value = state.search;
+
+    document.querySelectorAll('.cat-chip').forEach(chip => chip.addEventListener('click', () => {
+      state.location = chip.dataset.location; render();
+    }));
+    document.querySelectorAll('.cat-opts').forEach(g => g.addEventListener('click', e => {
+      const o = e.target.closest('.cat-opt'); if (!o) return;
+      state[g.dataset.filter] = o.dataset.value; render();
+    }));
+
+    let t;
+    $('filter-search').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { state.search = e.target.value; render(); }, 180); });
+    $('filter-sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+    $('btn-clear').addEventListener('click', window.resetFilters);
+
+    const panel = $('filters-panel'), toggle = $('btn-toggle-filters');
+    toggle.addEventListener('click', () => {
+      const open = panel.hidden;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.classList.toggle('is-open', open);
     });
-
-    document.getElementById('btn-filter').addEventListener('click', applyFilters);
-    document.getElementById('filter-search').addEventListener('keypress', e => { if (e.key === 'Enter') applyFilters(); });
-
-    if (params.get('search')) document.getElementById('filter-search').value = params.get('search');
 
     fetch('/api/boats').then(r => r.json()).then(boats => {
       allBoats = boats;
-      applyFilters();
+      render();
     });
   });
 })();

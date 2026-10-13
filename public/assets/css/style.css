@@ -1598,3 +1598,52 @@ ul { list-style: none; }
 /* Si aun así la pantalla es muy baja, el panel se desplaza por dentro (la página no) */
 .boat-top-right { max-height: calc(100vh - var(--nav-h) - 16px); overflow-y: auto; scrollbar-width: thin; border-radius: 18px; }
 @media (max-width: 1000px) { .boat-top-right { max-height: none; overflow: visible; } }
+
+/* ═══ Catálogo: barra de filtros compacta ═══ */
+.cat-toolbar { background: #fff; border-bottom: 1px solid var(--line); padding: 0.75rem 0 0.8rem; }
+.cat-toolbar-inner { max-width: 1280px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); display: flex; flex-direction: column; gap: 0.6rem; }
+.cat-chips { display: flex; gap: 0.4rem; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 calc(-1 * clamp(1rem, 3vw, 2rem)); padding: 0 clamp(1rem, 3vw, 2rem); }
+.cat-chips::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.38rem 0.85rem; border-radius: 999px;
+  border: 1px solid var(--line-2); background: #fff; color: var(--text-2); font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.cat-chip:hover { border-color: var(--navy); }
+.cat-chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.cat-chip-n { font-size: 0.68rem; font-weight: 700; opacity: 0.6; }
+.cat-chip-n:empty { display: none; }
+.cat-row { display: flex; gap: 0.45rem; align-items: stretch; }
+.cat-search { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.8rem; border: 1px solid var(--line-2); border-radius: 12px; background: var(--bg-2); color: var(--text-muted); }
+.cat-search:focus-within { border-color: var(--sky-2); background: #fff; }
+.cat-search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; padding: 0.55rem 0; font-size: 0.85rem; color: var(--text); }
+.cat-btn {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0 0.8rem; border: 1px solid var(--line-2); border-radius: 12px;
+  background: #fff; color: var(--text-2); font-size: 0.8rem; font-weight: 600; cursor: pointer;
+}
+.cat-btn:hover, .cat-btn.is-open { border-color: var(--navy); color: var(--navy); }
+.cat-sort { appearance: none; -webkit-appearance: none; padding-right: 0.8rem; max-width: 128px; }
+.cat-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--sky-2); color: #fff; font-size: 0.68rem; display: inline-grid; place-items: center; }
+.cat-panel { display: flex; flex-wrap: wrap; gap: 0.7rem 1.6rem; align-items: flex-end; padding: 0.7rem 0.1rem 0.1rem; border-top: 1px dashed var(--line-2); }
+.cat-group-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+.cat-opts { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.cat-opt { padding: 0.3rem 0.7rem; border-radius: 8px; border: 1px solid var(--line-2); background: #fff; font-size: 0.78rem; font-weight: 600; color: var(--text-2); }
+.cat-opt.active { background: var(--sky-lighter); border-color: var(--sky-2); color: var(--sky-2); }
+.cat-clear { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--sky-2); text-decoration: underline; padding: 0.3rem 0; }
+.cat-chip[hidden], .cat-panel[hidden], .cat-badge[hidden], .cat-clear[hidden] { display: none !important; }
+.cat-toolbar + .section { padding-top: clamp(1.25rem, 3vw, 2rem); }
+@media (max-width: 520px) {
+  .cat-sort { max-width: 104px; font-size: 0.74rem; padding: 0 0.5rem; }
+  .cat-btn { padding: 0 0.6rem; }
+  .cat-panel { gap: 0.6rem 1rem; }
+  .cat-clear { margin-left: 0; }
+}
+
+/* Hero en celular: botones compactos, en una sola fila, para no tapar el video */
+@media (max-width: 480px) {
+  .hero-actions { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 0.5rem; }
+  .hero-actions .btn { padding: 0.55rem 0.95rem; font-size: 0.76rem; justify-content: center; white-space: nowrap; flex: 0 1 auto; }
+  .hero-actions .btn-ghost { border-width: 1.5px; }
+  .hero-content { padding-bottom: 1.5rem; }
+}
+@media (max-width: 340px) { .hero-actions { flex-wrap: wrap; } }
