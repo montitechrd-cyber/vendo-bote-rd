@@ -290,6 +290,15 @@ async function migrateDayBasedIncluded() {
   }
 }
 
+// "Yate 1" (La Romana) pasa a llamarse Azimut Nona. Las fotos conservan su ruta.
+async function migrateRenameYate1() {
+  await pool.query(
+    `UPDATE boats SET name = 'Azimut Nona', slug = 'azimut-nona',
+       short_description = 'Yate Azimut Nona para paseos privados en La Romana.'
+     WHERE slug = 'yate-1-la-romana'`
+  );
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -299,6 +308,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-12-day-based-pricing', migrateDayBasedPricing);
   await runDataMigrationOnce('2026-10-12-day-based-copy', migrateDayBasedCopy);
   await runDataMigrationOnce('2026-10-12-day-based-included', migrateDayBasedIncluded);
+  await runDataMigrationOnce('2026-10-13-rename-yate-1', migrateRenameYate1);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
