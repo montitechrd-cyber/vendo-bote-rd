@@ -74,10 +74,11 @@ router.post('/', authRequired, async (req, res) => {
 
     if (dayBased) {
       // Precio según el día de la semana (sáb/dom = fin de semana) y si lleva combo de cumpleaños.
-      const weekend = [0, 6].includes(start.getDay());
+      // Tarifa de fin de semana: solo sábado/domingo en la tarde (la mañana cuesta como entre semana).
+      const weekend = [0, 6].includes(start.getDay()) && schedule === '4pm-10pm';
       const base = weekend ? scheme.prices.weekend : scheme.prices.weekday;
       total = base;
-      metaParts.push(`${weekend ? 'Sábado y domingo' : 'Lunes a viernes'}: $${base}`);
+      metaParts.push(`${weekend ? 'Sábado/domingo (tarde)' : 'Tarifa normal'}: ${base}`);
       if (birthday_combo === true) {
         if (boatRow.location !== 'Boca Chica') return res.status(400).json({ error: 'El combo de cumpleaños solo aplica en Boca Chica' });
         const withCombo = weekend ? scheme.prices.weekend_birthday : scheme.prices.weekday_birthday;
