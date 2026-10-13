@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { getDB } = require('../database');
 const { authRequired, adminRequired } = require('../middleware/auth');
+const { setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken } = require('../utils/session');
+const { sendPasswordReset } = require('../utils/email');
 
 const router = express.Router();
 
@@ -20,6 +22,117 @@ const uploadId = multer({
   fileFilter: (req, file, cb) => {
     const allowed = ['.jpg', '.jpeg', '.png', '.pdf', '.webp'];
     cb(null, allowed.includes(path.extname(file.originalname).toLowerCase()));
+  }
+});
+
+/* ── Registro / login propios (correo + contraseña) ── */
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'montitechrd@gmail.com').toLowerCase();
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const normEmail = (e) => String(e || '').trim().toLowerCase();
+
+function siteUrl(req) {
+  if (process.env.NODE_ENV === 'production') return process.env.SITE_URL || 'https://vendoboterd.com';
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+router.post('/register', async (req, res) => {
+  try {
+    const db = getDB();
+    const email = normEmail(req.body.email);
+    const name = String(req.body.name || '').trim().slice(0, 80);
+    const password = String(req.body.password || '');
+    if (!name) return res.status(400).json({ error: 'Escribe tu nombre' });
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Correo inválido' });
+    if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+
+    // Cuentas anteriores (Clerk) y la del administrador no se pueden "reclamar" registrándose:
+    // la contraseña se crea desde el enlace que llega a su correo.
+    const existing = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
+    if (existing || email === ADMIN_EMAIL) {
+      const msg = existing && existing.password_hash
+        ? 'Ya existe una cuenta con ese correo. Inicia sesión.'
+        : 'Ya existe una cuenta con ese correo. Usa "Olvidé mi contraseña" para crear tu contraseña.';
+      return res.status(409).json({ error: msg });
+    }
+
+    const result = await db.run(
+      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
+      [name, email, hashPassword(password), 'user']
+    );
+    setSession(res, result.lastInsertRowid);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo crear la cuenta' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const db = getDB();
+    const email = normEmail(req.body.email);
+    const password = String(req.body.password || '');
+    const user = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ error: 'Correo o contraseña incorrectos. Si tu cuenta es anterior, usa "Olvidé mi contraseña" para crear la tuya.' });
+    }
+    if (!verifyPassword(password, user.password_hash)) {
+      return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
+    }
+    setSession(res, user.id);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo iniciar sesión' });
+  }
+});
+
+router.post('/logout', (req, res) => {
+  clearSession(res);
+  res.json({ ok: true });
+});
+
+// Siempre responde igual exista o no la cuenta (no revela qué correos están registrados).
+router.post('/forgot', async (req, res) => {
+  try {
+    const db = getDB();
+    const email = normEmail(req.body.email);
+    if (EMAIL_RE.test(email)) {
+      let user = await db.queryOne('SELECT id, name, email FROM users WHERE email = $1', [email]);
+      if (!user && email === ADMIN_EMAIL) {
+        await db.run("INSERT INTO users (name, email, role) VALUES ($1, $2, 'admin')", ['Administrador', email]);
+        user = await db.queryOne('SELECT id, name, email FROM users WHERE email = $1', [email]);
+      }
+      if (user) {
+        const { token, hash } = newResetToken();
+        await db.run("UPDATE users SET reset_token_hash = $1, reset_expires = NOW() + INTERVAL '1 hour' WHERE id = $2", [hash, user.id]);
+        const link = `${siteUrl(req)}/auth.html?reset=${encodeURIComponent(token)}`;
+        await sendPasswordReset(user, link).catch(e => console.error('[auth] no se pudo enviar el correo:', e.message));
+      }
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo procesar la solicitud' });
+  }
+});
+
+router.post('/reset', async (req, res) => {
+  try {
+    const db = getDB();
+    const password = String(req.body.password || '');
+    if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+    const user = await db.queryOne(
+      'SELECT id FROM users WHERE reset_token_hash = $1 AND reset_expires > NOW()',
+      [hashResetToken(req.body.token)]
+    );
+    if (!user) return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo.' });
+    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [hashPassword(password), user.id]);
+    setSession(res, user.id);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo cambiar la contraseña' });
   }
 });
 
@@ -49,8 +162,8 @@ router.put('/me', authRequired, async (req, res) => {
   }
 });
 
-// Paso obligatorio tras el registro con Clerk: la plataforma pide nombre real,
-// apellido y teléfono (Clerk solo verifica el correo/contraseña). La foto de
+// Paso obligatorio tras el registro: la plataforma pide nombre real,
+// apellido y teléfono. La foto de
 // cédula o pasaporte es opcional por ahora — se guarda igual que los comprobantes
 // de pago: nunca pública, solo accesible por el propio dueño o un admin.
 router.post('/complete-profile', authRequired, uploadId.single('id_document'), async (req, res) => {

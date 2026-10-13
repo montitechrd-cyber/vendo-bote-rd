@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012i" />
 </head>
 <body>
 
@@ -400,7 +400,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012f" defer></script>
+<script src="/assets/js/main.js?v=20261012i" defer></script>
 <script defer>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -1097,8 +1097,8 @@
 
   /* ── Reserve flow ── */
   async function startBooking() {
-    const clerk = window.__clerk || window.Clerk;
-    if (!clerk?.user) { sessionStorage.setItem('vbr_redirect', location.href); location.href = '/auth.html'; return; }
+    const me = await window.VBR_getUser();
+    if (!me) { sessionStorage.setItem('vbr_redirect', location.href); location.href = '/auth.html'; return; }
     const calc = computeBooking();
     if (!calc.ready) { window.VBR.toast('Selecciona fecha y turno', 'error'); return; }
     if (isSlotClosed(selDate, selSlot)) { window.VBR.toast('Este turno ya no está disponible: reserva al menos 2 horas antes del horario.', 'error'); selSlot = null; refreshSlotUI(); updateSummary(); return; }

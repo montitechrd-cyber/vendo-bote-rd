@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012i" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -431,18 +431,14 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012f" defer></script>
+<script src="/assets/js/main.js?v=20261012i" defer></script>
 <script type="module">
 (function () {
-  window.logout = async function () {
-    const clerk = window.__clerk || window.Clerk;
-    if (clerk) await clerk.signOut();
-    location.href = '/';
-  };
+  window.logout = () => window.VBR_logout();
 
-  window.VBR_getClerk().then(clerk => {
-    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
-    if (clerk.user.publicMetadata?.role !== 'admin') { location.href = '/dashboard.html'; return; }
+  window.VBR_getUser().then(user => {
+    if (!user) { location.href = '/auth.html'; return; }
+    if (user.role !== 'admin') { location.href = '/dashboard.html'; return; }
     loadDashboard();
     loadAllBookings();
     loadBoatsAdmin();
@@ -603,13 +599,11 @@
       document.body.style.overflow = 'hidden';
     }).catch(() => window.VBR.toast('Error cargando la reserva', 'error'));
   };
-  // El comprobante ya no se sirve como archivo público — se pide con el token de sesión
+  // El comprobante ya no se sirve como archivo público — se pide con la sesión
   // y se abre como blob, igual que cualquier otra llamada autenticada del panel.
   window.viewReceipt = async function (id) {
     try {
-      const clerk = window.__clerk || window.Clerk;
-      const token = clerk?.session ? await clerk.session.getToken() : null;
-      const r = await fetch('/api/bookings/' + id + '/receipt', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+      const r = await fetch('/api/bookings/' + id + '/receipt', { credentials: 'same-origin' });
       if (!r.ok) { window.VBR.toast('No se pudo cargar el comprobante', 'error'); return; }
       const blob = await r.blob();
       window.open(URL.createObjectURL(blob), '_blank');

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012i" />
 </head>
 <body>
 
@@ -213,7 +213,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012f" defer></script>
+<script src="/assets/js/main.js?v=20261012i" defer></script>
 <script type="module">
 (function () {
   let allBookings = [];
@@ -233,30 +233,24 @@
     document.getElementById('profile-email').value = userEmail || '';
   }
 
-  async function logout() {
-    const clerk = window.__clerk || window.Clerk;
-    if (clerk) await clerk.signOut();
-    location.href = '/';
-  }
+  const logout = () => window.VBR_logout();
   window.logout = logout;
   document.getElementById('logout-btn')?.addEventListener('click', logout);
   document.getElementById('logout-mobile')?.addEventListener('click', logout);
 
-  // Bootstrap: wait for Clerk then verify session
-  window.VBR_getClerk().then(async clerk => {
-    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
-    const email = clerk.user.emailAddresses?.[0]?.emailAddress || '';
+  // Bootstrap: verifica la sesión
+  window.VBR_getUser().then(async me => {
+    if (!me) { location.href = '/auth.html'; return; }
+    const email = me.email || '';
 
-    // Si entra con sesión ya activa (sin pasar de nuevo por /auth.html) y aún no
-    // completó nombre/apellido/teléfono, lo mandamos a completarlo primero.
+    // Si aún no completó nombre/apellido/teléfono, lo mandamos a completarlo primero.
     try {
-      const me = await window.VBR.api('/auth/me');
-      if (!me?.profile_completed) {
+      if (!me.profile_completed) {
         sessionStorage.setItem('vbr_redirect', location.href);
         location.href = '/complete-profile.html';
         return;
       }
-      initUI([me.name, me.last_name].filter(Boolean).join(' '), email);
+    initUI([me.name, me.last_name].filter(Boolean).join(' '), email);
     } catch {
       initUI(email, email);
     }
@@ -449,12 +443,9 @@
     const btn = document.getElementById('submit-payment-btn');
     btn.disabled = true; btn.textContent = 'Enviando...';
 
-    const clerk = window.__clerk || window.Clerk;
-    let authToken = null;
-    try { if (clerk?.session) authToken = await clerk.session.getToken(); } catch {}
     fetch('/api/bookings/' + id + '/payment', {
       method: 'POST',
-      headers: authToken ? { Authorization: 'Bearer ' + authToken } : {},
+      credentials: 'same-origin',
       body: formData
     }).then(r => r.json()).then(data => {
       if (data.error) { document.getElementById('pay-error').textContent = data.error; document.getElementById('pay-error').classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Enviar comprobante'; return; }

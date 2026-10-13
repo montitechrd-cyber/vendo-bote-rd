@@ -23,43 +23,32 @@
   const fmtDateLong  = d => new Date(d + 'T00:00:00').toLocaleDateString('es-DO', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const fmtDateShort = d => new Date(d + 'T00:00:00').toLocaleDateString('es-DO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
   const API = '/api';
-  const CLERK_PK = 'pk_live_Y2xlcmsudmVuZG9ib3RlcmQuY29tJA';
 
   function safe(fn, name) {
     try { fn(); } catch (e) { console.warn('[VBR]', name, e); }
   }
 
-  // Load Clerk JS dynamically and cache the promise
-  let _clerkPromise = null;
-  function getClerk() {
-    if (_clerkPromise) return _clerkPromise;
-    _clerkPromise = new Promise((resolve) => {
-      if (window.__clerk) { resolve(window.__clerk); return; }
-      const s = document.createElement('script');
-      s.setAttribute('data-clerk-publishable-key', CLERK_PK);
-      s.src = 'https://clerk.vendoboterd.com/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
-      s.crossOrigin = 'anonymous';
-      s.async = true;
-      s.addEventListener('load', async () => {
-        await window.Clerk.load();
-        window.__clerk = window.Clerk;
-        resolve(window.Clerk);
-      });
-      s.onerror = () => resolve(null);
-      document.head.appendChild(s);
-    });
-    return _clerkPromise;
+  // Usuario con sesión (cookie propia). Se consulta una vez por página y se cachea la promesa.
+  // Devuelve el usuario (id, name, email, role, profile_completed...) o null si no hay sesión.
+  let _userPromise = null;
+  function getUser(force) {
+    if (!_userPromise || force) {
+      _userPromise = fetch(API + '/auth/me', { credentials: 'same-origin' })
+        .then(r => (r.ok ? r.json() : null))
+        .catch(() => null);
+    }
+    return _userPromise;
   }
-  window.VBR_getClerk = getClerk;
+  window.VBR_getUser = getUser;
+  window.VBR_logout = async function () {
+    try { await fetch(API + '/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch {}
+    location.href = '/';
+  };
 
   async function api(path, opts = {}) {
-    let token = null;
-    try {
-      const clerk = await getClerk();
-      if (clerk?.session) token = await clerk.session.getToken();
-    } catch {}
     const r = await fetch(API + path, {
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}), ...opts.headers },
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
       ...opts,
       body: opts.body && typeof opts.body === 'object' ? JSON.stringify(opts.body) : opts.body,
     });
@@ -114,15 +103,14 @@
     const path = location.pathname;
     $$('.nav-link').forEach(a => { if (a.getAttribute('href') === path) a.classList.add('active'); });
 
-    // Auth state via Clerk
+    // Estado de sesión
     const loginBtn = $('#nav-login-btn');
     const registerBtn = $('#nav-register-btn');
     const mobileLoginBtn = $('#nav-mobile-login-btn');
-    getClerk().then(clerk => {
-      if (!clerk?.user) return;
-      const u = clerk.user;
-      const name = u.firstName || u.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'Usuario';
-      const role = u.publicMetadata?.role || 'user';
+    getUser().then(u => {
+      if (!u) return;
+      const name = (u.name || '').split(' ')[0] || (u.email || '').split('@')[0] || 'Usuario';
+      const role = u.role || 'user';
       if (loginBtn) { loginBtn.textContent = name; loginBtn.href = '/dashboard.html'; }
       if (registerBtn) {
         if (role === 'admin') { registerBtn.textContent = 'Admin Panel'; registerBtn.href = '/admin.html'; }

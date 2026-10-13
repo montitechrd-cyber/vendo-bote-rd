@@ -210,4 +210,20 @@ async function sendPaymentRejected(booking, user, reason) {
   });
 }
 
-module.exports = { sendNewBookingAdmin, sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected };
+/* ── Crear / restablecer contraseña ── */
+async function sendPasswordReset(user, link) {
+  if (!process.env.EMAIL_USER) throw new Error('EMAIL_USER no configurado');
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: '🔑 Crea o restablece tu contraseña — Vendo Bote RD',
+    html: wrap('Contraseña', `
+      <p class="greeting">Hola ${user.name || ''},</p>
+      <p class="intro">Recibimos una solicitud para crear o restablecer la contraseña de tu cuenta. El enlace es válido por 1 hora.</p>
+      <div class="cta"><a class="btn" href="${link}">Elegir mi contraseña</a></div>
+      <p style="font-size:12px;color:#5B84A8;line-height:1.7;margin-top:24px;">Si no fuiste tú, ignora este correo: tu cuenta sigue segura.</p>
+    `),
+  });
+}
+
+module.exports = { sendNewBookingAdmin, sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendPasswordReset };

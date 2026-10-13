@@ -8,48 +8,93 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012i" />
   <style>
-    /* Estas reglas ganan sobre style.css por orden en la cascada (misma especificidad,
-       este <style> va después del <link>), sin necesidad de !important. */
     body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .auth-page { background: transparent; }
     .auth-tagline { color: var(--text-muted); }
-    .clerk-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 400px;
-      padding: 1rem 0;
-      width: 100%;
-    }
     .auth-logo-img { filter: none; }
-
-    /* El widget de Clerk trae un ancho mínimo interno que no cede en pantallas
-       angostas — sin esto, la tarjeta se recorta contra el padding de .auth-page
-       (overflow:hidden) y el usuario nunca ve los campos del lado derecho. */
-    .cl-rootBox, .cl-cardBox, .cl-card { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
-    @media (max-width: 480px) {
-      .auth-page { padding: 1.25rem 0.75rem; }
-      .cl-card { padding: 1.5rem 1.1rem !important; }
-    }
+    .auth-card { background: #fff; border: 1px solid #d0e4f7; border-radius: 18px; box-shadow: 0 8px 40px rgba(26,58,92,0.13); padding: 2rem 1.75rem; margin-top: 1.25rem; }
+    .auth-card h1 { font-family: var(--serif); font-style: italic; font-size: 1.7rem; color: var(--navy); margin-bottom: 0.35rem; }
+    .auth-card .auth-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.4rem; line-height: 1.6; }
+    .auth-field { margin-bottom: 1rem; }
+    .auth-field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--navy); margin-bottom: 0.35rem; }
+    .auth-field input { width: 100%; padding: 0.8rem 0.95rem; border-radius: 10px; border: 1.5px solid #d0e4f7; background: #f0f6ff; color: var(--navy); font: inherit; font-size: 0.95rem; }
+    .auth-field input:focus { outline: none; border-color: var(--sky-2); background: #fff; }
+    .auth-pass { position: relative; }
+    .auth-pass button { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 600; color: var(--sky-2); padding: 0.3rem 0.4rem; }
+    .auth-submit { width: 100%; justify-content: center; margin-top: 0.4rem; }
+    .auth-msg { border-radius: 10px; padding: 0.75rem 0.95rem; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem; }
+    .auth-msg.error { background: #fdecec; color: #8a1f1f; border: 1px solid #f5c2c2; }
+    .auth-msg.ok { background: #e8f7ee; color: #14633a; border: 1px solid #b7e4c7; }
+    .auth-links { text-align: center; margin-top: 1.1rem; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; }
+    .auth-links a, .auth-links button { color: var(--sky-2); font-weight: 600; cursor: pointer; font-size: inherit; }
+    .auth-view { display: none; }
+    .auth-view.active { display: block; }
+    @media (max-width: 480px) { .auth-page { padding: 1.25rem 0.75rem; } .auth-card { padding: 1.5rem 1.1rem; } }
   </style>
 </head>
 <body>
 
 <div class="auth-page">
-  <div style="width:100%;max-width:480px;">
+  <div style="width:100%;max-width:440px;">
     <a href="/" style="display:block;text-align:center;margin-bottom:0.5rem;">
       <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="auth-logo-img" />
     </a>
     <p class="auth-tagline">La plataforma de embarcaciones en República Dominicana</p>
 
-    <div class="clerk-wrap">
-      <div id="clerk-mount"></div>
-    </div>
+    <div class="auth-card">
+      <div id="auth-msg" class="auth-msg hidden" role="alert"></div>
 
-    <div id="auth-slow-hint" class="hidden" style="text-align:center;font-size:0.82rem;color:var(--text-muted);background:var(--sky-lighter);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:0.9rem 1.1rem;margin-top:1rem;line-height:1.6;">
-      ¿Se está quedando cargando? Intenta con <b>otro navegador</b> o desactiva temporalmente algún bloqueador de anuncios — a veces bloquean la verificación de seguridad.
+      <!-- Ingresar -->
+      <form class="auth-view active" id="view-login" novalidate>
+        <h1>Ingresar</h1>
+        <p class="auth-sub">Accede a tus reservas y reserva tu próxima salida.</p>
+        <div class="auth-field"><label for="login-email">Correo</label><input type="email" id="login-email" autocomplete="email" required /></div>
+        <div class="auth-field">
+          <label for="login-pass">Contraseña</label>
+          <div class="auth-pass"><input type="password" id="login-pass" autocomplete="current-password" required /><button type="button" data-toggle="login-pass">Ver</button></div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">Ingresar</button>
+        <div class="auth-links">
+          <button type="button" data-go="forgot">¿Olvidaste tu contraseña?</button>
+          <span>¿No tienes cuenta? <button type="button" data-go="register">Crear cuenta</button></span>
+        </div>
+      </form>
+
+      <!-- Crear cuenta -->
+      <form class="auth-view" id="view-register" novalidate>
+        <h1>Crear cuenta</h1>
+        <p class="auth-sub">Solo toma un minuto. Después te pediremos tus datos de contacto.</p>
+        <div class="auth-field"><label for="reg-name">Nombre</label><input type="text" id="reg-name" autocomplete="given-name" required /></div>
+        <div class="auth-field"><label for="reg-email">Correo</label><input type="email" id="reg-email" autocomplete="email" required /></div>
+        <div class="auth-field">
+          <label for="reg-pass">Contraseña (mínimo 8 caracteres)</label>
+          <div class="auth-pass"><input type="password" id="reg-pass" autocomplete="new-password" minlength="8" required /><button type="button" data-toggle="reg-pass">Ver</button></div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">Crear cuenta</button>
+        <div class="auth-links"><span>¿Ya tienes cuenta? <button type="button" data-go="login">Ingresar</button></span></div>
+      </form>
+
+      <!-- Olvidé mi contraseña / crear contraseña (cuentas anteriores) -->
+      <form class="auth-view" id="view-forgot" novalidate>
+        <h1>Crear o recuperar contraseña</h1>
+        <p class="auth-sub">Escribe tu correo y te enviaremos un enlace para elegir tu contraseña. Si ya tenías cuenta con nosotros, empieza por aquí.</p>
+        <div class="auth-field"><label for="forgot-email">Correo</label><input type="email" id="forgot-email" autocomplete="email" required /></div>
+        <button type="submit" class="btn btn-primary auth-submit">Enviar enlace</button>
+        <div class="auth-links"><button type="button" data-go="login">Volver a ingresar</button></div>
+      </form>
+
+      <!-- Elegir contraseña (llega por el enlace del correo) -->
+      <form class="auth-view" id="view-reset" novalidate>
+        <h1>Elige tu contraseña</h1>
+        <p class="auth-sub">Escribe una contraseña nueva de al menos 8 caracteres.</p>
+        <div class="auth-field">
+          <label for="reset-pass">Contraseña nueva</label>
+          <div class="auth-pass"><input type="password" id="reset-pass" autocomplete="new-password" minlength="8" required /><button type="button" data-toggle="reset-pass">Ver</button></div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">Guardar y entrar</button>
+      </form>
     </div>
 
     <p style="text-align:center;font-size:0.75rem;color:var(--cream-4);margin-top:2rem;">
@@ -59,110 +104,92 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012f" defer></script>
 <script>
 (function () {
-  const CLERK_PK = 'pk_live_Y2xlcmsudmVuZG9ib3RlcmQuY29tJA';
   const params = new URLSearchParams(location.search);
-  const tab = params.get('tab');
+  const resetToken = params.get('reset');
   const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
+  const $ = (id) => document.getElementById(id);
+  const msg = $('auth-msg');
 
-  async function afterSignIn(user) {
-    const role = user.publicMetadata?.role;
-
-    // El staff (admin) no pasa por el onboarding de cliente — solo los clientes reales.
-    if (role !== 'admin') {
-      try {
-        const me = await window.VBR.api('/auth/me');
-        if (!me?.profile_completed) {
-          sessionStorage.setItem('vbr_redirect', redirect);
-          location.href = '/complete-profile.html';
-          return;
-        }
-      } catch {}
-    }
-
-    sessionStorage.removeItem('vbr_redirect');
-    location.href = role === 'admin' ? '/admin.html' : redirect;
+  function show(type, text) { msg.className = 'auth-msg ' + type; msg.textContent = text; }
+  function clearMsg() { msg.className = 'auth-msg hidden'; }
+  function go(view) {
+    clearMsg();
+    document.querySelectorAll(".auth-view").forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+    const first = document.querySelector('#view-' + view + ' input');
+    if (first) first.focus();
   }
 
-  const s = document.createElement('script');
-  s.setAttribute('data-clerk-publishable-key', CLERK_PK);
-  s.src = 'https://clerk.vendoboterd.com/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
-  s.crossOrigin = 'anonymous';
-  s.async = true;
-  s.addEventListener('load', async function () {
-    await window.Clerk.load();
-    window.__clerk = window.Clerk;
+  async function post(path, body) {
+    try {
+      const r = await fetch('/api/auth/' + path, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      return await r.json();
+    } catch { return { error: 'Error de conexión, intenta de nuevo.' }; }
+  }
 
-    if (window.Clerk.user) { afterSignIn(window.Clerk.user); return; }
-
-    // Enlace de acceso directo (generado por un admin) — respaldo para cuando la
-    // verificación anti-bots de Clerk no carga en el navegador del usuario.
-    const ticket = params.get('ticket');
-    if (ticket) {
-      try {
-        const attempt = await window.Clerk.client.signIn.create({ strategy: 'ticket', ticket });
-        if (attempt.status === 'complete') {
-          await window.Clerk.setActive({ session: attempt.createdSessionId });
-          afterSignIn(window.Clerk.user);
-          return;
-        }
-      } catch (e) {
-        console.error('Enlace de acceso inválido o vencido', e);
-      }
+  async function afterSignIn() {
+    let me = null;
+    try { const r = await fetch('/api/auth/me', { credentials: 'same-origin' }); me = r.ok ? await r.json() : null; } catch {}
+    // El administrador no pasa por el onboarding de cliente.
+    if (me && me.role !== 'admin' && !me.profile_completed) {
+      sessionStorage.setItem('vbr_redirect', redirect);
+      location.href = '/complete-profile.html';
+      return;
     }
+    sessionStorage.removeItem('vbr_redirect');
+    location.href = me && me.role === 'admin' ? '/admin.html' : redirect;
+  }
 
-    const mount = document.getElementById('clerk-mount');
-    const opts = {
-      appearance: {
-        variables: {
-          colorPrimary: '#1a3a5c',
-          colorBackground: '#ffffff',
-          colorText: '#1a3a5c',
-          colorTextSecondary: '#4a6fa5',
-          colorInputBackground: '#f0f6ff',
-          colorInputText: '#1a3a5c',
-          colorNeutral: '#1a3a5c',
-          borderRadius: '10px',
-          fontFamily: 'inherit',
-          fontSize: '15px',
-        },
-        elements: {
-          card: { boxShadow: '0 8px 40px rgba(26,58,92,0.13)', border: '1px solid #d0e4f7' },
-          headerTitle: { color: '#1a3a5c', fontWeight: '700' },
-          headerSubtitle: { color: '#4a6fa5' },
-          formButtonPrimary: { background: '#1a3a5c', color: '#ffffff', '&:hover': { background: '#24527a' } },
-          footerActionLink: { color: '#1a7fc1' },
-          identityPreviewText: { color: '#1a3a5c' },
-          formFieldLabel: { color: '#1a3a5c' },
-          dividerLine: { background: '#d0e4f7' },
-          dividerText: { color: '#4a6fa5' },
-          socialButtonsBlockButton: { border: '1px solid #d0e4f7', color: '#1a3a5c' },
-        }
-      }
-    };
+  async function submit(form, fn) {
+    const btn = form.querySelector('button[type=submit]');
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Un momento...';
+    clearMsg();
+    try { await fn(); } finally { btn.disabled = false; btn.textContent = label; }
+  }
 
-    if (tab === 'register') {
-      window.Clerk.mountSignUp(mount, opts);
-    } else {
-      window.Clerk.mountSignIn(mount, opts);
-    }
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+  document.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+    const input = $(b.dataset.toggle);
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    b.textContent = hidden ? 'Ocultar' : 'Ver';
+  }));
 
-    window.Clerk.addListener(({ user }) => {
-      if (user) afterSignIn(user);
-    });
+  $('view-login').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
+    const d = await post('login', { email: $('login-email').value, password: $('login-pass').value });
+    if (d.error) return show('error', d.error);
+    afterSignIn();
+  }); });
 
-    // Si a los 8s no hay ni campos de formulario ni sesión activa, probablemente
-    // la verificación anti-bots (Cloudflare Turnstile) no cargó en este navegador.
-    setTimeout(() => {
-      const hasForm = !!mount.querySelector('input');
-      if (!hasForm && !window.Clerk.user) {
-        document.getElementById('auth-slow-hint').classList.remove('hidden');
-      }
-    }, 8000);
-  });
-  document.head.appendChild(s);
+  $('view-register').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
+    const d = await post('register', { name: $('reg-name').value, email: $('reg-email').value, password: $('reg-pass').value });
+    if (d.error) return show('error', d.error);
+    afterSignIn();
+  }); });
+
+  $('view-forgot').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
+    const d = await post('forgot', { email: $('forgot-email').value });
+    if (d.error) return show('error', d.error);
+    show('ok', 'Listo. Si el correo está registrado, te enviamos un enlace (revisa también el spam). Vale por 1 hora.');
+  }); });
+
+  $('view-reset').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
+    const d = await post('reset', { token: resetToken, password: $('reset-pass').value });
+    if (d.error) return show('error', d.error);
+    afterSignIn();
+  }); });
+
+  // Si ya hay sesión, no mostrar el formulario
+  if (!resetToken) {
+    fetch('/api/auth/me', { credentials: 'same-origin' }).then(r => (r.ok ? afterSignIn() : null)).catch(() => {});
+  }
+  if (resetToken) go('reset');
+  else if (params.get('tab') === 'register') go('register');
 })();
 </script>
 </body>

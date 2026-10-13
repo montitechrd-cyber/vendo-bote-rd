@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261012h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261012i" />
   <style>
     body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .cp-page { min-height: 100svh; display: grid; place-items: center; padding: 2rem 1rem; }
@@ -74,34 +74,30 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261012f" defer></script>
+<script src="/assets/js/main.js?v=20261012i" defer></script>
 <script defer>
 (function () {
   const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
 
   // main.js es un <script defer> igual que este — en teoría carga primero, pero
   // se ha visto llegar tarde en algunos entornos; se espera en vez de asumirlo.
-  function whenClerkReady(fn) {
-    if (window.VBR_getClerk) fn();
-    else setTimeout(() => whenClerkReady(fn), 20);
+  function whenReady(fn) {
+    if (window.VBR_getUser) fn();
+    else setTimeout(() => whenReady(fn), 20);
   }
 
-  whenClerkReady(() => window.VBR_getClerk().then(async clerk => {
-    if (!clerk || !clerk.user) { location.href = '/auth.html'; return; }
+  whenReady(() => window.VBR_getUser().then(me => {
+    if (!me) { location.href = '/auth.html'; return; }
 
     // Si ya completó el perfil antes, no tiene nada que hacer aquí.
-    try {
-      const me = await window.VBR.api('/auth/me');
-      if (me?.profile_completed) {
-        const role = clerk.user.publicMetadata?.role;
-        location.href = role === 'admin' ? '/admin.html' : redirect;
-        return;
-      }
-      // Precarga si ya había algo guardado (ej. volvió sin terminar)
-      if (me?.name) document.getElementById('cp-name').value = me.name;
-      if (me?.last_name) document.getElementById('cp-lastname').value = me.last_name;
-      if (me?.phone) document.getElementById('cp-phone').value = me.phone;
-    } catch {}
+    if (me.profile_completed) {
+      location.href = me.role === 'admin' ? '/admin.html' : redirect;
+      return;
+    }
+    // Precarga si ya había algo guardado (ej. volvió sin terminar)
+    if (me.name) document.getElementById('cp-name').value = me.name;
+    if (me.last_name) document.getElementById('cp-lastname').value = me.last_name;
+    if (me.phone) document.getElementById('cp-phone').value = me.phone;
   }));
 
   document.getElementById('cp-file').addEventListener('change', function () {
@@ -136,11 +132,9 @@
     if (file) formData.append('id_document', file);
 
     try {
-      const clerk = window.__clerk || window.Clerk;
-      const token = clerk?.session ? await clerk.session.getToken() : null;
       const r = await fetch('/api/auth/complete-profile', {
         method: 'POST',
-        headers: token ? { Authorization: 'Bearer ' + token } : {},
+        credentials: 'same-origin',
         body: formData,
       });
       const data = await r.json();
@@ -151,8 +145,7 @@
         return;
       }
       sessionStorage.removeItem('vbr_redirect');
-      const role = clerk?.user?.publicMetadata?.role;
-      location.href = role === 'admin' ? '/admin.html' : redirect;
+      location.href = data.role === 'admin' ? '/admin.html' : redirect;
     } catch (e) {
       errEl.textContent = 'Error de conexión, intenta de nuevo.';
       errEl.classList.remove('hidden');

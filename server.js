@@ -8,8 +8,6 @@ const path = require('path');
 const fs = require('fs');
 const { init, getDB } = require('./database');
 
-const { clerkMiddleware } = require('@clerk/express');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
@@ -41,7 +39,6 @@ const allowedOrigins = isDev
   : [process.env.SITE_URL || 'https://vendoboterd.com'];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 
-app.use(clerkMiddleware());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Fotos/videos/CSS/JS: cache largo en el navegador. Son cientos de MB de medios
@@ -77,6 +74,16 @@ const writeLimiter = rateLimit({
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
 });
 app.use('/api/bookings', (req, res, next) => (req.method === 'POST' ? writeLimiter(req, res, next) : next()));
+
+// Login/registro/recuperación: límite estricto contra adivinación de contraseñas y spam de correos
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
+});
+app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth/reset'], authLimiter);
 
 const { adminRequired } = require('./middleware/auth');
 

@@ -40,6 +40,9 @@ async function createTables() {
   // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
   // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});
+  // Restablecer / crear contraseña por correo (se guarda solo el hash del token)
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMPTZ`).catch(() => {});
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_document_filename TEXT`).catch(() => {});
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE`).catch(() => {});
   await pool.query(`
@@ -120,9 +123,11 @@ async function createTables() {
 }
 
 async function seedData() {
-  // La autenticación es 100% Clerk (ver middleware/auth.js) — el primer admin se
-  // designa asignando role:"admin" en publicMetadata desde el dashboard de Clerk,
-  // no sembrando una cuenta con contraseña local.
+  // La autenticación es propia (ver middleware/auth.js y routes/auth.js). El administrador
+  // es el usuario cuyo correo coincide con ADMIN_EMAIL: se marca aquí en cada arranque y
+  // crea su contraseña con "Olvidé mi contraseña" (nunca se siembra una contraseña local).
+  const adminEmail = (process.env.ADMIN_EMAIL || 'montitechrd@gmail.com').toLowerCase();
+  await pool.query("UPDATE users SET role = 'admin' WHERE lower(email) = $1", [adminEmail]);
 
   const count = await db.queryOne('SELECT COUNT(*) as c FROM boats');
   if (parseInt(count.c) > 0) return;
