@@ -330,6 +330,42 @@
     vid.play().catch(() => { if (play) play.style.display = ''; });
   }, true);
 
+  /* ── Carrusel de fotos en la tarjeta: flechas y deslizar (touch) sin abrir la ficha ── */
+  function goToCardSlide(card, dir) {
+    const track = card.querySelector('.card-track');
+    if (!track) return;
+    const n = track.children.length;
+    const i = (((parseInt(track.dataset.i, 10) || 0) + dir) % n + n) % n;
+    track.dataset.i = i;
+    track.style.transform = `translateX(-${i * 100}%)`;
+    card.querySelectorAll('.card-dot').forEach((d, k) => d.classList.toggle('active', k === i));
+    card.querySelectorAll('video').forEach(v => v.pause());
+  }
+  let cardSwipeAt = 0;
+  document.addEventListener('click', e => {
+    const arrow = e.target.closest && e.target.closest('.card-arrow');
+    const swiped = Date.now() - cardSwipeAt < 400 && e.target.closest && e.target.closest('.card-track');
+    if (!arrow && !swiped) return;
+    e.stopPropagation();
+    e.preventDefault();
+    if (arrow) goToCardSlide(arrow.closest('.card'), arrow.classList.contains('card-arrow-next') ? 1 : -1);
+  }, true);
+  let touchStart = null;
+  document.addEventListener('touchstart', e => {
+    const track = e.target.closest && e.target.closest('.card-track');
+    touchStart = track ? { x: e.touches[0].clientX, y: e.touches[0].clientY, card: track.closest('.card') } : null;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!touchStart) return;
+    const dx = e.changedTouches[0].clientX - touchStart.x;
+    const dy = e.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      cardSwipeAt = Date.now();
+      goToCardSlide(touchStart.card, dx < 0 ? 1 : -1);
+    }
+    touchStart = null;
+  }, { passive: true });
+
   /* ── Boat card builder ── */
   function buildBoatCard(boat) {
     const imgs = Array.isArray(boat.images) ? boat.images : JSON.parse(boat.images || '[]');
@@ -339,11 +375,20 @@
       ? `<div class="card-video-wrap" data-video-src="${esc(src)}"><img class="card-video-poster" alt="${esc(boat.name)}" /><div class="card-video-play">▶</div></div>`
       : `<img src="${esc(src)}" alt="${esc(boat.name)}" loading="lazy" />`;
     const dayBased = !!(boat.pricing_scheme && boat.pricing_scheme.type === 'day_based');
+    // Carrusel: la portada (foto o video) + el resto de las fotos de la galería.
+    const extraPhotos = imgs.slice(1).filter(p => !/\.(mp4|webm|mov)$/i.test(p));
+    const slides = [media, ...extraPhotos.map(p => `<img src="${esc(p)}" alt="${esc(boat.name)}" loading="lazy" draggable="false" />`)];
+    const carousel = slides.length > 1
+      ? `<div class="card-track" data-i="0">${slides.map(s => `<div class="card-slide">${s}</div>`).join('')}</div>
+          <button type="button" class="card-arrow card-arrow-prev" aria-label="Foto anterior">‹</button>
+          <button type="button" class="card-arrow card-arrow-next" aria-label="Foto siguiente">›</button>
+          <div class="card-dots">${slides.map((_, i) => `<span class="card-dot${i ? '' : ' active'}"></span>`).join('')}</div>`
+      : media;
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
       <article class="card" onclick="location.href='/embarcacion/${encodeURIComponent(boat.slug)}'" data-reveal>
         <div class="card-img">
-          ${media}
+          ${carousel}
           ${badge}
           <div class="card-location">📍 ${esc(boat.location)}</div>
         </div>

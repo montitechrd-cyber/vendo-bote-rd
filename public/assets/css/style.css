@@ -455,6 +455,20 @@ ul { list-style: none; }
   width: 100%; height: 100%; display: block; object-fit: cover; object-position: center;
   pointer-events: none;
 }
+.card-track { display: flex; height: 100%; transition: transform 0.4s var(--ease-soft); }
+.card-slide { flex: 0 0 100%; min-width: 0; height: 100%; }
+.card-arrow {
+  position: absolute; top: 50%; z-index: 3; width: 32px; height: 32px; margin-top: -16px;
+  border-radius: 50%; display: grid; place-items: center; padding: 0 0 3px;
+  font-size: 1.35rem; line-height: 1; color: #fff; background: rgba(15,52,96,0.22);
+  backdrop-filter: blur(2px); opacity: 0.55; transition: opacity 0.25s, background 0.25s;
+}
+.card-arrow-prev { left: 0.6rem; }
+.card-arrow-next { right: 0.6rem; }
+.card-arrow:hover, .card-arrow:focus-visible { opacity: 1; background: rgba(15,52,96,0.5); }
+.card-dots { position: absolute; bottom: 0.6rem; left: 0; right: 0; z-index: 3; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+.card-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: background 0.25s, transform 0.25s; }
+.card-dot.active { background: #fff; transform: scale(1.25); }
 .card:hover .card-img img { transform: scale(1.05); filter: saturate(1.1) brightness(1.03); }
 /* ── Portada de video en tarjetas (catálogo/destacados): un cuadro estático en vez
    de reproducir el video completo apenas carga la página ── */
