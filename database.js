@@ -333,6 +333,11 @@ async function migrateRemoveBrokenImagePaths() {
   }
 }
 
+// Todas las embarcaciones de Boca Chica quedan destacadas (se muestran en la home).
+async function migrateFeatureBocaChica() {
+  await pool.query("UPDATE boats SET featured = true WHERE location = 'Boca Chica' AND for_sale = false");
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -346,6 +351,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-rename-yate-3', migrateRenameYate3);
   await runDataMigrationOnce('2026-10-13-azimut-nona-price', migrateAzimutNonaPrice);
   await runDataMigrationOnce('2026-10-13-remove-broken-image-paths', migrateRemoveBrokenImagePaths);
+  await runDataMigrationOnce('2026-10-13-feature-boca-chica', migrateFeatureBocaChica);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

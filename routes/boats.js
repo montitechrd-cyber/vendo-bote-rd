@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
 router.get('/featured', async (req, res) => {
   try {
     const db = getDB();
-    const boats = await db.query('SELECT * FROM boats WHERE featured = true AND available = true ORDER BY price_per_day DESC LIMIT 6');
+    const boats = await db.query("SELECT * FROM boats WHERE (featured = true OR location = 'Boca Chica') AND available = true ORDER BY (location = 'Boca Chica') DESC, price_per_day DESC LIMIT 12");
     res.json(boats.map(parseBoat));
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
