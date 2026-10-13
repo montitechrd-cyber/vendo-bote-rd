@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013b" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261013c" />
 </head>
 <body>
 
@@ -449,12 +449,12 @@
     const gallery = document.getElementById('gallery');
     const mainHTML = isVid(src)
       ? `<div class="gallery-main" onclick="openLightbox(${mainIdx})" style="position:relative;cursor:pointer;">
-           <video src="${src}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+           <video src="${src}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;display:block;background:#0f2036;"></video>
            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
              <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">▶</div>
            </div>
          </div>`
-      : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
+      : `<div class="gallery-main" onclick="openLightbox(${mainIdx})"><div class="gallery-bg" style="background-image:url('${src.replace(/'/g, '%27')}')"></div><img src="${src}" alt="${boat.name}" loading="eager" /></div>`;
     gallery.innerHTML = mainHTML;
     document.querySelectorAll('.gallery-thumb-btn').forEach((t, i) => {
       t.classList.toggle('active', i === mainIdx);
