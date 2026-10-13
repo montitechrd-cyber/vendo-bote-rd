@@ -146,7 +146,6 @@ router.post('/', authRequired, async (req, res) => {
       [result.lastInsertRowid]
     );
     const user = await db.queryOne('SELECT name, email, phone FROM users WHERE id = $1', [req.user.id]);
-    email.sendNewBookingAdmin(booking, user).catch(console.error);
     res.json(booking);
   } catch (e) {
     console.error(e);
@@ -313,7 +312,7 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
       `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
       [booking.id]
     );
-    email.sendPaymentSubmittedAdmin(fullBooking, user, { filename: receiptName, content: req.file.buffer, contentType: receiptMime }).catch(console.error);
+    email.sendPaymentSubmittedAdmin(fullBooking, user, { filename: receiptName, content: req.file.buffer, contentType: receiptMime }, { reference_number, bank_name }).catch(console.error);
     res.json({ success: true, message: 'Comprobante enviado. El host verificará tu pago en breve.' });
   } catch (e) {
     console.error(e);
