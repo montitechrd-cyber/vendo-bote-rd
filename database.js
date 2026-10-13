@@ -348,6 +348,18 @@ async function migratePerlaNegraPrices() {
   }
 }
 
+// Perla Negra: la foto número 4 de la galería pasa al segundo lugar.
+async function migratePerlaNegraPhotoOrder() {
+  const { rows } = await pool.query("SELECT id, images FROM boats WHERE name ILIKE '%Perla Negra%'");
+  for (const boat of rows) {
+    const imgs = JSON.parse(boat.images || '[]');
+    if (imgs.length < 4) continue;
+    const [fourth] = imgs.splice(3, 1);
+    imgs.splice(1, 0, fourth);
+    await pool.query('UPDATE boats SET images = $1 WHERE id = $2', [JSON.stringify(imgs), boat.id]);
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -363,6 +375,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-remove-broken-image-paths', migrateRemoveBrokenImagePaths);
   await runDataMigrationOnce('2026-10-13-feature-boca-chica', migrateFeatureBocaChica);
   await runDataMigrationOnce('2026-10-13-perla-negra-prices', migratePerlaNegraPrices);
+  await runDataMigrationOnce('2026-10-13-perla-negra-photo-order', migratePerlaNegraPhotoOrder);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
