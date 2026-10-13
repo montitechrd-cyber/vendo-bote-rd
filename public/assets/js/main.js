@@ -327,6 +327,8 @@
     track.dataset.i = i;
     track.style.transform = `translateX(-${i * 100}%)`;
     card.querySelectorAll('.card-dot').forEach((d, k) => d.classList.toggle('active', k === i));
+    const count = card.querySelector('.card-count');
+    if (count) count.textContent = (i + 1) + ' / ' + n;
     card.querySelectorAll('video').forEach(v => v.pause());
   }
   let cardSwipeAt = 0;
@@ -370,7 +372,7 @@
       ? `<div class="card-track" data-i="0">${slides.map(s => `<div class="card-slide">${s}</div>`).join('')}</div>
           <button type="button" class="card-arrow card-arrow-prev" aria-label="Foto anterior">‹</button>
           <button type="button" class="card-arrow card-arrow-next" aria-label="Foto siguiente">›</button>
-          <div class="card-dots">${slides.map((_, i) => `<span class="card-dot${i ? '' : ' active'}"></span>`).join('')}</div>`
+          <div class="card-dots">${slides.length > 7 ? `<span class="card-count">1 / ${slides.length}</span>` : slides.map((_, i) => `<span class="card-dot${i ? '' : ' active'}"></span>`).join('')}</div>`
       : media;
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
