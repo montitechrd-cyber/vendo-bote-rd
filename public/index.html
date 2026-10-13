@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013t" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014a" />
 </head>
 <body>
 
@@ -66,9 +66,22 @@
 <!-- Hero -->
 <section class="hero" id="hero">
   <div class="hero-bg">
-    <video class="hero-video" autoplay muted loop playsinline preload="auto">
-      <source src="/assets/video/hero.mp4" type="video/mp4" />
-    </video>
+    <video class="hero-video" muted loop playsinline preload="none" poster="/assets/video/hero-poster.jpg"></video>
+    <script>
+      // Video del hero: versión liviana en celular, sin descargarlo con ahorro de datos / conexión lenta
+      // o si la persona pidió menos movimiento (en esos casos se queda la imagen de portada).
+      (function () {
+        var v = document.querySelector('.hero-video');
+        if (!v) return;
+        var c = navigator.connection || {};
+        if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        v.src = (window.matchMedia && matchMedia('(max-width: 700px)').matches) ? '/assets/video/hero-mobile.mp4?v=2' : '/assets/video/hero.mp4?v=2';
+        var start = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
+        v.addEventListener('canplay', start, { once: true });
+        start();
+      })();
+    </script>
   </div>
   <div class="hero-tint"></div>
   <div class="hero-mesh"></div>

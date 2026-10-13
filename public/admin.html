@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013t" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014a" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -26,7 +26,7 @@
       color: var(--text); font-weight: 700; min-width: 160px;
     }
     .cal-range {
-      font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);
+      font-family: var(--mono); font-size: 0.6875rem; color: var(--text-muted);
     }
     .cal-nav-group { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
     .cal-nav-btn {
@@ -58,7 +58,7 @@
     .cal-filter-pill.active {
       background: var(--navy); color: #fff; border-color: var(--navy);
     }
-    .cal-filter-pill:hover:not(.active) { border-color: var(--sky); color: var(--sky-2); }
+    .cal-filter-pill:hover:not(.active) { border-color: var(--sky-2); color: var(--sky-2); }
     .cal-filter-boat {
       margin-left: auto;
       padding: 0.35rem 0.75rem; border-radius: 8px;
@@ -74,7 +74,7 @@
     .cal-grid-head-cell {
       padding: 0.6rem 0;
       text-align: center; font-family: var(--mono);
-      font-size: 0.65rem; letter-spacing: 0.1em;
+      font-size: 0.6875rem; letter-spacing: 0.1em;
       color: var(--text-muted); text-transform: uppercase;
       border-right: 1px solid var(--line);
     }
@@ -104,13 +104,13 @@
     .cal-event {
       display: flex; align-items: center; gap: 0.3rem;
       padding: 0.22rem 0.45rem; border-radius: 5px; margin-bottom: 0.2rem;
-      font-family: var(--mono); font-size: 0.62rem; line-height: 1.3;
+      font-family: var(--mono); font-size: 0.6875rem; line-height: 1.3;
       cursor: pointer; transition: opacity 0.15s; overflow: hidden;
       border-left: 3px solid transparent;
     }
     .cal-event:hover { opacity: 0.8; }
     .cal-event.confirmed {
-      background: rgba(14,165,233,0.12); border-left-color: var(--sky);
+      background: rgba(14,165,233,0.12); border-left-color: var(--sky-2);
       color: var(--sky-3);
     }
     .cal-event.pending {
@@ -131,7 +131,7 @@
       color: var(--text-muted); padding: 0.1rem 0.3rem;
       cursor: pointer;
     }
-    .cal-more:hover { color: var(--sky); }
+    .cal-more:hover { color: var(--sky-2); }
     .cal-legend {
       display: flex; gap: 1.5rem; padding: 0.9rem 1.5rem;
       border-top: 1px solid var(--line); background: var(--bg);
@@ -139,7 +139,7 @@
     }
     .cal-legend-item {
       display: flex; align-items: center; gap: 0.5rem;
-      font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);
+      font-family: var(--mono); font-size: 0.6875rem; color: var(--text-muted);
     }
     .cal-legend-dot {
       width: 10px; height: 10px; border-radius: 3px;
@@ -478,7 +478,7 @@
         <div class="stat-card"><div class="stat-card-label">Embarcaciones</div><div class="stat-card-num">${stats.total_boats}</div></div>
         <div class="stat-card"><div class="stat-card-label">Total Reservas</div><div class="stat-card-num">${stats.total_bookings}</div></div>
         <div class="stat-card"><div class="stat-card-label">Confirmadas</div><div class="stat-card-num">${stats.confirmed_bookings}</div></div>
-        <div class="stat-card" style="border-color:rgba(14,165,233,0.3);"><div class="stat-card-label">Pagos pendientes</div><div class="stat-card-num" style="color:var(--sky);">${stats.pending_verification}</div><div class="stat-card-sub">Requieren verificación</div></div>
+        <div class="stat-card" style="border-color:rgba(14,165,233,0.3);"><div class="stat-card-label">Pagos pendientes</div><div class="stat-card-num" style="color:var(--sky-2);">${stats.pending_verification}</div><div class="stat-card-sub">Requieren verificación</div></div>
         <div class="stat-card"><div class="stat-card-label">Ingresos confirmados</div><div class="stat-card-num">$${Number(stats.total_revenue).toLocaleString()}</div><div class="stat-card-sub">USD</div></div>
       `;
       const tbody = document.getElementById('recent-bookings-body');
@@ -518,9 +518,9 @@
         return `<tr>
           <td data-label="Ref" style="font-family:var(--mono);font-size:0.7rem;">${esc(b.booking_ref)}</td>
           <td data-label="Embarcación">${esc(b.boat_name)}</td>
-          <td data-label="Cliente"><div>${esc(b.user_name)}</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${esc(b.user_email)}</div></td>
+          <td data-label="Cliente"><div>${esc(b.user_name)}</div><div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${esc(b.user_email)}</div></td>
           <td data-label="Fecha">${fmtDate(b.start_date)}</td>
-          <td data-label="Turno" style="font-family:var(--mono);font-size:0.68rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
+          <td data-label="Turno" style="font-family:var(--mono);font-size:0.6875rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
           <td data-label="Total">$${Number(b.total_price).toLocaleString()}</td>
           <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
           <td data-label="Pago">${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
@@ -543,14 +543,14 @@
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
             <div>
               <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.3rem;">${esc(b.boat_name)}</div>
-              <div style="font-family:var(--mono);font-size:0.68rem;color:var(--cream-3);">${esc(b.booking_ref)}</div>
+              <div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${esc(b.booking_ref)}</div>
               <div style="margin-top:0.5rem;font-size:0.85rem;color:var(--cream-2);">👤 ${esc(b.user_name)} · ${esc(b.user_email)}${b.user_phone?' · '+esc(b.user_phone):''}</div>
               <div style="font-size:0.85rem;color:var(--cream-2);margin-top:0.2rem;">📅 ${fmtDate(b.start_date)} · ${esc(SCHEDULE_LABEL[b.schedule]||b.schedule||'')}</div>
-              ${b.reference_number ? `<div style="font-family:var(--mono);font-size:0.72rem;color:var(--gold);margin-top:0.4rem;">Ref: ${esc(b.reference_number)}</div>` : ''}
+              ${b.reference_number ? `<div style="font-family:var(--mono);font-size:0.72rem;color:var(--sky-2);margin-top:0.4rem;">Ref: ${esc(b.reference_number)}</div>` : ''}
               ${b.bank_name ? `<div style="font-size:0.8rem;color:var(--cream-3);">Banco: ${esc(b.bank_name)}</div>` : ''}
             </div>
             <div style="text-align:right;flex-shrink:0;">
-              <div style="font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--gold);margin-bottom:0.9rem;">$${Number(b.total_price).toLocaleString()} USD</div>
+              <div style="font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--sky-2);margin-bottom:0.9rem;">$${Number(b.total_price).toLocaleString()} USD</div>
               <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
                 ${b.receipt_filename ? `<button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">Ver comprobante</button>` : ''}
                 <button class="btn btn-success btn-sm" onclick="verifyPayment(${b.id},'approve')">✓ Aprobar</button>
@@ -576,7 +576,7 @@
             <div class="boat-spec-item"><div class="boat-spec-label">Fecha</div><div class="boat-spec-val">${fmtDate(b.start_date)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Turno</div><div class="boat-spec-val">${esc(SCHEDULE_LABEL[b.schedule]||b.schedule||'—')}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests} pers.</div></div>
-            <div class="boat-spec-item"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--gold);">$${Number(b.total_price).toLocaleString()} USD</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--sky-2);">$${Number(b.total_price).toLocaleString()} USD</div></div>
           </div>
           ${b.bank_name||b.reference_number ? `
           <div class="bank-box">
@@ -653,10 +653,10 @@
         const meta = esc([b.brand, b.length_ft ? b.length_ft+'ft' : '', b.year].filter(Boolean).join(' · '));
         return `
         <tr>
-          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.63rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
+          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
           <td data-label="Ubicación">📍 ${esc(b.location)}</td>
           <td data-label="Capacidad">${b.capacity} pers.</td>
-          <td data-label="Precio / día" style="font-family:var(--serif);font-style:italic;color:var(--sky-2);">$${Number(b.price_per_day).toLocaleString()}<span style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);font-style:normal;"> /día</span></td>
+          <td data-label="Precio / día" style="font-family:var(--serif);font-style:italic;color:var(--sky-2);">$${Number(b.price_per_day).toLocaleString()}<span style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);font-style:normal;"> /día</span></td>
           <td data-label="Destacada">${b.featured?'⭐ Sí':'—'}</td>
           <td data-label="Estado"><span class="badge badge-${b.available?'confirmed':'cancelled'}">${b.available?'Activa':'Inactiva'}</span></td>
           <td data-label="Acciones" style="display:flex;gap:0.4rem;">
@@ -671,7 +671,7 @@
         const meta = esc([b.brand, b.length_ft ? b.length_ft+'ft' : '', b.year].filter(Boolean).join(' · '));
         return `
         <tr>
-          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.63rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
+          <td data-label="Embarcación"><div style="font-weight:600;color:var(--cream);">${esc(b.name)}</div>${meta ? `<div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${meta}</div>` : ''}</td>
           <td data-label="Ubicación">📍 ${esc(b.location)}</td>
           <td data-label="Capacidad">${b.capacity} pers.</td>
           <td data-label="Precio de venta" style="font-family:var(--serif);font-style:italic;color:var(--sky-2);">${b.sale_price ? '$'+Number(b.sale_price).toLocaleString()+' USD' : '<span style="color:var(--cream-3);">A consultar</span>'}</td>

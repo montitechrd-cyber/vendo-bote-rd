@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261013t" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014a" />
 </head>
 <body>
 
@@ -327,7 +327,7 @@
           <div class="booking-card-footer">
             <div>
               <div class="booking-card-price">$${Number(b.total_price).toLocaleString()} USD</div>
-              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cream-3);">${b.days} día${b.days>1?'s':''} · ${b.guests} persona${b.guests>1?'s':''}</div>
+              <div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${b.days} día${b.days>1?'s':''} · ${b.guests} persona${b.guests>1?'s':''}</div>
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
               ${needsPay ? `<button class="btn btn-primary btn-sm" onclick="goToPay(${b.id})">Enviar pago</button>` : ''}
@@ -375,7 +375,7 @@
             <div class="boat-spec-item"><div class="boat-spec-label">Salida</div><div class="boat-spec-val">${fmt(b.end_date)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Duración</div><div class="boat-spec-val">${b.days} días</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests}</div></div>
-            <div class="boat-spec-item" style="grid-column:span 2;"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.2rem;color:var(--gold);">$${Number(b.total_price).toLocaleString()} USD</div></div>
+            <div class="boat-spec-item" style="grid-column:span 2;"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.2rem;color:var(--sky-2);">$${Number(b.total_price).toLocaleString()} USD</div></div>
           </div>
           ${b.pay_status === 'rejected' ? `<div style="background:rgba(139,26,26,0.15);border:1px solid rgba(224,90,90,0.3);border-radius:var(--r-sm);padding:1rem;"><p style="font-size:0.85rem;color:#E05A5A;">Pago rechazado: ${esc(b.rejection_reason || 'Ver detalles con el equipo')}</p></div>` : ''}
           ${b.reference_number ? `<div class="boat-spec-item"><div class="boat-spec-label">Referencia banco</div><div class="boat-spec-val" style="font-family:var(--mono);font-size:0.78rem;">${esc(b.reference_number)}</div></div>` : ''}
