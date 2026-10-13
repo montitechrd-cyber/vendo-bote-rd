@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014q" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014r" />
 </head>
 <body>
 
@@ -197,8 +197,7 @@
                 </div>
                 <span class="additional-check" aria-hidden="true"></span>
               </label>
-              <p id="birthday-items" style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);line-height:1.7;margin-top:0.6rem;"></p>
-            </div>
+                          </div>
 
             <!-- Selector de paquete de horas (embarcaciones con esquema de precio especial) -->
             <div id="package-section" style="display:none;margin-bottom:1.25rem;">
@@ -238,9 +237,7 @@
             <!-- Todo incluido (embarcaciones de Boca Chica): precio fijo, sin extras de pago -->
             <div style="margin-bottom:0.25rem;display:none;" id="included-block">
               <div class="panel-subheading" id="included-title">Todo incluido en el precio</div>
-              <p id="included-text" style="font-family:var(--mono);font-size:0.75rem;color:var(--cream-3);line-height:1.7;">
-                1 hora de Jet Ski · Parrillada · Agua · Hielo · Gasolina · Tripulación · Cocinero
-              </p>
+              <div id="included-text" class="inc-chips"></div>
             </div>
           </div>
         </div>
@@ -694,10 +691,9 @@
 
   function renderDayBasedUI() {
     const sec = document.getElementById('daybased-section');
-    if (!isDayBased()) { sec.style.display = 'none'; return; }
+    if (!isDayBased() || boat.location !== 'Boca Chica') { sec.style.display = 'none'; selBirthday = false; return; }
     const p = boat.pricing_scheme.prices;
     sec.style.display = 'block';
-    document.getElementById('birthday-items').textContent = 'Incluye: ' + (boat.pricing_scheme.birthday_combo || []).join(' · ');
     const diff = document.getElementById('birthday-diff');
     if (selDate) {
       const k = dayKey();
@@ -707,14 +703,19 @@
     }
   }
 
-  // Lo incluido depende del servicio elegido: normal (sin jetski) o con combo de cumpleaños.
+  // Lo incluido depende del servicio elegido: normal o con combo de cumpleaños (solo Boca Chica).
+  const INC_EMOJI = { 'parrillada': '🍖', 'agua': '💧', 'hielo': '🧊', 'gasolina': '⛽', 'tripulación': '⚓', 'cocinero': '👨‍🍳',
+    '1 hora de jetski': '🌊', '1 hora de jet ski': '🌊', 'jetski': '🌊', 'decoración': '🎈', 'bizcocho': '🎂', 'refresco': '🥤' };
+  const incChip = (name, extra) => '<span class="inc-chip' + (extra ? ' is-combo' : '') + '"><span aria-hidden="true">' + (INC_EMOJI[String(name).toLowerCase()] || '✔️') + '</span>' + name + '</span>';
   function renderIncluded() {
-    if (!isDayBased()) return;
+    if (boat.location !== 'Boca Chica') return;
     const s = boat.pricing_scheme;
-    const base = s.included || ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
-    const items = selBirthday ? [...base, ...(s.birthday_combo || []).filter(i => !base.includes(i))] : base;
-    document.getElementById('included-text').textContent = items.join(' · ');
-    document.getElementById('included-title').textContent = selBirthday ? 'Incluido con el combo de cumpleaños' : 'Incluido en el precio';
+    const dayBased = isDayBased();
+    const base = (dayBased && s.included) || ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+    const combo = (dayBased && selBirthday) ? (s.birthday_combo || []).filter(i => !base.includes(i)) : [];
+    document.getElementById('included-title').textContent = 'Incluido en el precio';
+    document.getElementById('included-text').innerHTML = base.map(i => incChip(i, false)).join('') +
+      (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') : '');
   }
 
   window.toggleBirthday = function (checked) { selBirthday = !!checked; renderIncluded(); updateSummary(); };
