@@ -768,6 +768,10 @@ ul { list-style: none; }
   .additional-item:hover { border-color: var(--sky); background: var(--sky-lighter); }
 }
 .additional-item input[type="checkbox"] { display: none; }
+.additional-check { margin-left: auto; flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line-2); background: #fff; display: grid; place-items: center; transition: background 0.2s, border-color 0.2s, transform 0.2s; }
+.additional-check::after { content: ''; width: 6px; height: 12px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); opacity: 0; margin-top: -3px; transition: opacity 0.2s; }
+.additional-item:has(input:checked) .additional-check { background: var(--sky-2); border-color: var(--sky-2); }
+.additional-item:has(input:checked) .additional-check::after { opacity: 1; }
 .additional-item:has(input:checked) { border-color: var(--sky); background: var(--sky-lighter); }
 .additional-icon { font-size: 1.3rem; flex-shrink: 0; }
 .additional-info { display: flex; flex-direction: column; }
