@@ -304,6 +304,19 @@ async function migrateRenameYate3() {
   await pool.query("UPDATE boats SET name = 'Andrea del Mar', slug = 'andrea-del-mar' WHERE slug = 'yate-3'");
 }
 
+// Azimut Nona: precio $5,000 por día (antes figuraba $2,500 como Yate 1).
+async function migrateAzimutNonaPrice() {
+  await pool.query(
+    `UPDATE boats SET price_per_day = 5000,
+       description = $1, rules = $2
+     WHERE slug = 'azimut-nona'`,
+    [
+      'Renta del yate Azimut Nona con salida desde La Romana. Precio: $5,000 usd por día. Capacidad estimada en 15 personas — pendiente confirmar el detalle exacto de inclusiones.',
+      JSON.stringify(['Precio: $5,000 usd por día', 'Capacidad estimada: 15 personas (pendiente de confirmar)']),
+    ]
+  );
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -315,6 +328,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-12-day-based-included', migrateDayBasedIncluded);
   await runDataMigrationOnce('2026-10-13-rename-yate-1', migrateRenameYate1);
   await runDataMigrationOnce('2026-10-13-rename-yate-3', migrateRenameYate3);
+  await runDataMigrationOnce('2026-10-13-azimut-nona-price', migrateAzimutNonaPrice);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
