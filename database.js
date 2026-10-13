@@ -338,6 +338,16 @@ async function migrateFeatureBocaChica() {
   await pool.query("UPDATE boats SET featured = true WHERE location = 'Boca Chica' AND for_sale = false");
 }
 
+// Perla Negra: el dueño corrigió la tabla (combo cumpleaños L-V $1,000 y S-D $1,100).
+async function migratePerlaNegraPrices() {
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE name ILIKE '%Perla Negra%' AND pricing_scheme LIKE '%day_based%'");
+  for (const b of rows) {
+    const scheme = JSON.parse(b.pricing_scheme);
+    scheme.prices = { weekday: 700, weekday_birthday: 1000, weekend: 750, weekend_birthday: 1100 };
+    await pool.query('UPDATE boats SET pricing_scheme = $1, price_per_day = 700 WHERE id = $2', [JSON.stringify(scheme), b.id]);
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -352,6 +362,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-azimut-nona-price', migrateAzimutNonaPrice);
   await runDataMigrationOnce('2026-10-13-remove-broken-image-paths', migrateRemoveBrokenImagePaths);
   await runDataMigrationOnce('2026-10-13-feature-boca-chica', migrateFeatureBocaChica);
+  await runDataMigrationOnce('2026-10-13-perla-negra-prices', migratePerlaNegraPrices);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
