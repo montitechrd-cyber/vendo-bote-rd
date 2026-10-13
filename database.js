@@ -379,6 +379,39 @@ async function migrateAndreaDelMarCombo() {
   }
 }
 
+// Catamarán con Tobogán: datos confirmados por el dueño (precio único $1,350, 20 personas, 3 horas, hora extra $180).
+async function migrateCatamaranTobogan() {
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE name ILIKE '%Tobog%'");
+  for (const b of rows) {
+    const scheme = b.pricing_scheme ? JSON.parse(b.pricing_scheme) : {};
+    scheme.type = 'hourly';
+    scheme.packages = [{ hours: 3, price: 1350 }];
+    scheme.extra_hour_price = 180;
+    scheme.time_slots = ['8:30 am – 11:30 am', '11:30 am – 2:30 pm', '2:30 pm – 5:30 pm'];
+    scheme.meal_addons = [
+      { key: 'almuerzo', name: 'Almuerzo dominicano (buffet)', price: 15, per_person: true },
+      { key: 'hamburguesas', name: 'Hamburguesas', price: 15, per_person: true },
+      { key: 'hamburguesas_pollo', name: 'Hamburguesas y pollo', price: 20, per_person: true },
+      { key: 'langostas', name: 'Langostas', price: 35, per_person: true },
+    ];
+    const amenities = [
+      'Catamarán y combustible',
+      'Transporte privado de ida y vuelta desde tu hotel o villa',
+      'Equipo de snorkel',
+      'Paddle board',
+      'Open bar: ron, cerveza Presidente, mamajuana, mojito, ponche de frutas, refrescos, agua y hielo',
+      'Snacks: sándwiches, frutas tropicales y nachos con salsa',
+    ];
+    const description = 'Catamarán privado con tobogán para hasta 20 personas. Recorrido de 3 horas con zona de snorkel, bancos de arena (piscinas naturales) y visita al delfinario para ver a los delfines desde afuera. Incluye catamarán y combustible, transporte privado de ida y vuelta desde tu hotel o villa, equipo de snorkel, paddle board, open bar y snacks. Puedes traer tus propias bebidas y comida si lo deseas, o añadir almuerzo y horas extra.';
+    await pool.query(
+      'UPDATE boats SET pricing_scheme = $1, price_per_day = 1350, capacity = 20, amenities = $2, description = $3, short_description = $4, rules = $5 WHERE id = $6',
+      [JSON.stringify(scheme), JSON.stringify(amenities), description,
+       'Catamarán privado con tobogán, open bar y snacks. 3 horas, hasta 20 personas.',
+       JSON.stringify(['Duración: 3 horas', 'Máximo 20 personas', 'Puedes traer tus propias bebidas y comida si lo deseas']), b.id]
+    );
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -396,6 +429,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-perla-negra-prices', migratePerlaNegraPrices);
   await runDataMigrationOnce('2026-10-13-perla-negra-photo-order', migratePerlaNegraPhotoOrder);
   await runDataMigrationOnce('2026-10-13-andrea-del-mar-combo', migrateAndreaDelMarCombo);
+  await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
