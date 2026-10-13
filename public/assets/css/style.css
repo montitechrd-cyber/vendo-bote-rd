@@ -1847,3 +1847,27 @@ ul { list-style: none; }
 
 .slot-icon svg { display: block; width: 20px; height: 20px; }
 .boat-top .slot-icon { display: inline-flex; align-items: center; }
+
+/* Información de la embarcación en la columna izquierda (junto al panel de reserva), sin huecos */
+.boat-info { margin-top: 1.1rem; }
+.boat-info .boat-detail-specs { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-bottom: 1.4rem !important; }
+.boat-info .boat-spec-item { flex-direction: row; justify-content: flex-start; text-align: left; align-items: center; gap: 0.7rem; padding: 0.7rem 0.85rem; border-radius: 14px; }
+.boat-info .boat-spec-icon { width: 36px; height: 36px; font-size: 1.05rem; flex-shrink: 0; }
+.boat-info .boat-spec-label { font-size: 0.6875rem; }
+.boat-info .boat-spec-val { font-size: 0.9rem; }
+.boat-info > div { margin-bottom: 1.5rem !important; }
+.boat-info h3 { font-size: 1.1rem !important; margin-bottom: 0.6rem !important; }
+@media (max-width: 520px) {
+  .boat-info .boat-detail-specs { grid-template-columns: 1fr; }
+}
+
+/* Tablet/celular: primero la reserva, y la información detallada después */
+@media (max-width: 1000px) {
+  .boat-top { display: flex; flex-direction: column; gap: 14px; }
+  .boat-top-left { display: contents; }
+  .boat-top .gallery-section { order: 1; }
+  .boat-top .gallery-strip { order: 2; }
+  .boat-top .boat-headline { order: 3; }
+  .boat-top .boat-top-right { order: 4; }
+  .boat-top .boat-info { order: 5; }
+}

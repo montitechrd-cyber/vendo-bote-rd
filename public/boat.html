@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014o" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014q" />
 </head>
 <body>
 
@@ -105,6 +105,35 @@
 
       </div>
 
+      <div class="boat-info">
+      <!-- Specs grid -->
+      <div class="boat-detail-specs" id="boat-specs" style="margin-bottom:2rem;"></div>
+
+      <!-- Description -->
+      <div style="margin-bottom:2.5rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Descripción</h3>
+        <p id="boat-description" style="color:var(--cream-2);line-height:1.85;font-size:0.95rem;"></p>
+      </div>
+
+      <!-- Features -->
+      <div style="margin-bottom:2rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Características</h3>
+        <div class="feature-tags" id="boat-features"></div>
+      </div>
+
+      <!-- Amenities -->
+      <div style="margin-bottom:2rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h3>
+        <div class="feature-tags" id="boat-amenities"></div>
+      </div>
+
+      <!-- Rules -->
+      <div style="margin-bottom:2.5rem;" data-reveal>
+        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Reglas de la embarcación</h3>
+        <ul id="boat-rules" style="display:flex;flex-direction:column;gap:0.5rem;"></ul>
+      </div>
+
+      </div>
     </div>
     <aside class="boat-top-right" id="boat-top-right">
       <!-- ══ Flujo de reserva paso a paso ══ -->
@@ -281,9 +310,6 @@
   <section class="section">
     <div class="boat-detail-grid" id="boat-detail-grid">
 
-      <!-- Specs grid -->
-      <div class="boat-detail-specs" id="boat-specs" style="margin-bottom:2rem;"></div>
-
       <!-- Datos bancarios (referencia) -->
       <div style="margin-bottom:2.5rem;" data-reveal>
             <!-- Bank info de referencia -->
@@ -334,30 +360,6 @@
               btn.classList.add('active');
             }
             </script>
-      </div>
-
-      <!-- Description -->
-      <div style="margin-bottom:2.5rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Descripción</h3>
-        <p id="boat-description" style="color:var(--cream-2);line-height:1.85;font-size:0.95rem;"></p>
-      </div>
-
-      <!-- Features -->
-      <div style="margin-bottom:2rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Características</h3>
-        <div class="feature-tags" id="boat-features"></div>
-      </div>
-
-      <!-- Amenities -->
-      <div style="margin-bottom:2rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h3>
-        <div class="feature-tags" id="boat-amenities"></div>
-      </div>
-
-      <!-- Rules -->
-      <div style="margin-bottom:2.5rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Reglas de la embarcación</h3>
-        <ul id="boat-rules" style="display:flex;flex-direction:column;gap:0.5rem;"></ul>
       </div>
 
       <!-- Reviews -->
