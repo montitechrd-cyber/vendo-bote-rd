@@ -1844,3 +1844,6 @@ ul { list-style: none; }
 .boat-top .cal-day-num { font-size: 1rem; }
 @media (min-width: 1001px) { .boat-top .calendar-day:not(.empty) { min-height: 34px; } }
 @media (max-width: 1000px) { .boat-top .calendar-day:not(.empty) { min-height: 42px; } }
+
+.slot-icon svg { display: block; width: 20px; height: 20px; }
+.boat-top .slot-icon { display: inline-flex; align-items: center; }
