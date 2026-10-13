@@ -847,7 +847,7 @@
       return `<button type="button" class="${cls}" ${booked ? 'disabled' : ''} onclick="selectSlot('${safeKey}')">
         <span class="slot-icon">${d.icon}</span>
         <span class="slot-time">${d.label}</span>
-        ${booked ? '<span class="slot-status">' + (closed ? 'Cerrado' : 'Reservado') + '</span>' : '<span class="slot-dot" title="Disponible"></span>'}
+        ${closed ? '' : booked ? '<span class="slot-status">Reservado</span>' :'<span class="slot-dot" title="Disponible"></span>'}
       </button>`;
     }).join('');
   }
