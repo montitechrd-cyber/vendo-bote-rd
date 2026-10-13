@@ -386,7 +386,7 @@
           <div class="card-meta">
             <div class="card-specs">
               <span class="card-spec">👥 ${boat.capacity} pers.</span>
-              <span class="card-spec">⛵ ${boat.length_ft || '—'} ft</span>
+              ${boat.length_ft ? `<span class="card-spec">⛵ ${boat.length_ft} ft</span>` : ''}
             </div>
             <div class="card-price">
               <div class="card-price-amount">$${Number(dayBased ? Math.min(...Object.values(boat.pricing_scheme.prices)) : boat.price_per_day).toLocaleString()}</div>
