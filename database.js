@@ -317,6 +317,22 @@ async function migrateAzimutNonaPrice() {
   );
 }
 
+// Quita de las galerías las rutas locales a archivos que ya no existen (ej. fotos borradas
+// al reemplazarlas), para que no salgan fotos rotas.
+async function migrateRemoveBrokenImagePaths() {
+  const fsx = require('fs');
+  const pathx = require('path');
+  const { rows } = await pool.query('SELECT id, name, images FROM boats');
+  for (const boat of rows) {
+    const current = JSON.parse(boat.images || '[]');
+    const kept = current.filter(p => !String(p).startsWith('/assets/') || fsx.existsSync(pathx.join(__dirname, 'public', p)));
+    if (kept.length !== current.length) {
+      console.log('  [imágenes] ' + boat.name + ': se quitaron ' + (current.length - kept.length) + ' ruta(s) rota(s)');
+      await pool.query('UPDATE boats SET images = $1 WHERE id = $2', [JSON.stringify(kept), boat.id]);
+    }
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -329,6 +345,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-rename-yate-1', migrateRenameYate1);
   await runDataMigrationOnce('2026-10-13-rename-yate-3', migrateRenameYate3);
   await runDataMigrationOnce('2026-10-13-azimut-nona-price', migrateAzimutNonaPrice);
+  await runDataMigrationOnce('2026-10-13-remove-broken-image-paths', migrateRemoveBrokenImagePaths);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
