@@ -964,7 +964,7 @@ ul { list-style: none; }
 .toast-msg { flex: 1; line-height: 1.5; }
 
 /* ── Image Gallery ── */
-.gallery { height: clamp(260px, 46vw, 540px); border-radius: var(--r); overflow: hidden; background: var(--bg-2); }
+.gallery { height: clamp(220px, 30vw, 360px); border-radius: var(--r); overflow: hidden; background: var(--bg-2); }
 .gallery-main { position: relative; overflow: hidden; cursor: zoom-in; width: 100%; height: 100%; }
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -980,10 +980,10 @@ ul { list-style: none; }
 .gallery-nav-next { right: 1.1rem; }
 
 /* Tira de miniaturas */
-.gallery-strip { display: flex; gap: 0.6rem; overflow-x: auto; padding: 0.75rem 0.15rem 0.35rem; scrollbar-width: thin; }
+.gallery-strip { display: flex; gap: 0.5rem; overflow-x: auto; width: min(100% - 2 * clamp(1.5rem, 6vw, 4rem), 1100px); margin: 0 auto; padding: 0.6rem 0.15rem 0.3rem; scrollbar-width: thin; }
 .gallery-strip:empty { display: none; }
 .gallery-thumb-btn {
-  position: relative; flex: 0 0 auto; width: 112px; height: 76px; border-radius: 10px; overflow: hidden; padding: 0;
+  position: relative; flex: 0 0 auto; width: 84px; height: 58px; border-radius: 8px; overflow: hidden; padding: 0;
   border: 2px solid transparent; opacity: 0.6; cursor: pointer; background: var(--bg-2);
   transition: opacity 0.2s, border-color 0.2s, transform 0.2s;
 }
@@ -1225,7 +1225,7 @@ ul { list-style: none; }
 .boat-spec-val { font-size: 1rem; color: var(--navy); font-weight: 800; }
 
 /* ── Gallery floating actions (estilo Airbnb) ── */
-.gallery-section { position: relative; }
+.gallery-section { position: relative; width: min(100% - 2 * clamp(1.5rem, 6vw, 4rem), 1100px); margin: 1rem auto 0; }
 .gallery-fabs {
   position: absolute; top: 1rem; left: 1.25rem; right: 1.25rem; z-index: 6;
   display: flex; align-items: center; justify-content: space-between; pointer-events: none;
@@ -1423,7 +1423,7 @@ ul { list-style: none; }
   .hero-locations { margin-bottom: 1.25rem; }
   .hero-tagline { font-size: clamp(1.6rem, 7vw, 2.4rem); }
   .gallery-nav { width: 38px; height: 38px; font-size: 1.5rem; }
-  .gallery-thumb-btn { width: 84px; height: 58px; }
+  .gallery-thumb-btn { width: 68px; height: 48px; }
   .form-grid { grid-template-columns: 1fr; }
   .booking-card { flex-direction: column; }
   .booking-card-img { width: 100%; height: 200px; }
