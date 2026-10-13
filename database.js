@@ -360,23 +360,6 @@ async function migratePerlaNegraPhotoOrder() {
   }
 }
 
-// TEMPORAL: alta/promoción de una cuenta administradora a partir de variables de entorno
-// (BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD). La contraseña nunca va en el código.
-async function bootstrapAdminAccount() {
-  const email = (process.env.BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase();
-  const password = process.env.BOOTSTRAP_ADMIN_PASSWORD || '';
-  if (!email || password.length < 8) return;
-  const { hashPassword } = require('./utils/session');
-  const hash = hashPassword(password);
-  const found = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-  if (found.rows.length) {
-    await pool.query("UPDATE users SET password_hash = $1, role = 'admin', profile_completed = true WHERE email = $2", [hash, email]);
-  } else {
-    await pool.query("INSERT INTO users (name, email, password_hash, role, profile_completed) VALUES ('Administrador', $1, $2, 'admin', true)", [email, hash]);
-  }
-  console.log('  [admin] cuenta administradora lista para ' + email);
-}
-
 async function init() {
   await createTables();
   await seedData();
@@ -393,7 +376,6 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-feature-boca-chica', migrateFeatureBocaChica);
   await runDataMigrationOnce('2026-10-13-perla-negra-prices', migratePerlaNegraPrices);
   await runDataMigrationOnce('2026-10-13-perla-negra-photo-order', migratePerlaNegraPhotoOrder);
-  await bootstrapAdminAccount();
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
