@@ -360,6 +360,25 @@ async function migratePerlaNegraPhotoOrder() {
   }
 }
 
+// Andrea del Mar: combo de cumpleaños (+$300 sobre el precio normal de $1,500; igual todos los días).
+async function migrateAndreaDelMarCombo() {
+  const included = ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+  const scheme = {
+    type: 'day_based',
+    prices: { weekday: 1500, weekday_birthday: 1800, weekend: 1500, weekend_birthday: 1800 },
+    birthday_combo: ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Agua', 'Hielo', 'Refresco'],
+    included,
+  };
+  const { rows } = await pool.query("SELECT id, capacity FROM boats WHERE slug = 'andrea-del-mar'");
+  for (const b of rows) {
+    const desc = `Renta de Andrea del Mar en Boca Chica, con capacidad para ${b.capacity} personas. El servicio normal incluye parrillada, agua, hielo, gasolina, tripulación y cocinero. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho y refresco.`;
+    await pool.query(
+      "UPDATE boats SET pricing_scheme = $1, price_per_day = 1500, amenities = $2, description = $3, short_description = $4, rules = $5 WHERE id = $6",
+      [JSON.stringify(scheme), JSON.stringify(included), desc, 'Yate Andrea del Mar en Boca Chica para hasta ' + b.capacity + ' personas.', JSON.stringify(['Máximo ' + b.capacity + ' personas']), b.id]
+    );
+  }
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -376,6 +395,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-feature-boca-chica', migrateFeatureBocaChica);
   await runDataMigrationOnce('2026-10-13-perla-negra-prices', migratePerlaNegraPrices);
   await runDataMigrationOnce('2026-10-13-perla-negra-photo-order', migratePerlaNegraPhotoOrder);
+  await runDataMigrationOnce('2026-10-13-andrea-del-mar-combo', migrateAndreaDelMarCombo);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
