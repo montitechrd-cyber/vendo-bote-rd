@@ -299,6 +299,11 @@ async function migrateRenameYate1() {
   );
 }
 
+// "Yate 3" pasa a llamarse Andrea del Mar. Las fotos conservan su ruta.
+async function migrateRenameYate3() {
+  await pool.query("UPDATE boats SET name = 'Andrea del Mar', slug = 'andrea-del-mar' WHERE slug = 'yate-3'");
+}
+
 async function init() {
   await createTables();
   await seedData();
@@ -309,6 +314,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-12-day-based-copy', migrateDayBasedCopy);
   await runDataMigrationOnce('2026-10-12-day-based-included', migrateDayBasedIncluded);
   await runDataMigrationOnce('2026-10-13-rename-yate-1', migrateRenameYate1);
+  await runDataMigrationOnce('2026-10-13-rename-yate-3', migrateRenameYate3);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
