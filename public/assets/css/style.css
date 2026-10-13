@@ -269,7 +269,7 @@ ul { list-style: none; }
 }
 @media (max-width: 640px) {
   .hero { min-height: 62vh; }
-  .hero-video { object-position: 15% 38%; }
+  .hero-video { object-position: 27% 38%; }
 }
 @media (max-width: 640px) and (orientation: landscape) {
   .hero { min-height: 100svh; }
