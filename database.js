@@ -490,6 +490,18 @@ async function migrateBirthdayComboCook() {
     await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
   }
 }
+// Limpieza única pedida por la dueña: todas las reservas hechas hasta esa hora eran pruebas.
+async function purgeTestBookings() {
+  const cutoff = '2026-10-14T20:01:00Z';
+  const old = await pool.query('SELECT id FROM bookings WHERE created_at <= $1', [cutoff]);
+  const ids = old.rows.map(r => r.id);
+  if (ids.length) {
+    await pool.query('DELETE FROM reviews WHERE booking_id = ANY($1)', [ids]);
+    await pool.query('DELETE FROM payments WHERE booking_id = ANY($1)', [ids]);
+    await pool.query('DELETE FROM bookings WHERE id = ANY($1)', [ids]);
+  }
+  console.log('Reservas de prueba eliminadas:', ids.length);
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -534,6 +546,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-catamaran-36', migrateCatamaran36);
   await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
   await runDataMigrationOnce('2026-10-14-birthday-combo-cook', migrateBirthdayComboCook);
+  await runDataMigrationOnce('2026-10-14-purge-test-bookings', purgeTestBookings);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
