@@ -712,9 +712,11 @@
     const s = boat.pricing_scheme;
     const dayBased = isDayBased();
     const base = (dayBased && s.included) || ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
-    const combo = (dayBased && selBirthday) ? (s.birthday_combo || []).filter(i => !base.includes(i)) : [];
+    const combo = (dayBased && selBirthday) ? (s.birthday_combo || []) : [];
+    // con el combo, la lista del combo se muestra completa (incluye parrillada y cocinero) y arriba solo queda lo que el combo no repite
+    const baseShown = combo.length ? base.filter(i => !combo.includes(i)) : base;
     document.getElementById('included-title').textContent = 'Incluido en el precio';
-    document.getElementById('included-text').innerHTML = base.map(i => incChip(i, false)).join('') +
+    document.getElementById('included-text').innerHTML = baseShown.map(i => incChip(i, false)).join('') +
       (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') : '');
   }
 

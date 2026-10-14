@@ -239,7 +239,7 @@ async function migratePerlaNegraCoverRename() {
 // Precios por día de la semana y combo de cumpleaños (tabla del dueño, 2026-10-12).
 // Se busca por nombre porque varias de estas embarcaciones se cargaron desde el panel.
 async function migrateDayBasedPricing() {
-  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Agua', 'Hielo', 'Refresco'];
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'];
   const boats = [
     { like: '%Lupita%',         weekday: 500, weekday_birthday: 650,  weekend: 550, weekend_birthday: 750,  capacity: 15 },
     { like: '%Perla Negra%',    weekday: 700, weekday_birthday: 1100, weekend: 750, weekend_birthday: 1000, capacity: 12 },
@@ -371,7 +371,7 @@ async function migrateAndreaDelMarCombo() {
   const scheme = {
     type: 'day_based',
     prices: { weekday: 1500, weekday_birthday: 1800, weekend: 1500, weekend_birthday: 1800 },
-    birthday_combo: ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Agua', 'Hielo', 'Refresco'],
+    birthday_combo: ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'],
     included,
   };
   const { rows } = await pool.query("SELECT id, capacity FROM boats WHERE slug = 'andrea-del-mar'");
@@ -480,6 +480,16 @@ async function migrateOutsideBocaChicaDetails() {
 }
 
 // Catamarán 36 (salida desde Cap Cana): $1,950 por 4 horas, 18 personas.
+// El combo de cumpleaños incluye también la parrillada y el cocinero.
+async function migrateBirthdayComboCook() {
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'];
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE pricing_scheme LIKE '%birthday_combo%'");
+  for (const b of rows) {
+    const scheme = JSON.parse(b.pricing_scheme);
+    scheme.birthday_combo = COMBO;
+    await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
+  }
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -523,6 +533,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-outside-boca-chica-details', migrateOutsideBocaChicaDetails);
   await runDataMigrationOnce('2026-10-13-catamaran-36', migrateCatamaran36);
   await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
+  await runDataMigrationOnce('2026-10-14-birthday-combo-cook', migrateBirthdayComboCook);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
