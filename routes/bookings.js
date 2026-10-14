@@ -27,8 +27,17 @@ const uploadReceipt = (req, res, next) => upload.single('receipt')(req, res, err
   next();
 });
 
-function generateRef() {
-  return 'VBR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+// Código corto y fácil de decir por teléfono: VB-4827
+async function generateRef(db) {
+  for (let digits = 4; digits <= 6; digits++) {
+    const min = Math.pow(10, digits - 1), span = 9 * min;
+    for (let i = 0; i < 40; i++) {
+      const ref = 'VB-' + (min + Math.floor(Math.random() * span));
+      const taken = await db.queryOne('SELECT 1 FROM bookings WHERE booking_ref = $1', [ref]);
+      if (!taken) return ref;
+    }
+  }
+  return 'VB-' + Date.now().toString().slice(-8);
 }
 
 router.post('/', authRequired, uploadReceipt, async (req, res) => {
@@ -135,7 +144,7 @@ router.post('/', authRequired, uploadReceipt, async (req, res) => {
       }
     }
 
-    const ref = generateRef();
+    const ref = await generateRef(db);
     const booking_meta = metaParts.length ? metaParts.join(' · ') : null;
 
     let result;
@@ -235,8 +244,8 @@ router.get('/', adminRequired, async (req, res) => {
   try {
     const db = getDB();
     const { status, payment_status } = req.query;
-    let sql = `SELECT b.*, bt.name as boat_name, bt.location as boat_location,
-               u.name as user_name, u.email as user_email, u.phone as user_phone,
+    let sql = `SELECT b.*, bt.name as boat_name, bt.location as boat_location, bt.images as boat_images,
+               u.name as user_name, u.last_name as user_last_name, u.email as user_email, u.phone as user_phone,
                p.status as pay_status, p.reference_number, p.receipt_filename, p.bank_name
                FROM bookings b
                JOIN boats bt ON b.boat_id = bt.id
