@@ -283,7 +283,7 @@ async function migrateDayBasedCopy() {
 // Servicio normal (sin combo) NO incluye la hora de jetski; el combo de cumpleaños sí.
 // Se guarda en el esquema lo que incluye el servicio normal y se ajustan descripción y amenidades.
 async function migrateDayBasedIncluded() {
-  const included = ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+  const included = ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE pricing_scheme LIKE '%day_based%'");
   for (const boat of rows) {
     const scheme = JSON.parse(boat.pricing_scheme);
@@ -367,7 +367,7 @@ async function migratePerlaNegraPhotoOrder() {
 
 // Andrea del Mar: combo de cumpleaños (+$300 sobre el precio normal de $1,500; igual todos los días).
 async function migrateAndreaDelMarCombo() {
-  const included = ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+  const included = ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
   const scheme = {
     type: 'day_based',
     prices: { weekday: 1500, weekday_birthday: 1800, weekend: 1500, weekend_birthday: 1800 },
@@ -502,6 +502,21 @@ async function purgeTestBookings() {
   }
   console.log('Reservas de prueba eliminadas:', ids.length);
 }
+// La parrillada y el cocinero van únicamente con el combo de cumpleaños (no en el servicio normal).
+async function migrateCookOnlyInCombo() {
+  const INCLUDED = ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
+  const COMBO_TXT = '1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco';
+  const fix = (t) => t == null ? t : t
+    .replace(/incluye parrillada, agua, hielo, gasolina, tripulación y cocinero/g, 'incluye agua, hielo, gasolina y tripulación')
+    .replace(/se agrega [^.]*./, 'se agrega ' + COMBO_TXT + '.');
+  const { rows } = await pool.query("SELECT id, pricing_scheme, description, short_description FROM boats WHERE pricing_scheme LIKE '%day_based%'");
+  for (const b of rows) {
+    const scheme = JSON.parse(b.pricing_scheme);
+    scheme.included = INCLUDED;
+    await pool.query('UPDATE boats SET pricing_scheme = $1, amenities = $2, description = $3, short_description = $4 WHERE id = $5',
+      [JSON.stringify(scheme), JSON.stringify(INCLUDED), fix(b.description), fix(b.short_description), b.id]);
+  }
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -547,6 +562,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
   await runDataMigrationOnce('2026-10-14-birthday-combo-cook', migrateBirthdayComboCook);
   await runDataMigrationOnce('2026-10-14-purge-test-bookings', purgeTestBookings);
+  await runDataMigrationOnce('2026-10-14-cook-only-in-combo', migrateCookOnlyInCombo);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

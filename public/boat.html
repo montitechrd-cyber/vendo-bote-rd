@@ -711,7 +711,7 @@
     if (boat.location !== 'Boca Chica') return;
     const s = boat.pricing_scheme;
     const dayBased = isDayBased();
-    const base = (dayBased && s.included) || ['Parrillada', 'Agua', 'Hielo', 'Gasolina', 'Tripulación', 'Cocinero'];
+    const base = (dayBased && s.included) || ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
     const combo = (dayBased && selBirthday) ? (s.birthday_combo || []) : [];
     // con el combo, la lista del combo se muestra completa (incluye parrillada y cocinero) y arriba solo queda lo que el combo no repite
     const baseShown = combo.length ? base.filter(i => !combo.includes(i)) : base;
