@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014r" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014t" />
 </head>
 <body>
 
@@ -75,7 +75,6 @@
     </div>
     <button type="button" class="gallery-nav gallery-nav-prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
     <button type="button" class="gallery-nav gallery-nav-next" id="gallery-next" aria-label="Foto siguiente">›</button>
-    <div class="gallery-badge-count" id="gallery-badge-count"></div>
     <div class="gallery-dots" id="gallery-dots"></div>
   </div>
   <div class="gallery-strip" id="gallery-strip"></div>
@@ -475,7 +474,14 @@
       if (i === mainIdx && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     });
     document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === mainIdx));
-    document.getElementById('gallery-badge-count').textContent = hasRealImages ? `${mainIdx + 1} / ${imgs.length}` : '';
+    // En celular: la foto vertical se muestra más grande (el marco crece según la orientación, sin recortar ni deformar)
+    const media = gallery.querySelector('img, video');
+    const setOrient = () => {
+      if (!media) return;
+      const w = media.naturalWidth || media.videoWidth, h = media.naturalHeight || media.videoHeight;
+      if (w && h) gallery.classList.toggle('is-portrait', h > w * 1.05);
+    };
+    if (media) { media.addEventListener('load', setOrient); media.addEventListener('loadedmetadata', setOrient); setOrient(); }
   }
 
   function shiftMain(delta) {

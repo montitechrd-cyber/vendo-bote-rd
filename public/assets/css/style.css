@@ -1877,3 +1877,10 @@ ul { list-style: none; }
 .inc-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--bg-2, #F0F9FF); border: 1px solid var(--line-2, #D6E8F5); font-family: var(--sans); font-size: 0.78rem; font-weight: 500; color: var(--cream, #0F2B4A); line-height: 1.3; }
 .inc-chip.is-combo { background: #FFF7E6; border-color: #F5D9A0; }
 .inc-combo-title { flex-basis: 100%; margin-top: 4px; font-family: var(--sans); font-size: 0.75rem; font-weight: 700; color: #92400E; }
+
+/* Galería en celular: fotos verticales más grandes, flechas casi transparentes, sin etiqueta de conteo */
+.gallery-badge-count { display: none !important; }
+@media (max-width: 768px) {
+  .boat-top .gallery.is-portrait { --gal-h: clamp(420px, min(135vw, 80vh), 680px); }
+  .gallery-nav { background: rgba(15,52,96,0.28); opacity: 0.85; }
+}
