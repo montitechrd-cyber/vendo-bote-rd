@@ -169,22 +169,22 @@ async function sendPaymentRejected(booking, user, reason) {
   await transporter.sendMail({
     from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: `❌ Pago no verificado — ${booking.booking_ref}`,
-    html: wrap('Pago No Verificado', `
+    subject: `❌ Reserva rechazada — ${booking.booking_ref}`,
+    html: wrap('Reserva Rechazada', `
       <p class="greeting">Hola ${user.name},</p>
-      <p class="intro">Revisamos el comprobante de pago para tu reserva <strong>${booking.booking_ref}</strong> y no pudimos verificarlo.</p>
+      <p class="intro">Tu reserva <strong>${booking.booking_ref}</strong> fue rechazada y cancelada. El turno quedó libre.</p>
       <div class="box">
         <div class="box-title">Motivo</div>
-        <p style="font-size:14px;color:#0F2B4A;margin:0;">${reason || 'El comprobante no coincide con la transferencia esperada.'}</p>
+        <p style="font-size:14px;color:#0F2B4A;margin:0;">${reason || 'No pudimos confirmar tu reserva.'}</p>
       </div>
       <div class="box">
         <div class="box-title">Tu Reserva</div>
         ${bookingRows(booking)}
       </div>
       <p style="font-size:13px;color:#5B84A8;line-height:1.7;">
-        Por favor realiza la transferencia de <strong>${fmtMoney(booking.total_price)}</strong> y sube el nuevo comprobante desde tu panel. Si tienes dudas, contáctanos.
+        Si aún quieres esta embarcación, puedes hacer una nueva reserva. Si tienes dudas, contáctanos.
       </p>
-      <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html?tab=payment">Subir nuevo comprobante</a></div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/embarcaciones.html">Hacer una nueva reserva</a></div>
     `),
   });
 }

@@ -157,7 +157,7 @@ router.get('/:id/availability', async (req, res) => {
     if (!boat) return res.status(404).json({ error: 'No encontrado' });
 
     const { year, month } = req.query;
-    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending')`;
+    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`;
     const params = [boat.id];
 
     if (year && month) {

@@ -57,7 +57,7 @@ router.post('/', authRequired, async (req, res) => {
     }
 
     const conflict = await db.queryOne(
-      `SELECT id FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND start_date = $2 AND schedule = $3`,
+      `SELECT id FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status IN ('submitted','verified') AND start_date = $2 AND schedule = $3`,
       [boat_id, start_date, schedule]
     );
     if (conflict) return res.status(409).json({ error: 'Ese turno ya está reservado' });
@@ -181,7 +181,7 @@ router.get('/admin/calendar-all', adminRequired, async (req, res) => {
        FROM bookings b
        JOIN boats bt ON b.boat_id = bt.id
        JOIN users u ON b.user_id = u.id
-       WHERE b.status != 'cancelled'
+       WHERE b.status != 'cancelled' AND b.payment_status IN ('submitted','verified')
        ORDER BY b.boat_id, b.start_date ASC`
     );
     res.json(bookings);
@@ -196,7 +196,7 @@ router.get('/admin/calendar/:boatId', adminRequired, async (req, res) => {
     const bookings = await db.query(
       `SELECT b.*, u.name as user_name, u.email as user_email, u.phone as user_phone
        FROM bookings b JOIN users u ON b.user_id = u.id
-       WHERE b.boat_id = $1 AND b.status != 'cancelled'
+       WHERE b.boat_id = $1 AND b.status != 'cancelled' AND b.payment_status IN ('submitted','verified')
        ORDER BY b.start_date ASC`,
       [req.params.boatId]
     );
@@ -278,7 +278,15 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
     const db = getDB();
     const booking = await db.queryOne('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
+    if (booking.status === 'cancelled') return res.status(400).json({ error: 'Esta reserva fue cancelada o rechazada. Haz una nueva reserva.' });
     if (!['pending', 'rejected'].includes(booking.payment_status)) return res.status(400).json({ error: 'Pago ya procesado' });
+
+    // El turno solo se ocupa al enviar el comprobante: si otra persona ya lo envió primero, este turno ya no está libre.
+    const taken = await db.queryOne(
+      `SELECT id FROM bookings WHERE boat_id = $1 AND start_date = $2 AND schedule = $3 AND id != $4 AND status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`,
+      [booking.boat_id, booking.start_date, booking.schedule, booking.id]
+    );
+    if (taken) return res.status(409).json({ error: 'Ese turno acaba de ser reservado por otra persona. Elige otra fecha u horario.' });
 
     if (!req.file) return res.status(400).json({ error: 'Adjunta la foto o captura del comprobante de pago' });
 
@@ -293,6 +301,13 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
     const receiptName = `receipt_${booking.booking_ref}${ext}`;
     const receiptMime = MIME[ext] || 'application/octet-stream';
 
+    try {
+      await db.run('UPDATE bookings SET payment_status = $1 WHERE id = $2', ['submitted', booking.id]);
+    } catch (e) {
+      if (e.code === '23505') return res.status(409).json({ error: 'Ese turno acaba de ser reservado por otra persona. Elige otra fecha u horario.' });
+      throw e;
+    }
+
     const existing = await db.queryOne('SELECT id FROM payments WHERE booking_id = $1', [booking.id]);
     if (existing) {
       await db.run(
@@ -306,7 +321,6 @@ router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, 
       );
     }
 
-    await db.run('UPDATE bookings SET payment_status = $1 WHERE id = $2', ['submitted', booking.id]);
     const user = await db.queryOne('SELECT name, email, phone FROM users WHERE id = $1', [req.user.id]);
     const fullBooking = await db.queryOne(
       `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
@@ -342,7 +356,13 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     if (action === 'approve') {
-      await db.run('UPDATE bookings SET status=$1, payment_status=$2 WHERE id=$3', ['confirmed','verified', booking.id]);
+      if (booking.status === 'cancelled') return res.status(400).json({ error: 'La reserva está cancelada' });
+      try {
+        await db.run('UPDATE bookings SET status=$1, payment_status=$2 WHERE id=$3', ['confirmed','verified', booking.id]);
+      } catch (e) {
+        if (e.code === '23505') return res.status(409).json({ error: 'Otro cliente ya tiene ese turno con pago enviado o verificado' });
+        throw e;
+      }
       await db.run('UPDATE payments SET status=$1, verified_by=$2, verified_at=NOW() WHERE booking_id=$3', ['verified', req.user.id, booking.id]);
       const fullBooking = await db.queryOne(
         `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
@@ -352,7 +372,8 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
       email.sendPaymentApproved(fullBooking, user).catch(console.error);
       res.json({ success: true, message: 'Pago verificado y reserva confirmada' });
     } else if (action === 'reject') {
-      await db.run('UPDATE bookings SET payment_status=$1 WHERE id=$2', ['rejected', booking.id]);
+      // Rechazar cancela la reserva y libera el turno (sale del calendario), haya enviado comprobante o no.
+      await db.run('UPDATE bookings SET status=$1, payment_status=$2 WHERE id=$3', ['cancelled', 'rejected', booking.id]);
       await db.run('UPDATE payments SET status=$1, rejection_reason=$2, verified_by=$3, verified_at=NOW() WHERE booking_id=$4', ['rejected', rejection_reason||'Pago rechazado', req.user.id, booking.id]);
       const fullBooking = await db.queryOne(
         `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
@@ -365,6 +386,22 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
       res.status(400).json({ error: 'Acción inválida' });
     }
   } catch (e) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Eliminar una reserva por completo (solo admin)
+router.delete('/:id', adminRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    const booking = await db.queryOne('SELECT id FROM bookings WHERE id = $1', [req.params.id]);
+    if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
+    await db.run('DELETE FROM reviews WHERE booking_id = $1', [booking.id]);
+    await db.run('DELETE FROM payments WHERE booking_id = $1', [booking.id]);
+    await db.run('DELETE FROM bookings WHERE id = $1', [booking.id]);
+    res.json({ success: true, message: 'Reserva eliminada' });
+  } catch (e) {
+    console.error(e);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });

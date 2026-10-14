@@ -524,7 +524,7 @@
           <td data-label="Total">$${Number(b.total_price).toLocaleString()}</td>
           <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
           <td data-label="Pago">${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
-          <td data-label="Acciones"><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button></td>
+          <td data-label="Acciones"><div style="display:flex;gap:0.4rem;flex-wrap:wrap;"><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button>${b.status !== 'cancelled' ? `<button class="btn btn-danger btn-sm" onclick="promptReject(${b.id})">Rechazar</button>` : ''}<button class="btn btn-ghost btn-sm" style="color:#E05A5A;" onclick="deleteBooking(${b.id})">Eliminar</button></div></td>
         </tr>`;
       }).join('');
     }).catch(() => window.VBR.toast('Error cargando reservas', 'error'));
@@ -587,13 +587,14 @@
             ${b.receipt_filename?`<div class="bank-row"><span class="bank-key">Archivo</span><button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">Ver comprobante</button></div>`:''}
           </div>` : '<p style="color:var(--cream-3);font-size:0.85rem;">Sin comprobante enviado aún.</p>'}
           ${b.special_requests?`<div class="boat-spec-item"><div class="boat-spec-label">Notas</div><div class="boat-spec-val" style="font-size:0.85rem;">${esc(b.special_requests)}</div></div>`:''}
-          ${b.payment_status === 'submitted' ? `
           <div style="border-top:1px solid var(--line);padding-top:1.25rem;">
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-              <button class="btn btn-success" onclick="verifyPayment(${b.id},'approve');closeVerifyModal()">✓ Aprobar pago</button>
-              <button class="btn btn-danger" onclick="promptReject(${b.id})">✕ Rechazar pago</button>
+              ${b.payment_status === 'submitted' && b.status !== 'cancelled' ? `<button class="btn btn-success" onclick="verifyPayment(${b.id},'approve');closeVerifyModal()">✓ Aprobar pago</button>` : ''}
+              ${b.status !== 'cancelled' ? `<button class="btn btn-danger" onclick="promptReject(${b.id})">✕ Rechazar reserva</button>` : ''}
+              <button class="btn btn-ghost" style="color:#E05A5A;" onclick="deleteBooking(${b.id});closeVerifyModal()">🗑 Eliminar</button>
             </div>
-          </div>` : `<p style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);">Estado: ${b.payment_status}</p>`}
+            <p style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);margin-top:0.75rem;">Estado: ${b.status === 'cancelled' ? 'cancelada' : b.status === 'confirmed' ? 'confirmada' : 'pendiente'} · pago: ${b.payment_status}</p>
+          </div>
         </div>`;
       document.getElementById('verify-modal').classList.add('is-open');
       document.body.style.overflow = 'hidden';
@@ -618,14 +619,28 @@
     window.VBR.api('/bookings/' + id + '/verify-payment', { method: 'PATCH', body: { action, rejection_reason: reason } }).then(d => {
       if (d.error) { window.VBR.toast(d.error, 'error'); return; }
       window.VBR.toast(d.message || (action === 'approve' ? 'Pago aprobado' : 'Pago rechazado'), action === 'approve' ? 'success' : 'info');
-      loadPendingPayments(); loadDashboard();
+      loadPendingPayments(); loadDashboard(); if (window.loadAllBookings) loadAllBookings(); refreshCalBookings();
     }).catch(() => window.VBR.toast('Error de conexión al verificar el pago', 'error'));
   };
   window.promptReject = function (id) {
-    const reason = prompt('Motivo del rechazo (opcional):') || 'Pago no verificado';
-    window.verifyPayment(id, 'reject', reason);
+    const reason = prompt('Motivo del rechazo (opcional):');
+    if (reason === null) return;
+    window.verifyPayment(id, 'reject', reason || 'Reserva rechazada');
     window.closeVerifyModal();
   };
+
+  window.deleteBooking = function (id) {
+    if (!confirm('¿Eliminar esta reserva por completo? Esta acción no se puede deshacer.')) return;
+    window.VBR.api('/bookings/' + id, { method: 'DELETE' }).then(d => {
+      if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+      window.VBR.toast('Reserva eliminada', 'info');
+      loadPendingPayments(); loadDashboard(); if (window.loadAllBookings) loadAllBookings(); refreshCalBookings();
+    }).catch(() => window.VBR.toast('Error al eliminar la reserva', 'error'));
+  };
+  function refreshCalBookings() {
+    if (!calInited) return;
+    window.VBR.api('/bookings/admin/calendar-all').then(b => { if (Array.isArray(b)) { calAllBookings = b; renderCalendar(); } });
+  }
 
   /* ── Boats admin ── */
   let allBoatsCached = [];
