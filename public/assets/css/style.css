@@ -1905,3 +1905,7 @@ ul { list-style: none; }
 .dashboard-avatar { overflow: hidden; }
 .dashboard-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (max-width: 560px) { .profile-grid { grid-template-columns: 1fr; } .profile-card { padding: 1rem 1.1rem; } }
+
+/* Fotos y videos verticales: marco más alto también en tablet y computadora, para dejar menos espacio vacío a los lados */
+@media (min-width: 769px) and (max-width: 1000px) { .boat-top .gallery.is-portrait { --gal-h: clamp(460px, 80vh, 700px); } }
+@media (min-width: 1001px) { .boat-top .gallery.is-portrait { --gal-h: clamp(440px, calc(100vh - 180px), 660px); } }
