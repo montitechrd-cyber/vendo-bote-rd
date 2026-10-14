@@ -300,7 +300,7 @@
     const esc = window.VBR.esc;
     list.innerHTML = bookings.map(b => {
       const imgs = b.boat_images || [];
-      const isVid = (u) => /.(mp4|webm|mov)(?|$)/i.test(u || '');
+      const isVid = (u) => /[.](mp4|webm|mov)([?]|$)/i.test(u || '');
       const photo = imgs.find(u => !isVid(u));
       const vid = imgs.find(isVid);
       const media = photo
@@ -422,7 +422,10 @@
     ).join('');
   }
 
+  let paymentTabReady = false;
   function initPaymentTab() {
+    if (paymentTabReady) return; // evita registrar los eventos varias veces (enviaría el comprobante repetido)
+    paymentTabReady = true;
     const sel = document.getElementById('pay-booking-select');
     sel.addEventListener('change', function () {
       const id = parseInt(this.value);
