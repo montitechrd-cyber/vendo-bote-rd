@@ -110,12 +110,12 @@
     }
     .cal-event:hover { opacity: 0.8; }
     .cal-event.confirmed {
-      background: rgba(14,165,233,0.12); border-left-color: var(--sky-2);
-      color: var(--sky-3);
+      background: #D1FAE5; border-left-color: #16A34A;
+      color: #065F46;
     }
     .cal-event.pending {
-      background: rgba(245,166,35,0.12); border-left-color: #F5A623;
-      color: #B27B0D;
+      background: #FEF3C7; border-left-color: #F59E0B;
+      color: #92400E;
     }
     .cal-event.cancelled {
       background: rgba(239,68,68,0.08); border-left-color: #EF4444;
@@ -124,8 +124,11 @@
     .cal-event-dot {
       width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
     }
-    .confirmed .cal-event-dot { background: var(--sky); }
-    .pending .cal-event-dot { background: #F5A623; }
+    .confirmed .cal-event-dot { background: #16A34A; }
+    .pending .cal-event-dot { background: #F59E0B; }
+    .cal-legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.78rem; color: var(--cream-3); margin: 0.5rem 0 0.75rem; }
+    .cal-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .cal-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
     .cal-more {
       font-family: var(--mono); font-size: 0.6875rem;
       color: var(--text-muted); padding: 0.1rem 0.3rem;
@@ -342,6 +345,8 @@
             <option value="">Todas las embarcaciones</option>
           </select>
         </div>
+
+        <div class="cal-legend"><span><i style="background:#F59E0B"></i>Pendiente de confirmar (comprobante enviado)</span><span><i style="background:#16A34A"></i>Aprobada / verificada</span></div>
 
         <!-- Day headers -->
         <div class="cal-grid-head">
@@ -898,7 +903,7 @@
         const cls = b.status === 'confirmed' ? 'confirmed' : 'pending';
         const shortName = boatName.length > 14 ? boatName.slice(0,13)+'…' : boatName;
         eventsHtml += `
-          <div class="cal-event ${cls}" onclick="openVerifyModal(${b.id})" title="${boatName} · ${b.user_name}">
+          <div class="cal-event ${cls}" onclick="openVerifyModal(${b.id})" title="${boatName} · ${b.user_name} · ${b.status === 'confirmed' ? 'Aprobada' : 'Pendiente de confirmar'}">
             <div class="cal-event-dot"></div>
             <span>${shortName}</span>
           </div>`;
