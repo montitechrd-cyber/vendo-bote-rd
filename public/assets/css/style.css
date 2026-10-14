@@ -1884,3 +1884,9 @@ ul { list-style: none; }
   .boat-top .gallery.is-portrait { --gal-h: clamp(420px, min(135vw, 80vh), 680px); }
   .gallery-nav { background: rgba(15,52,96,0.28); opacity: 0.85; }
 }
+
+/* Turnos: el horario siempre cabe en una línea; el tamaño de letra se ajusta al ancho real de cada botón */
+.boat-top .schedule-btn { container-type: inline-size; }
+.boat-top .schedule-btn .slot-time { white-space: nowrap; font-size: clamp(0.6rem, calc(9.6cqi - 3.5px), 0.85rem); letter-spacing: -0.01em; }
+.boat-top .schedule-btn { padding-left: 0.35rem; padding-right: 0.35rem; gap: 0.3rem; }
+.boat-top .schedule-btn .slot-icon svg { width: 18px; height: 18px; }
