@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014x" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014y" />
 </head>
 <body>
 
@@ -1133,9 +1133,9 @@
 
   const BANKS = [
     { name: 'Banco Popular', rows: [['Banco', 'Banco Popular Dominicano'], ['Tipo', 'Cuenta corriente'], ['Titular', 'Penelope Gonzalez Then', 1], ['Cuenta', '0832468474', 1]] },
-    { name: 'Zelle', rows: [['Método', 'Zelle'], ['Correo', 'vendobote@icloud.com', 1]] },
+    { name: 'Zelle', usd: true, rows: [['Método', 'Zelle'], ['Correo', 'vendobote@icloud.com', 1]] },
     { name: 'Banreservas (DOP)', rows: [['Banco', 'Banco de Reservas (BanReservas)'], ['Tipo', 'Cuenta en pesos (DOP)'], ['Titular', 'Juan Alberto Romero', 1], ['Cuenta', '9606655039', 1], ['Cédula', '226-0007735-2', 1]] },
-    { name: 'Banreservas USD', rows: [['Banco', 'Banco de Reservas (BanReservas)'], ['Tipo', 'Cuenta en dólares (USD)'], ['Titular', 'Juan Alberto Romero', 1], ['Cuenta', '9609859038', 1]] },
+    { name: 'Banreservas USD', usd: true, rows: [['Banco', 'Banco de Reservas (BanReservas)'], ['Tipo', 'Cuenta en dólares (USD)'], ['Titular', 'Juan Alberto Romero', 1], ['Cuenta', '9609859038', 1]] },
     { name: 'Banco BHD', rows: [['Banco', 'Banco BHD'], ['Titular', 'Penelope Gonzalez Then', 1], ['Cuenta', '36727140016', 1]] },
   ];
 
@@ -1170,6 +1170,7 @@
         <div style="font-size:0.8rem;color:var(--cream-3);margin-bottom:0.6rem;">Elige el banco y transfiere el monto exacto.</div>
         <select class="form-select" id="pay-bank" aria-label="Banco para la transferencia">${BANKS.map((b, i) => '<option value="' + i + '">' + b.name + '</option>').join('')}</select>
         <div id="pay-bank-detail" style="margin-top:0.6rem;"></div>
+        <div id="pay-dop" class="pay-dop" aria-live="polite"></div>
       </div>
       <div style="border:1.5px solid var(--line-2);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;">
         <div style="font-weight:700;color:var(--cream);margin-bottom:0.15rem;">2. Adjunta el comprobante <span style="color:#B91C1C;">*</span></div>
@@ -1192,7 +1193,21 @@
         '<div class="bank-row"><span class="bank-key">' + r[0] + '</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">' + r[1] + '</span>' +
         (r[2] ? '<button type="button" class="bank-copy" onclick="copyText(\'' + r[1].replace(/'/g, "\\'") + '\')">Copiar</button>' : '') + '</div></div>').join('');
     };
-    bankSel.addEventListener('change', renderBank); renderBank();
+    // Conversión a pesos con la tasa del día (las cuentas en dólares no se convierten)
+    let usdDop = null;
+    const dopBox = document.getElementById('pay-dop');
+    const renderDop = () => {
+      const bk = BANKS[parseInt(bankSel.value, 10)];
+      if (bk.usd) { dopBox.innerHTML = '<div class="pay-dop-note">Esta cuenta recibe <strong>dólares</strong>: transfiere el monto en USD.</div>'; return; }
+      if (!usdDop) { dopBox.innerHTML = '<div class="pay-dop-note">Calculando el monto en pesos…</div>'; return; }
+      if (usdDop.error) { dopBox.innerHTML = '<div class="pay-dop-note">No pudimos cargar la tasa del día. Consulta el monto en pesos con tu banco.</div>'; return; }
+      const dop = calc.total * usdDop.rate;
+      const fmtDop = new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP', currencyDisplay: 'code' }).format(dop).replace('DOP', 'RD$').replace(/\u00a0/g, ' ');
+      dopBox.innerHTML = '<div class="pay-dop-main"><span>Si transfieres en pesos</span><strong>' + fmtDop + '</strong></div>' +
+        '<div class="pay-dop-note">Tasa del día: 1 USD = RD$ ' + usdDop.rate.toFixed(2) + '. Es una referencia; tu banco puede aplicar una tasa un poco distinta.</div>';
+    };
+    fetch('/api/rates/usd-dop').then(r => r.json()).then(d => { usdDop = d && d.rate ? d : { error: true }; renderDop(); }).catch(() => { usdDop = { error: true }; renderDop(); });
+    bankSel.addEventListener('change', () => { renderBank(); renderDop(); }); renderBank(); renderDop();
     const fileInput = document.getElementById('receipt-file');
     const confirmBtn = document.getElementById('confirm-booking-btn');
     fileInput.addEventListener('change', () => {

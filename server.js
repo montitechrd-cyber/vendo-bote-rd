@@ -120,6 +120,7 @@ app.get('/api/admin/stats', adminRequired, async (req, res) => {
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/boats', require('./routes/boats'));
+app.use('/api/rates', require('./routes/rates'));
 app.use('/api/bookings', require('./routes/bookings'));
 
 // Rutas desconocidas: 404 real (antes devolvía el home con 200, lo que Google

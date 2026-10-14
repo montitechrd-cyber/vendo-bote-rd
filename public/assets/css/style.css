@@ -1909,3 +1909,10 @@ ul { list-style: none; }
 /* Fotos y videos verticales: marco más alto también en tablet y computadora, para dejar menos espacio vacío a los lados */
 @media (min-width: 769px) and (max-width: 1000px) { .boat-top .gallery.is-portrait { --gal-h: clamp(460px, 80vh, 700px); } }
 @media (min-width: 1001px) { .boat-top .gallery.is-portrait { --gal-h: clamp(440px, calc(100vh - 180px), 660px); } }
+
+/* Conversión a pesos en el pago */
+.pay-dop { margin-top: 0.75rem; border-top: 1px dashed var(--line-2); padding-top: 0.7rem; }
+.pay-dop-main { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+.pay-dop-main span { font-size: 0.85rem; color: var(--text-muted); }
+.pay-dop-main strong { font-size: 1.25rem; color: var(--sky-3); font-family: var(--serif); font-style: italic; }
+.pay-dop-note { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; margin-top: 0.25rem; }
