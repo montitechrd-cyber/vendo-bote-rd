@@ -22,14 +22,23 @@ const upload = multer({
 
 const { isSlotClosed } = require('../utils/booking-time');
 
+const uploadReceipt = (req, res, next) => upload.single('receipt')(req, res, err => {
+  if (err) return res.status(400).json({ error: 'El comprobante es demasiado grande (máx. 10MB) o no es válido.' });
+  next();
+});
+
 function generateRef() {
   return 'VBR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
 }
 
-router.post('/', authRequired, async (req, res) => {
+router.post('/', authRequired, uploadReceipt, async (req, res) => {
   try {
     const db = getDB();
-    const { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons, birthday_combo } = req.body;
+    // Llega como multipart (comprobante + datos): los valores vienen como texto
+    let { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons, birthday_combo } = req.body;
+    if (typeof meal_addons === 'string') { try { meal_addons = JSON.parse(meal_addons); } catch { meal_addons = []; } }
+    birthday_combo = birthday_combo === true || birthday_combo === 'true';
+    if (!req.file) return res.status(400).json({ error: 'Adjunta el comprobante de pago para completar la reserva (JPG, PNG, WEBP o PDF).' });
     let { special_requests } = req.body;
     if (!boat_id || !start_date || !schedule) return res.status(400).json({ error: 'Datos de reserva incompletos' });
     if (special_requests != null) {
@@ -132,8 +141,8 @@ router.post('/', authRequired, async (req, res) => {
     let result;
     try {
       result = await db.run(
-        `INSERT INTO bookings (booking_ref,user_id,boat_id,start_date,end_date,days,guests,total_price,additionals,additionals_price,special_requests,schedule,booking_meta)
-         VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+        `INSERT INTO bookings (booking_ref,user_id,boat_id,start_date,end_date,days,guests,total_price,additionals,additionals_price,special_requests,schedule,booking_meta,payment_status)
+         VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10,$11,$12,'submitted') RETURNING id`,
         [ref, req.user.id, boat_id, start_date, 1, guestsNum, total,
          JSON.stringify(selectedAdditionals), additionals_price, special_requests||null, schedule, booking_meta]
       );
@@ -142,11 +151,26 @@ router.post('/', authRequired, async (req, res) => {
       throw e;
     }
 
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const receiptName = `receipt_${ref}${ext}`;
+    const receiptMime = MIME[ext] || 'application/octet-stream';
+    const requester = await db.queryOne('SELECT name FROM users WHERE id = $1', [req.user.id]);
+    try {
+      await db.run(
+        'INSERT INTO payments (booking_id,amount,account_holder,receipt_filename,receipt_data,receipt_mime) VALUES ($1,$2,$3,$4,$5,$6)',
+        [result.lastInsertRowid, total, requester?.name || null, receiptName, req.file.buffer, receiptMime]
+      );
+    } catch (e) {
+      await db.run('DELETE FROM bookings WHERE id = $1', [result.lastInsertRowid]); // no dejar una reserva sin comprobante
+      throw e;
+    }
+
     const booking = await db.queryOne(
       `SELECT b.*, bt.name as boat_name, bt.location as boat_location FROM bookings b JOIN boats bt ON b.boat_id = bt.id WHERE b.id = $1`,
       [result.lastInsertRowid]
     );
     const user = await db.queryOne('SELECT name, email, phone FROM users WHERE id = $1', [req.user.id]);
+    email.sendPaymentSubmittedAdmin(booking, user, { filename: receiptName, content: req.file.buffer, contentType: receiptMime }, {}).catch(console.error);
     res.json(booking);
   } catch (e) {
     console.error(e);
@@ -274,7 +298,7 @@ router.get('/:id/receipt', authRequired, async (req, res) => {
   }
 });
 
-router.post('/:id/payment', authRequired, upload.single('receipt'), async (req, res) => {
+router.post('/:id/payment', authRequired, uploadReceipt, async (req, res) => {
   try {
     const db = getDB();
     const booking = await db.queryOne('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);

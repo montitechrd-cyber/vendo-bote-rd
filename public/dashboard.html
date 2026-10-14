@@ -487,6 +487,10 @@
 
   /* ── Check URL params ── */
   const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('sent') === '1') {
+    setTimeout(() => window.VBR.toast('¡Reserva enviada con tu comprobante! Nuestro equipo la verificará en menos de 24 horas.', 'success'), 600);
+    history.replaceState(null, '', location.pathname);
+  }
   if (urlParams.get('tab') === 'payment') {
     setTimeout(() => {
       const payTab = document.querySelector('[data-tab="payment"]');

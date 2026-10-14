@@ -347,7 +347,7 @@
           <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
         </div>
-              <p style="font-size:0.78rem;color:var(--cream-3);margin-top:1rem;line-height:1.5;">Confirma tu reserva y te indicaremos el monto exacto a transferir.</p>
+              <p style="font-size:0.78rem;color:var(--cream-3);margin-top:1rem;line-height:1.5;">Para reservar, transfiere el monto y adjunta el comprobante al confirmar tu reserva.</p>
             </div>
             <script>
             function switchBankB(bank, btn) {
@@ -1125,13 +1125,21 @@
     showModal(calc);
   }
 
+  const BANKS = [
+    { name: 'Banco Popular', rows: [['Banco', 'Banco Popular Dominicano'], ['Tipo', 'Cuenta corriente'], ['Titular', 'Penelope Gonzalez Then', 1], ['Cuenta', '0832468474', 1]] },
+    { name: 'Zelle', rows: [['Método', 'Zelle'], ['Correo', 'vendobote@icloud.com', 1]] },
+    { name: 'Banreservas (DOP)', rows: [['Banco', 'Banco de Reservas (BanReservas)'], ['Tipo', 'Cuenta en pesos (DOP)'], ['Titular', 'Juan Alberto Romero', 1], ['Cuenta', '9606655039', 1], ['Cédula', '226-0007735-2', 1]] },
+    { name: 'Banreservas USD', rows: [['Banco', 'Banco de Reservas (BanReservas)'], ['Tipo', 'Cuenta en dólares (USD)'], ['Titular', 'Juan Alberto Romero', 1], ['Cuenta', '9609859038', 1]] },
+    { name: 'Banco BHD', rows: [['Banco', 'Banco BHD'], ['Titular', 'Penelope Gonzalez Then', 1], ['Cuenta', '36727140016', 1]] },
+  ];
+
   function showModal(calc) {
     const addHTML = calc.extraLines.length ? `
       <div style="border-top:1px solid var(--line);margin-top:0.5rem;padding-top:0.5rem;">
         <div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.4rem;">${boat.pricing_scheme ? 'Cargos adicionales' : 'Adicionales'}</div>
         ${calc.extraLines.map(a => `<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--cream-2);padding:0.15rem 0;">${a.label}<span style="color:var(--sky-2);">+$${a.price.toLocaleString()}</span></div>`).join('')}
       </div>` : '';
-    document.getElementById('modal-title').textContent = 'Confirmar Reserva';
+    document.getElementById('modal-title').textContent = 'Confirmar y pagar';
     document.getElementById('modal-body').innerHTML = `
       <div style="background:var(--bg-2);border-radius:var(--r-sm);padding:1.25rem;margin-bottom:1.5rem;border:1px solid var(--line);">
         <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.75rem;">${boat.name}</div>
@@ -1151,39 +1159,73 @@
         <label class="form-label" for="special-requests">Solicitudes especiales (opcional)</label>
         <textarea class="form-textarea" id="special-requests" placeholder="Decoración especial, peticiones del grupo..." rows="3" maxlength="500"></textarea>
       </div>
-      <button class="btn btn-primary w-full" id="confirm-booking-btn" style="justify-content:center;">
-        Confirmar y ver datos de pago
+      <div style="border:1.5px solid var(--line-2);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;">
+        <div style="font-weight:700;color:var(--cream);margin-bottom:0.15rem;">1. Transfiere ${'$'}${Number(calc.total).toLocaleString()} USD</div>
+        <div style="font-size:0.8rem;color:var(--cream-3);margin-bottom:0.6rem;">Elige el banco y transfiere el monto exacto.</div>
+        <select class="form-select" id="pay-bank" aria-label="Banco para la transferencia">${BANKS.map((b, i) => '<option value="' + i + '">' + b.name + '</option>').join('')}</select>
+        <div id="pay-bank-detail" style="margin-top:0.6rem;"></div>
+      </div>
+      <div style="border:1.5px solid var(--line-2);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;">
+        <div style="font-weight:700;color:var(--cream);margin-bottom:0.15rem;">2. Adjunta el comprobante <span style="color:#B91C1C;">*</span></div>
+        <div style="font-size:0.8rem;color:var(--cream-3);margin-bottom:0.6rem;">Obligatorio para reservar. Foto o captura de la transferencia (JPG, PNG, WEBP o PDF, máx. 10MB).</div>
+        <input type="file" class="form-input" id="receipt-file" accept=".jpg,.jpeg,.png,.pdf,.webp" style="padding:0.6rem;" />
+        <div id="receipt-error" class="form-error hidden" role="alert" style="margin-top:0.5rem;"></div>
+      </div>
+      <button class="btn btn-primary w-full" id="confirm-booking-btn" style="justify-content:center;" disabled>
+        Adjunta el comprobante para reservar
       </button>
-      <p style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);text-align:center;margin-top:0.75rem;">
-        Deberás realizar la transferencia bancaria para confirmar tu reserva.
+      <p style="font-size:0.75rem;color:var(--cream-3);text-align:center;margin-top:0.75rem;line-height:1.5;">
+        Tu reserva se envía junto con el comprobante y nuestro equipo la verificará en menos de 24 horas.
       </p>
     `;
     openModal();
-    document.getElementById('confirm-booking-btn').addEventListener('click', () => submitBooking(calc));
+    const bankSel = document.getElementById('pay-bank');
+    const renderBank = () => {
+      const bk = BANKS[parseInt(bankSel.value, 10)];
+      document.getElementById('pay-bank-detail').innerHTML = bk.rows.map(r =>
+        '<div class="bank-row"><span class="bank-key">' + r[0] + '</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">' + r[1] + '</span>' +
+        (r[2] ? '<button type="button" class="bank-copy" onclick="copyText(\'' + r[1].replace(/'/g, "\\'") + '\')">Copiar</button>' : '') + '</div></div>').join('');
+    };
+    bankSel.addEventListener('change', renderBank); renderBank();
+    const fileInput = document.getElementById('receipt-file');
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files[0], err = document.getElementById('receipt-error');
+      err.classList.add('hidden');
+      let valid = !!f;
+      if (f && !/[.](jpe?g|png|webp|pdf)$/i.test(f.name)) { err.textContent = 'El comprobante debe ser JPG, PNG, WEBP o PDF.'; valid = false; }
+      else if (f && f.size > 10 * 1024 * 1024) { err.textContent = 'El archivo supera los 10MB.'; valid = false; }
+      if (f && !valid) err.classList.remove('hidden');
+      confirmBtn.disabled = !valid;
+      confirmBtn.textContent = valid ? 'Enviar reserva con comprobante' : 'Adjunta el comprobante para reservar';
+    });
+    confirmBtn.addEventListener('click', () => submitBooking(calc));
   }
 
   function submitBooking(calc) {
     const btn = document.getElementById('confirm-booking-btn');
-    btn.disabled = true; btn.textContent = 'Procesando...';
+    const file = document.getElementById('receipt-file').files[0];
+    if (!file) { window.VBR.toast('Adjunta el comprobante de pago para reservar', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Enviando...';
     const special = document.getElementById('special-requests')?.value;
-    const body = {
-      boat_id: boat.id, start_date: selDate, schedule: selSlot, guests: calc.guests, special_requests: special,
-    };
+    const fd = new FormData();
+    fd.append('boat_id', boat.id); fd.append('start_date', selDate); fd.append('schedule', selSlot);
+    fd.append('guests', calc.guests); if (special) fd.append('special_requests', special);
     if (isDayBased()) {
-      body.birthday_combo = selBirthday;
+      fd.append('birthday_combo', selBirthday ? 'true' : 'false');
     } else if (boat.pricing_scheme) {
-      body.package_hours = selPackageHours;
-      body.extra_hours = extraHours;
-      body.meal_addons = getMealAddons().map(m => m.key);
+      fd.append('package_hours', selPackageHours);
+      fd.append('extra_hours', extraHours);
+      fd.append('meal_addons', JSON.stringify(getMealAddons().map(m => m.key)));
     }
-    window.VBR.api('/bookings', {
-      method: 'POST',
-      body
-    }).then(data => {
-      if (data.error) { window.VBR.toast(data.error, 'error'); btn.disabled = false; btn.textContent = 'Confirmar'; return; }
-      sessionStorage.setItem('vbr_new_booking', JSON.stringify(data));
-      location.href = '/dashboard.html?booking=' + data.id + '&tab=payment';
-    }).catch(() => { window.VBR.toast('Error al crear la reserva', 'error'); btn.disabled = false; btn.textContent = 'Confirmar'; });
+    fd.append('receipt', file);
+    const reset = () => { btn.disabled = false; btn.textContent = 'Enviar reserva con comprobante'; };
+    fetch('/api/bookings', { method: 'POST', credentials: 'same-origin', body: fd })
+      .then(r => r.json().catch(() => ({ error: 'Error de conexión con el servidor' })))
+      .then(data => {
+        if (data.error) { window.VBR.toast(data.error, 'error'); reset(); if (/turno/i.test(data.error)) fetchAvailability(); return; }
+        location.href = '/dashboard.html?sent=1';
+      }).catch(() => { window.VBR.toast('Error al enviar la reserva', 'error'); reset(); });
   }
 
   function openModal()  { document.getElementById('booking-modal').classList.add('is-open'); document.body.style.overflow = 'hidden'; }
