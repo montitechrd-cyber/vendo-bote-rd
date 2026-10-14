@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014w" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014x" />
   <style>
     body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .auth-page { background: transparent; }
@@ -36,6 +36,14 @@
     #google-btn { display: flex; justify-content: center; min-height: 44px; }
     .auth-or { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; color: var(--text-muted); font-size: 0.8rem; }
     .auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
+    .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .reg-photo { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1.1rem; }
+    .reg-photo-circle { width: 64px; height: 64px; border-radius: 50%; background: #f0f6ff; border: 1.5px dashed #9cc3ea; display: grid; place-items: center; color: var(--sky-2); font-size: 1.6rem; overflow: hidden; flex-shrink: 0; }
+    .reg-photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .reg-photo-btn { color: var(--sky-2); font-weight: 600; font-size: 0.88rem; cursor: pointer; text-align: left; }
+    .reg-opt { font-weight: 500; font-size: 0.72rem; color: var(--text-muted); margin-left: 0.25rem; }
+    .auth-field input[type=file] { padding: 0.55rem 0.7rem; font-size: 0.85rem; }
+    @media (max-width: 480px) { .auth-row { grid-template-columns: 1fr; gap: 0; } }
     @media (max-width: 480px) { .auth-page { padding: 1.25rem 0.75rem; } .auth-card { padding: 1.5rem 1.1rem; } }
   </style>
 </head>
@@ -76,12 +84,30 @@
       <!-- Crear cuenta -->
       <form class="auth-view" id="view-register" novalidate>
         <h1>Crear cuenta</h1>
-        <p class="auth-sub">Solo toma un minuto. Después te pediremos tus datos de contacto.</p>
-        <div class="auth-field"><label for="reg-name">Nombre</label><input type="text" id="reg-name" autocomplete="given-name" required /></div>
-        <div class="auth-field"><label for="reg-email">Correo</label><input type="email" id="reg-email" autocomplete="email" required /></div>
+        <p class="auth-sub">Completa tus datos para reservar. Los campos con * son obligatorios.</p>
+        <div class="reg-photo">
+          <div class="reg-photo-circle" id="reg-photo-circle" aria-hidden="true">+</div>
+          <div>
+            <button type="button" class="reg-photo-btn" id="reg-photo-pick">Agregar foto de perfil <span class="reg-opt">Opcional</span></button>
+            <input type="file" id="reg-photo" accept=".jpg,.jpeg,.png,.webp" hidden />
+          </div>
+        </div>
+        <div class="auth-row">
+          <div class="auth-field"><label for="reg-name">Nombre *</label><input type="text" id="reg-name" autocomplete="given-name" maxlength="80" required /></div>
+          <div class="auth-field"><label for="reg-last">Apellido *</label><input type="text" id="reg-last" autocomplete="family-name" maxlength="80" required /></div>
+        </div>
+        <div class="auth-field"><label for="reg-email">Correo *</label><input type="email" id="reg-email" autocomplete="email" required /></div>
+        <div class="auth-row">
+          <div class="auth-field"><label for="reg-phone">Teléfono *</label><input type="tel" id="reg-phone" autocomplete="tel" placeholder="+1 809 000 0000" maxlength="30" required /></div>
+          <div class="auth-field"><label for="reg-id">Cédula o pasaporte *</label><input type="text" id="reg-id" placeholder="000-0000000-0" maxlength="25" required /></div>
+        </div>
         <div class="auth-field">
-          <label for="reg-pass">Contraseña (mínimo 8 caracteres)</label>
+          <label for="reg-pass">Contraseña * (mínimo 8 caracteres)</label>
           <div class="auth-pass"><input type="password" id="reg-pass" autocomplete="new-password" minlength="8" required /><button type="button" data-toggle="reg-pass">Ver</button></div>
+        </div>
+        <div class="auth-field">
+          <label for="reg-doc">Foto o PDF de tu cédula o pasaporte <span class="reg-opt">Opcional</span></label>
+          <input type="file" id="reg-doc" accept=".jpg,.jpeg,.png,.pdf,.webp" />
         </div>
         <button type="submit" class="btn btn-primary auth-submit">Crear cuenta</button>
         <div class="auth-links"><span>¿Ya tienes cuenta? <button type="button" data-go="login">Ingresar</button></span></div>
@@ -177,8 +203,39 @@
     afterSignIn();
   }); });
 
+  // Foto de perfil opcional: vista previa y recorte cuadrado a 400px antes de enviarla
+  let regAvatarBlob = null;
+  $('reg-photo-pick').addEventListener('click', () => $('reg-photo').click());
+  $('reg-photo').addEventListener('change', async () => {
+    const f = $('reg-photo').files[0]; regAvatarBlob = null;
+    if (!f) return;
+    try {
+      const bmp = await createImageBitmap(f);
+      const side = Math.min(bmp.width, bmp.height), size = Math.min(400, side);
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      c.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
+      regAvatarBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+      $('reg-photo-circle').innerHTML = '<img alt="" src="' + c.toDataURL('image/jpeg', 0.7) + '" />';
+    } catch { show('error', 'No se pudo leer la foto de perfil. Prueba con otra imagen.'); $('reg-photo').value = ''; }
+  });
+
   $('view-register').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
-    const d = await post('register', { name: $('reg-name').value, email: $('reg-email').value, password: $('reg-pass').value });
+    const need = [['reg-name', 'tu nombre'], ['reg-last', 'tu apellido'], ['reg-email', 'tu correo'], ['reg-phone', 'tu teléfono'], ['reg-id', 'tu cédula o pasaporte'], ['reg-pass', 'una contraseña']];
+    for (const [id, label] of need) {
+      if (!$(id).value.trim()) { $(id).focus(); return show('error', 'Escribe ' + label + '.'); }
+    }
+    if ($('reg-pass').value.length < 8) { $('reg-pass').focus(); return show('error', 'La contraseña debe tener al menos 8 caracteres.'); }
+    const doc = $('reg-doc').files[0];
+    if (doc && doc.size > 10 * 1024 * 1024) return show('error', 'El documento supera los 10MB.');
+    const fd = new FormData();
+    fd.append('name', $('reg-name').value); fd.append('last_name', $('reg-last').value);
+    fd.append('email', $('reg-email').value); fd.append('phone', $('reg-phone').value);
+    fd.append('id_number', $('reg-id').value); fd.append('password', $('reg-pass').value);
+    if (regAvatarBlob) fd.append('avatar', regAvatarBlob, 'perfil.jpg');
+    if (doc) fd.append('id_document', doc);
+    let d;
+    try { d = await (await fetch('/api/auth/register', { method: 'POST', credentials: 'same-origin', body: fd })).json(); }
+    catch { d = { error: 'Error de conexión, intenta de nuevo.' }; }
     if (d.error) return show('error', d.error);
     afterSignIn();
   }); });

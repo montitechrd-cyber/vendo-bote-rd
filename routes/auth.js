@@ -29,6 +29,26 @@ const withUpload = (mw, field, msg) => (req, res, next) => mw.single(field)(req,
 const uploadIdDoc = withUpload(uploadId, 'id_document', 'El documento es demasiado grande (máx. 10MB) o no es válido.');
 const uploadAvatar = withUpload(uploadAvatarMw, 'avatar', 'La foto es demasiado grande o no es válida (JPG, PNG o WEBP).');
 
+// Registro: la foto de perfil y el documento llegan junto a los datos (ambos opcionales)
+const uploadRegMw = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => DOC_EXT.includes(path.extname(file.originalname).toLowerCase()) ? cb(null, true) : cb(new Error('tipo no permitido'))
+}).fields([{ name: 'avatar', maxCount: 1 }, { name: 'id_document', maxCount: 1 }]);
+const uploadReg = (req, res, next) => uploadRegMw(req, res, err => {
+  if (err) return res.status(400).json({ error: 'Un archivo es demasiado grande (máx. 10MB) o no es válido.' });
+  next();
+});
+const ID_NUMBER_RE = /^[A-Za-z0-9\-\s]{5,25}$/;
+
+async function saveAvatar(db, userId, file) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  await db.run(
+    'INSERT INTO user_files (user_id, avatar_data, avatar_mime, avatar_updated_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id) DO UPDATE SET avatar_data = EXCLUDED.avatar_data, avatar_mime = EXCLUDED.avatar_mime, avatar_updated_at = NOW()',
+    [userId, file.buffer, MIME[ext] || 'image/jpeg']
+  );
+}
+
 async function saveIdDoc(db, userId, file) {
   const ext = path.extname(file.originalname).toLowerCase();
   await db.run(
@@ -48,13 +68,25 @@ function siteUrl(req) {
   return `${req.protocol}://${req.get('host')}`;
 }
 
-router.post('/register', async (req, res) => {
+router.post('/register', uploadReg, async (req, res) => {
   try {
     const db = getDB();
     const email = normEmail(req.body.email);
     const name = String(req.body.name || '').trim().slice(0, 80);
+    const last_name = String(req.body.last_name || '').trim().slice(0, 80);
+    const phone = String(req.body.phone || '').trim().slice(0, 30);
+    const id_number = String(req.body.id_number || '').trim().slice(0, 25);
     const password = String(req.body.password || '');
+    const avatarFile = req.files && req.files.avatar && req.files.avatar[0];
+    const docFile = req.files && req.files.id_document && req.files.id_document[0];
     if (!name) return res.status(400).json({ error: 'Escribe tu nombre' });
+    if (!last_name) return res.status(400).json({ error: 'Escribe tu apellido' });
+    if (!phone) return res.status(400).json({ error: 'Escribe tu teléfono' });
+    if (!id_number) return res.status(400).json({ error: 'Escribe tu cédula o pasaporte' });
+    if (!ID_NUMBER_RE.test(id_number)) return res.status(400).json({ error: 'La cédula o pasaporte no es válido' });
+    if (avatarFile && (avatarFile.size > 2 * 1024 * 1024 || path.extname(avatarFile.originalname).toLowerCase() === '.pdf')) {
+      return res.status(400).json({ error: 'La foto de perfil debe ser una imagen de hasta 2MB' });
+    }
     if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Correo inválido' });
     if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
 
@@ -69,9 +101,11 @@ router.post('/register', async (req, res) => {
     }
 
     const result = await db.run(
-      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
-      [name, email, hashPassword(password), 'user']
+      'INSERT INTO users (name, last_name, phone, id_number, email, password_hash, role, profile_completed) VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING id',
+      [name, last_name, phone, id_number, email, hashPassword(password), 'user']
     );
+    if (avatarFile) await saveAvatar(db, result.lastInsertRowid, avatarFile);
+    if (docFile) await saveIdDoc(db, result.lastInsertRowid, docFile);
     setSession(res, result.lastInsertRowid);
     res.json({ ok: true });
   } catch (e) {
@@ -347,12 +381,14 @@ router.post('/complete-profile', authRequired, uploadIdDoc, async (req, res) => 
   try {
     const db = getDB();
     const { name, last_name, phone } = req.body;
-    if (!name?.trim() || !last_name?.trim() || !phone?.trim()) {
-      return res.status(400).json({ error: 'Nombre, apellido y teléfono son requeridos' });
+    const id_number = String(req.body.id_number || '').trim();
+    if (!name?.trim() || !last_name?.trim() || !phone?.trim() || !id_number) {
+      return res.status(400).json({ error: 'Nombre, apellido, teléfono y cédula o pasaporte son requeridos' });
     }
+    if (!ID_NUMBER_RE.test(id_number)) return res.status(400).json({ error: 'La cédula o pasaporte no es válido' });
 
-    const fields = ['name = $1', 'last_name = $2', 'phone = $3', 'profile_completed = true'];
-    const params = [name.trim(), last_name.trim(), phone.trim()];
+    const fields = ['name = $1', 'last_name = $2', 'phone = $3', 'id_number = $4', 'profile_completed = true'];
+    const params = [name.trim(), last_name.trim(), phone.trim(), id_number];
     params.push(req.user.id);
 
     await db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length}`, params);

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014w" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014x" />
   <style>
     body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .cp-page { min-height: 100svh; display: grid; place-items: center; padding: 2rem 1rem; }
@@ -59,7 +59,12 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Foto de cédula o pasaporte <span class="cp-optional-tag">Opcional</span></label>
+        <label class="form-label">Cédula o pasaporte *</label>
+        <input type="text" class="form-input" id="cp-idnumber" placeholder="000-0000000-0" maxlength="25" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Foto o PDF de la cédula o pasaporte <span class="cp-optional-tag">Opcional</span></label>
         <label class="cp-file-wrap" id="cp-file-wrap">
           <input type="file" id="cp-file" accept=".jpg,.jpeg,.png,.pdf,.webp" />
           <div id="cp-file-placeholder">📄 Toca para subir una foto o PDF</div>
@@ -98,6 +103,7 @@
     if (me.name) document.getElementById('cp-name').value = me.name;
     if (me.last_name) document.getElementById('cp-lastname').value = me.last_name;
     if (me.phone) document.getElementById('cp-phone').value = me.phone;
+    if (me.id_number) document.getElementById('cp-idnumber').value = me.id_number;
   }));
 
   document.getElementById('cp-file').addEventListener('change', function () {
@@ -112,11 +118,12 @@
     const name = document.getElementById('cp-name').value.trim();
     const lastname = document.getElementById('cp-lastname').value.trim();
     const phone = document.getElementById('cp-phone').value.trim();
+    const idnumber = document.getElementById('cp-idnumber').value.trim();
     const errEl = document.getElementById('cp-error');
     errEl.classList.add('hidden');
 
-    if (!name || !lastname || !phone) {
-      errEl.textContent = 'Nombre, apellido y teléfono son obligatorios.';
+    if (!name || !lastname || !phone || !idnumber) {
+      errEl.textContent = 'Nombre, apellido, teléfono y cédula o pasaporte son obligatorios.';
       errEl.classList.remove('hidden');
       return;
     }
@@ -128,6 +135,7 @@
     formData.append('name', name);
     formData.append('last_name', lastname);
     formData.append('phone', phone);
+    formData.append('id_number', idnumber);
     const file = document.getElementById('cp-file').files[0];
     if (file) formData.append('id_document', file);
 

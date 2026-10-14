@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014w" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014x" />
 </head>
 <body>
 
@@ -52,9 +52,6 @@
           <button class="dashboard-nav-item active" data-tab="bookings" onclick="showTab('bookings',this)">
             <span>📋</span> Mis Reservas
           </button>
-          <button class="dashboard-nav-item" data-tab="payment" onclick="showTab('payment',this)">
-            <span>💳</span> Enviar Pago
-          </button>
           <button class="dashboard-nav-item" data-tab="profile" onclick="showTab('profile',this)">
             <span>👤</span> Mi Perfil
           </button>
@@ -87,91 +84,6 @@
           <div id="bookings-list" style="display:flex;flex-direction:column;gap:1rem;">
             <div class="skeleton" style="height:160px;border-radius:16px;"></div>
             <div class="skeleton" style="height:160px;border-radius:16px;"></div>
-          </div>
-        </div>
-
-        <!-- Payment tab -->
-        <div id="tab-payment" class="tab-content hidden">
-          <h2 style="font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Enviar Comprobante de Pago</h2>
-
-          <div id="payment-select-booking" style="margin-bottom:2rem;">
-            <div class="form-group">
-              <label class="form-label">Selecciona tu reserva</label>
-              <select class="form-select" id="pay-booking-select">
-                <option value="">Cargando reservas...</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="payment-form-wrap" class="hidden">
-            <div class="bank-box" style="margin-bottom:2rem;">
-              <div class="bank-box-title">🏦 Datos para la Transferencia</div>
-<div class="bank-box-tab" style="flex-wrap:wrap;">
-          <button class="bank-box-tab-btn active" onclick="switchBankD('popular',this)">Banco Popular</button>
-          <button class="bank-box-tab-btn" onclick="switchBankD('zelle',this)">Zelle</button>
-          <button class="bank-box-tab-btn" onclick="switchBankD('reservas',this)">Banreservas</button>
-          <button class="bank-box-tab-btn" onclick="switchBankD('reservasusd',this)">Banreservas USD</button>
-          <button class="bank-box-tab-btn" onclick="switchBankD('bhd',this)">Banco BHD</button>
-        </div>
-        <div class="bank-panel active" id="dash-popular">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta corriente</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" onclick="copyText('0832468474')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="dash-zelle">
-          <div class="bank-row"><span class="bank-key">Método</span><span class="bank-val">Zelle</span></div>
-          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" onclick="copyText('vendobote@icloud.com')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="dash-reservas">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en pesos (DOP)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="dash-reservasusd">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en dólares (USD)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" onclick="copyText('9609859038')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="dash-bhd">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco BHD</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
-        </div>
-              <!-- Referencia y monto (siempre visible) -->
-              <div style="border-top:1.5px solid var(--line);margin-top:0.5rem;padding-top:0.75rem;">
-                <div class="bank-row"><span class="bank-key">Referencia</span><div style="display:flex;gap:0.75rem;align-items:center;"><span class="bank-val" id="pay-ref">—</span><button class="bank-copy" id="copy-ref-btn">Copiar</button></div></div>
-                <div class="bank-row"><span class="bank-key">Monto a pagar</span><span class="bank-val" id="pay-amount" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--sky-2);">—</span></div>
-              </div>
-            </div>
-
-            <div style="background:var(--bg-card);border:1px solid var(--line-2);border-radius:var(--r);padding:2rem;">
-              <h3 style="font-family:var(--serif);font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Datos del comprobante</h3>
-              <div style="display:flex;flex-direction:column;gap:1rem;">
-                <div class="form-group">
-                  <label class="form-label">Comprobante de pago *</label>
-                  <input type="file" class="form-input" id="pay-receipt" accept=".jpg,.jpeg,.png,.pdf,.webp" style="padding:0.6rem;" />
-                  <span style="font-size:0.72rem;color:var(--cream-3);margin-top:0.3rem;">Foto o captura de la transferencia — JPG, PNG o PDF, máx. 10MB</span>
-                </div>
-                <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:0.9rem 1.1rem;font-size:0.8rem;color:var(--cream-2);line-height:1.6;">
-                  💡 Recomendamos transferir desde una cuenta del <strong>mismo banco</strong> (Banco Popular, Banreservas o BHD) para que el pago se refleje de inmediato. Si transfieres desde un banco distinto, asegúrate de que sea una <strong>transferencia instantánea</strong>, ya que un depósito interbancario regular puede tardar en acreditarse.
-                </div>
-                <div id="pay-error" class="form-error hidden"></div>
-                <button class="btn btn-primary" id="submit-payment-btn" style="justify-content:center;">
-                  Enviar comprobante
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div id="payment-success" class="hidden" style="text-align:center;padding:3rem 1rem;">
-            <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
-            <h3 style="font-family:var(--serif);font-style:italic;font-size:1.5rem;color:var(--cream);margin-bottom:0.75rem;">Comprobante enviado</h3>
-            <p style="color:var(--cream-3);line-height:1.7;margin-bottom:2rem;">Nuestro equipo verificará tu pago en menos de 24 horas. Recibirás la confirmación aquí en tu panel.</p>
-            <button class="btn btn-ghost" onclick="showTab('bookings',null)">Ver mis reservas</button>
           </div>
         </div>
 
@@ -327,7 +239,6 @@
       const match = document.querySelector(`[data-tab="${tab}"]`);
       if (match) match.classList.add('active');
     }
-    if (tab === 'payment') initPaymentTab();
     if (tab === 'profile') initProfileTab();
   };
 
@@ -336,7 +247,6 @@
     window.VBR.api('/bookings/my').then(data => {
       allBookings = data;
       renderBookings('all');
-      populatePaymentSelect(data);
     }).catch(() => { document.getElementById('bookings-list').innerHTML = '<p class="text-muted">Error cargando reservas.</p>'; });
   }
 
@@ -368,7 +278,6 @@
         : vid
           ? '<video class="booking-card-img" src="' + esc(encodeURI(vid)) + '#t=0.5" muted playsinline preload="metadata" aria-label="' + esc(b.boat_name) + '"></video>'
           : '<div class="booking-card-img" style="background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:2rem;">⛵</div>';
-      const needsPay = b.status !== "cancelled" && (b.payment_status === "pending" || b.payment_status === "rejected");
       return `<div class="booking-card" data-reveal>
         ${media}
         <div class="booking-card-body">
@@ -397,7 +306,6 @@
               <div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${b.days} día${b.days>1?'s':''} · ${b.guests} persona${b.guests>1?'s':''}</div>
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-              ${needsPay ? `<button class="btn btn-primary btn-sm" onclick="goToPay(${b.id})">Enviar pago</button>` : ''}
               <button class="btn btn-ghost btn-sm" onclick="openDetail(${b.id})">Ver detalle</button>
               ${b.status === 'pending' && ['pending', 'rejected'].includes(b.payment_status) ? `<button class="btn btn-ghost btn-sm" onclick="cancelBooking(${b.id})" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>` : ''}
             </div>
@@ -413,15 +321,6 @@
     document.querySelectorAll('.location-tab').forEach(t => t.classList.remove('active'));
     btn?.classList.add('active');
     renderBookings(filter);
-  };
-
-  window.goToPay = function (id) {
-    document.querySelector('[data-tab="payment"]').click();
-    setTimeout(() => {
-      const sel = document.getElementById('pay-booking-select');
-      sel.value = id;
-      sel.dispatchEvent(new Event('change'));
-    }, 100);
   };
 
   /* ── Booking detail modal ── */
@@ -468,63 +367,6 @@
       loadBookings();
     });
   };
-
-  /* ── Payment tab ── */
-  function populatePaymentSelect(bookings) {
-    const sel = document.getElementById('pay-booking-select');
-    const payable = bookings.filter(b => b.status !== 'cancelled' && (b.payment_status === 'pending' || b.payment_status === 'rejected'));
-    if (!payable.length) {
-      sel.innerHTML = '<option value="">No tienes reservas pendientes de pago</option>';
-      return;
-    }
-    sel.innerHTML = '<option value="">Selecciona una reserva...</option>' + payable.map(b =>
-      `<option value="${b.id}">${b.boat_name} · ${fmt(b.start_date)} → ${fmt(b.end_date)} · $${Number(b.total_price).toLocaleString()}</option>`
-    ).join('');
-  }
-
-  let paymentTabReady = false;
-  function initPaymentTab() {
-    if (paymentTabReady) return; // evita registrar los eventos varias veces (enviaría el comprobante repetido)
-    paymentTabReady = true;
-    const sel = document.getElementById('pay-booking-select');
-    sel.addEventListener('change', function () {
-      const id = parseInt(this.value);
-      const booking = allBookings.find(b => b.id === id);
-      if (!booking) { document.getElementById('payment-form-wrap').classList.add('hidden'); return; }
-      document.getElementById('payment-form-wrap').classList.remove('hidden');
-      document.getElementById('pay-ref').textContent = booking.booking_ref;
-      document.getElementById('copy-ref-btn').onclick = () => copyText(booking.booking_ref);
-      document.getElementById('pay-amount').textContent = '$' + Number(booking.total_price).toLocaleString() + ' USD';
-    });
-
-    document.getElementById('submit-payment-btn').addEventListener('click', submitPayment);
-  }
-
-  async function submitPayment() {
-    const id = document.getElementById('pay-booking-select').value;
-    if (!id) { window.VBR.toast('Selecciona una reserva', 'error'); return; }
-    const file = document.getElementById('pay-receipt').files[0];
-    if (!file) { document.getElementById('pay-error').textContent = 'Adjunta la foto o captura del comprobante de pago'; document.getElementById('pay-error').classList.remove('hidden'); return; }
-    document.getElementById('pay-error').classList.add('hidden');
-
-    const formData = new FormData();
-    formData.append('receipt', file);
-
-    const btn = document.getElementById('submit-payment-btn');
-    btn.disabled = true; btn.textContent = 'Enviando...';
-
-    fetch('/api/bookings/' + id + '/payment', {
-      method: 'POST',
-      credentials: 'same-origin',
-      body: formData
-    }).then(r => r.json()).then(data => {
-      if (data.error) { document.getElementById('pay-error').textContent = data.error; document.getElementById('pay-error').classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Enviar comprobante'; return; }
-      document.getElementById('payment-form-wrap').classList.add('hidden');
-      document.getElementById('payment-select-booking').classList.add('hidden');
-      document.getElementById('payment-success').classList.remove('hidden');
-      loadBookings();
-    }).catch(() => { btn.disabled = false; btn.textContent = 'Enviar comprobante'; window.VBR.toast('Error enviando comprobante', 'error'); });
-  }
 
   /* ── Profile tab ── */
   const $id = (x) => document.getElementById(x);
@@ -641,26 +483,9 @@
     setTimeout(() => window.VBR.toast('¡Reserva enviada con tu comprobante! Nuestro equipo la verificará en menos de 24 horas.', 'success'), 600);
     history.replaceState(null, '', location.pathname);
   }
-  if (urlParams.get('tab') === 'payment') {
-    setTimeout(() => {
-      const payTab = document.querySelector('[data-tab="payment"]');
-      if (payTab) { window.showTab('payment', payTab); }
-      const bid = urlParams.get('booking');
-      if (bid) setTimeout(() => {
-        const sel = document.getElementById('pay-booking-select');
-        if (sel) { sel.value = bid; sel.dispatchEvent(new Event('change')); }
-      }, 600);
-    }, 300);
-  }
 
 })();
 
-window.switchBankD = function(bank, btn) {
-  document.querySelectorAll('#dash-popular,#dash-zelle,#dash-reservas,#dash-reservasusd,#dash-bhd').forEach(p => p.classList.remove('active'));
-  document.getElementById('dash-' + bank).classList.add('active');
-  btn.closest('.bank-box-tab').querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
 </script>
 </body>
 </html>

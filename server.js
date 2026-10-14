@@ -82,7 +82,7 @@ app.use('/api/bookings', (req, res, next) => (req.method === 'POST' ? writeLimit
 // Login/registro/recuperación: límite estricto contra adivinación de contraseñas y spam de correos
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: Number(process.env.AUTH_LIMIT) || 15,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
