@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014z" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015b" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -247,12 +247,7 @@
           <button class="btn btn-ghost btn-sm" onclick="document.getElementById('book-filter-status').value='';document.getElementById('book-filter-pay').value='';loadAllBookings()">Limpiar</button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table res-table">
-          <thead><tr><th>Código</th><th>Embarcación</th><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Total</th><th>Estado</th><th>Pago</th><th>Acciones</th></tr></thead>
-          <tbody id="all-bookings-body"><tr><td colspan="9" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas.</td></tr></tbody>
-        </table>
-      </div>
+      <div class="booking-list" id="all-bookings-list"><p style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas.</p></div>
     </section>
 
     <!-- ── Payments ── -->
@@ -436,7 +431,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261014a" defer></script>
+<script src="/assets/js/main.js?v=20261015a" defer></script>
 <script type="module">
 (function () {
   window.logout = () => window.VBR_logout();
@@ -523,27 +518,17 @@
     if (status) url += 'status=' + status + '&';
     if (pay) url += 'payment_status=' + pay;
     window.VBR.api(url).then(data => {
-      const tbody = document.getElementById('all-bookings-body');
-      if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas registradas.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map(b => {
-        const ps = b.payment_status;
-        const client = [b.user_name, b.user_last_name].filter(Boolean).join(' ');
+      const list = document.getElementById('all-bookings-list');
+      if (!data.length) { list.innerHTML = '<p style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas registradas.</p>'; return; }
+      list.innerHTML = data.map(b => {
+        const client = [[b.user_name, b.user_last_name].filter(Boolean).join(' '), b.user_phone, b.user_email].filter(Boolean).join(' · ');
         const canAct = b.status !== 'cancelled';
-        return `<tr>
-          <td data-label="Código"><span class="res-code">${esc(b.booking_ref)}</span></td>
-          <td data-label="Embarcación"><div class="res-boat"><span class="res-thumb">${boatThumb(b)}</span><span class="res-boat-name">${esc(b.boat_name)}</span></div></td>
-          <td data-label="Cliente" title="${esc(b.user_email || '')}"><span class="res-client">${esc(client)}</span></td>
-          <td data-label="Fecha"><span class="res-nowrap">${fmtDate(b.start_date)}</span></td>
-          <td data-label="Turno"><span class="res-nowrap">${esc(SCHEDULE_SHORT[b.schedule] || SCHEDULE_LABEL[b.schedule] || b.schedule || '—')}</span></td>
-          <td data-label="Total"><strong class="res-nowrap">$${Number(b.total_price).toLocaleString()}</strong></td>
-          <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
-          <td data-label="Pago">${badge(ps==='verified'?'Verificado':ps==='submitted'?'En revisión':ps==='rejected'?'Rechazado':'Sin pago', ps==='verified'?'verified':ps==='submitted'?'submitted':ps==='rejected'?'rejected':'pending')}</td>
-          <td data-label="Acciones"><div class="res-actions"><button class="btn btn-ghost btn-sm" onclick="openVerifyModal(${b.id})">Ver</button>${canAct ? `<button class="btn btn-danger btn-sm" onclick="promptReject(${b.id})">Rechazar</button>` : ''}<button class="btn btn-ghost btn-sm res-del" onclick="deleteBooking(${b.id})">Eliminar</button></div></td>
-        </tr>`;
+        return window.VBR.bookingCard(b, { client, actions:
+          '<button class="btn btn-ghost btn-sm" onclick="openVerifyModal(' + b.id + ')">Ver</button>' +
+          (canAct ? '<button class="btn btn-danger btn-sm" onclick="promptReject(' + b.id + ')">Rechazar</button>' : '') +
+          '<button class="btn btn-ghost btn-sm" style="color:#B91C1C;" onclick="deleteBooking(' + b.id + ')">Eliminar</button>' });
       }).join('');
+      window.VBR.observeReveals && window.VBR.observeReveals();
     }).catch(() => window.VBR.toast('Error cargando reservas', 'error'));
   };
 

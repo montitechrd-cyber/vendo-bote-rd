@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014z" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015b" />
 </head>
 <body>
 
@@ -173,7 +173,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261014a" defer></script>
+<script src="/assets/js/main.js?v=20261015a" defer></script>
 <script type="module">
 (function () {
   let allBookings = [];
@@ -269,49 +269,10 @@
     }
     const esc = window.VBR.esc;
     list.innerHTML = bookings.map(b => {
-      const imgs = b.boat_images || [];
-      const isVid = (u) => /[.](mp4|webm|mov)([?]|$)/i.test(u || '');
-      const photo = imgs.find(u => !isVid(u));
-      const vid = imgs.find(isVid);
-      const media = photo
-        ? '<img class="booking-card-img" src="' + esc(encodeURI(photo)) + '" alt="' + esc(b.boat_name) + '" loading="lazy" />'
-        : vid
-          ? '<video class="booking-card-img" src="' + esc(encodeURI(vid)) + '#t=0.5" muted playsinline preload="metadata" aria-label="' + esc(b.boat_name) + '"></video>'
-          : '<div class="booking-card-img" style="background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:2rem;">⛵</div>';
-      return `<div class="booking-card" data-reveal>
-        ${media}
-        <div class="booking-card-body">
-          <div class="booking-card-header">
-            <div>
-              <div class="booking-card-name">${esc(b.boat_name)}</div>
-              <div class="booking-card-ref">${esc(b.booking_ref)}</div>
-            </div>
-            <div style="text-align:right;">${badgeHtml(b.status, b.payment_status)}</div>
-          </div>
-          <div class="booking-card-location">📍 ${esc(b.boat_location)}</div>
-          <div class="booking-card-dates">
-            <div class="booking-card-date-item">
-              <div class="booking-card-date-label">Llegada</div>
-              <div class="booking-card-date-val">${fmt(b.start_date)}</div>
-            </div>
-            <span class="booking-card-arrow">→</span>
-            <div class="booking-card-date-item">
-              <div class="booking-card-date-label">Salida</div>
-              <div class="booking-card-date-val">${fmt(b.end_date)}</div>
-            </div>
-          </div>
-          <div class="booking-card-footer">
-            <div>
-              <div class="booking-card-price">$${Number(b.total_price).toLocaleString()} USD</div>
-              <div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);">${b.days} día${b.days>1?'s':''} · ${b.guests} persona${b.guests>1?'s':''}</div>
-            </div>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-              <button class="btn btn-ghost btn-sm" onclick="openDetail(${b.id})">Ver detalle</button>
-              ${b.status === 'pending' && ['pending', 'rejected'].includes(b.payment_status) ? `<button class="btn btn-ghost btn-sm" onclick="cancelBooking(${b.id})" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>` : ''}
-            </div>
-          </div>
-        </div>
-      </div>`;
+      const canCancel = b.status === 'pending' && ['pending', 'rejected'].includes(b.payment_status);
+      return window.VBR.bookingCard(b, { actions:
+        '<button class="btn btn-ghost btn-sm" onclick="openDetail(' + b.id + ')">Ver detalle</button>' +
+        (canCancel ? '<button class="btn btn-ghost btn-sm" onclick="cancelBooking(' + b.id + ')" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>' : '') });
     }).join('');
 
     window.VBR.observeReveals();
@@ -337,9 +298,9 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
             <div class="boat-spec-item"><div class="boat-spec-label">Ref. Reserva</div><div class="boat-spec-val" style="font-family:var(--mono);font-size:0.78rem;">${esc(b.booking_ref)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Estado</div><div class="boat-spec-val">${badgeHtml(b.status, b.payment_status)}</div></div>
-            <div class="boat-spec-item"><div class="boat-spec-label">Llegada</div><div class="boat-spec-val">${fmt(b.start_date)}</div></div>
-            <div class="boat-spec-item"><div class="boat-spec-label">Salida</div><div class="boat-spec-val">${fmt(b.end_date)}</div></div>
-            <div class="boat-spec-item"><div class="boat-spec-label">Duración</div><div class="boat-spec-val">${b.days} días</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Fecha de llegada</div><div class="boat-spec-val">${fmt(b.start_date)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Horario</div><div class="boat-spec-val">${esc(window.VBR.slotLabel(b.schedule))}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Ubicación</div><div class="boat-spec-val">${esc(b.boat_location)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests}</div></div>
             <div class="boat-spec-item" style="grid-column:span 2;"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.2rem;color:var(--sky-2);">$${Number(b.total_price).toLocaleString()} USD</div></div>
           </div>

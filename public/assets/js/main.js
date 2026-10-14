@@ -57,7 +57,52 @@
     return r.json();
   }
 
-  window.VBR = { api, esc, fmtDateLong, fmtDateShort, observeReveals, $, $$ };
+  /* ── Tarjeta de reserva (misma para el cliente y para el admin) ── */
+  const SLOT_LABELS = { '9am-3pm': '9:00 AM – 3:00 PM', '4pm-10pm': '4:00 PM – 10:00 PM', 'full-day': 'Día completo' };
+  const slotLabel = (k) => SLOT_LABELS[k] || k || '—';
+  const isVideoUrl = (u) => /[.](mp4|webm|mov)([?]|$)/i.test(u || '');
+
+  // Portada: primera foto; si solo hay videos, un fotograma del video; si no hay nada, un ícono
+  function boatCover(b) {
+    let imgs = b.boat_images || [];
+    if (typeof imgs === 'string') { try { imgs = JSON.parse(imgs); } catch { imgs = []; } }
+    const photo = imgs.find(u => !isVideoUrl(u)), vid = imgs.find(isVideoUrl);
+    if (photo) return '<img class="booking-card-img" src="' + esc(encodeURI(photo)) + '" alt="' + esc(b.boat_name) + '" loading="lazy" />';
+    if (vid) return '<video class="booking-card-img" src="' + esc(encodeURI(vid)) + '#t=0.5" muted playsinline preload="metadata" aria-label="' + esc(b.boat_name) + '"></video>';
+    return '<div class="booking-card-img booking-card-img-empty">⛵</div>';
+  }
+
+  function statusBadges(status, payStatus) {
+    const st = { pending: 'Pendiente', confirmed: 'Confirmada', cancelled: 'Cancelada' };
+    const pay = { pending: 'Sin pago', submitted: 'En verificación', verified: 'Pago verificado', rejected: 'Pago rechazado' };
+    const sc = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
+    const pc = payStatus === 'verified' ? 'verified' : payStatus === 'submitted' ? 'submitted' : payStatus === 'rejected' ? 'rejected' : 'pending';
+    return '<span class="badge badge-' + sc + '">' + (st[status] || status) + '</span> <span class="badge badge-' + pc + '">' + (pay[payStatus] || payStatus) + '</span>';
+  }
+
+  // opts: { client: 'Nombre · tel · correo' (solo admin), actions: '<button…>' }
+  function bookingCard(b, opts = {}) {
+    const guests = b.guests + ' persona' + (b.guests > 1 ? 's' : '');
+    return '<div class="booking-card" data-reveal>' + boatCover(b) +
+      '<div class="booking-card-body">' +
+        '<div class="booking-card-header"><div>' +
+          '<div class="booking-card-name">' + esc(b.boat_name) + '</div>' +
+          '<div class="booking-card-ref">' + esc(b.booking_ref) + '</div>' +
+        '</div><div class="booking-card-badges">' + statusBadges(b.status, b.payment_status) + '</div></div>' +
+        '<div class="booking-card-location">📍 ' + esc(b.boat_location) + '</div>' +
+        (opts.client ? '<div class="booking-card-client">👤 ' + esc(opts.client) + '</div>' : '') +
+        '<div class="booking-card-dates">' +
+          '<div class="booking-card-date-item"><div class="booking-card-date-label">Fecha de llegada</div><div class="booking-card-date-val">' + fmtDateLong(b.start_date) + '</div></div>' +
+          '<div class="booking-card-date-item"><div class="booking-card-date-label">Horario</div><div class="booking-card-date-val">' + esc(slotLabel(b.schedule)) + '</div></div>' +
+        '</div>' +
+        '<div class="booking-card-footer"><div>' +
+          '<div class="booking-card-price">$' + Number(b.total_price).toLocaleString() + ' USD</div>' +
+          '<div class="booking-card-meta">' + guests + '</div></div>' +
+          '<div class="booking-card-actions">' + (opts.actions || '') + '</div></div>' +
+      '</div></div>';
+  }
+
+  window.VBR = { api, esc, fmtDateLong, fmtDateShort, observeReveals, $, $$, slotLabel, boatCover, statusBadges, bookingCard };
 
   /* ── Toast ── */
   function toast(msg, type = 'info') {
