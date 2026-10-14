@@ -72,7 +72,7 @@ app.use('/api', apiLimiter);
 // Límite estricto para acciones sensibles: crear reservas y subir comprobantes de pago
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: Number(process.env.WRITE_LIMIT) || 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },

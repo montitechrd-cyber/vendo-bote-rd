@@ -46,6 +46,7 @@ router.post('/', authRequired, async (req, res) => {
     if (!validSchedules.includes(schedule)) return res.status(400).json({ error: 'Turno inválido' });
 
     const maxCapacity = scheme?.max_capacity || boatRow.capacity;
+    if (birthday_combo === true && boatRow.location !== 'Boca Chica') return res.status(400).json({ error: 'El combo de cumpleaños solo aplica en Boca Chica' });
     const guestsNum = parseInt(guests) || 1;
     if (guestsNum > maxCapacity) return res.status(400).json({ error: `Máximo ${maxCapacity} personas` });
 
@@ -341,6 +342,10 @@ router.post('/:id/cancel', authRequired, async (req, res) => {
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
     if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
     if (booking.status === 'cancelled') return res.status(400).json({ error: 'Ya cancelada' });
+    // Con comprobante enviado o pago verificado ya hay dinero de por medio: el cliente debe contactar al equipo; la admin sí puede cancelar.
+    if (req.user.role !== 'admin' && ['submitted', 'verified'].includes(booking.payment_status)) {
+      return res.status(400).json({ error: 'Ya enviaste tu comprobante de pago. Para cancelar o cambiar la reserva, contacta al equipo.' });
+    }
     await db.run('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', booking.id]);
     res.json({ success: true });
   } catch (e) {
