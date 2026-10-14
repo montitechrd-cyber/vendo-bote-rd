@@ -300,10 +300,17 @@
     const esc = window.VBR.esc;
     list.innerHTML = bookings.map(b => {
       const imgs = b.boat_images || [];
-      const img = imgs[0] || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=70';
+      const isVid = (u) => /.(mp4|webm|mov)(?|$)/i.test(u || '');
+      const photo = imgs.find(u => !isVid(u));
+      const vid = imgs.find(isVid);
+      const media = photo
+        ? '<img class="booking-card-img" src="' + esc(encodeURI(photo)) + '" alt="' + esc(b.boat_name) + '" loading="lazy" />'
+        : vid
+          ? '<video class="booking-card-img" src="' + esc(encodeURI(vid)) + '#t=0.5" muted playsinline preload="metadata" aria-label="' + esc(b.boat_name) + '"></video>'
+          : '<div class="booking-card-img" style="background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:2rem;">⛵</div>';
       const needsPay = b.status !== "cancelled" && (b.payment_status === "pending" || b.payment_status === "rejected");
       return `<div class="booking-card" data-reveal>
-        <img class="booking-card-img" src="${esc(img)}" alt="${esc(b.boat_name)}" loading="lazy" />
+        ${media}
         <div class="booking-card-body">
           <div class="booking-card-header">
             <div>
