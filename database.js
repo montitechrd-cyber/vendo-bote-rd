@@ -34,6 +34,14 @@ async function createTables() {
   // Esquema de precio por paquete de horas (renta fuera de Boca Chica: 3h/4h, hora extra, cargo por persona extra, extras de comida)
   await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS pricing_scheme TEXT`).catch(() => {});
   await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_meta TEXT`).catch(() => {});
+  // Perfil: cédula (número) y archivos del usuario (foto de perfil y documento) guardados en la base de datos,
+  // en tabla aparte para no cargarlos en cada petición autenticada.
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_number TEXT`).catch(() => {});
+  await pool.query(`CREATE TABLE IF NOT EXISTS user_files (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    avatar_data BYTEA, avatar_mime TEXT, avatar_updated_at TIMESTAMPTZ,
+    id_data BYTEA, id_mime TEXT
+  )`).catch(() => {});
   // Comprobantes de pago guardados en la base de datos (el disco del servidor se borra en cada despliegue)
   await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_data BYTEA`).catch(() => {});
   await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_mime TEXT`).catch(() => {});

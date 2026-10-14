@@ -9,21 +9,34 @@ const { sendPasswordReset } = require('../utils/email');
 
 const router = express.Router();
 
-const idStorage = multer.diskStorage({
-  destination: path.join(__dirname, '../uploads/ids'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `id_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`);
-  }
-});
+const DOC_EXT = ['.jpg', '.jpeg', '.png', '.pdf', '.webp'];
+const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
 const uploadId = multer({
-  storage: idStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.pdf', '.webp'];
-    cb(null, allowed.includes(path.extname(file.originalname).toLowerCase()));
-  }
+  fileFilter: (req, file, cb) => cb(null, DOC_EXT.includes(path.extname(file.originalname).toLowerCase()))
 });
+const uploadAvatarMw = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, ['.jpg', '.jpeg', '.png', '.webp'].includes(path.extname(file.originalname).toLowerCase()))
+});
+// Convierte errores de multer (archivo muy grande) en una respuesta clara
+const withUpload = (mw, field, msg) => (req, res, next) => mw.single(field)(req, res, err => {
+  if (err) return res.status(400).json({ error: msg });
+  next();
+});
+const uploadIdDoc = withUpload(uploadId, 'id_document', 'El documento es demasiado grande (máx. 10MB) o no es válido.');
+const uploadAvatar = withUpload(uploadAvatarMw, 'avatar', 'La foto es demasiado grande o no es válida (JPG, PNG o WEBP).');
+
+async function saveIdDoc(db, userId, file) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  await db.run(
+    'INSERT INTO user_files (user_id, id_data, id_mime) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET id_data = EXCLUDED.id_data, id_mime = EXCLUDED.id_mime',
+    [userId, file.buffer, MIME[ext] || 'application/octet-stream']
+  );
+  await db.run('UPDATE users SET id_document_filename = $1 WHERE id = $2', ['cedula_' + userId + ext, userId]);
+}
 
 /* ── Registro / login propios (correo + contraseña) ── */
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'montitechrd@gmail.com').toLowerCase();
@@ -182,29 +195,147 @@ router.post('/reset', async (req, res) => {
   }
 });
 
+async function getMe(db, userId) {
+  return db.queryOne(
+    `SELECT u.id, u.name, u.last_name, u.email, u.phone, u.id_number, u.role, u.profile_completed, u.created_at,
+            (u.password_hash IS NOT NULL) AS has_password,
+            (f.avatar_data IS NOT NULL) AS has_avatar,
+            COALESCE(EXTRACT(EPOCH FROM f.avatar_updated_at)::bigint, 0) AS avatar_v,
+            (f.id_data IS NOT NULL OR u.id_document_filename IS NOT NULL) AS has_id_document
+     FROM users u LEFT JOIN user_files f ON f.user_id = u.id WHERE u.id = $1`,
+    [userId]
+  );
+}
+
 router.get('/me', authRequired, async (req, res) => {
   try {
-    const db = getDB();
-    const user = await db.queryOne(
-      'SELECT id, name, last_name, email, phone, role, profile_completed, id_document_filename, created_at FROM users WHERE id = $1',
-      [req.user.id]
-    );
+    const user = await getMe(getDB(), req.user.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
     res.json(user);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Datos personales: nombre, apellido, teléfono y cédula
+router.put('/me', authRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    const name = String(req.body.name || '').trim().slice(0, 80);
+    const last_name = String(req.body.last_name || '').trim().slice(0, 80);
+    const phone = String(req.body.phone || '').trim().slice(0, 30);
+    const id_number = String(req.body.id_number || '').trim().slice(0, 25);
+    if (!name || !last_name) return res.status(400).json({ error: 'Nombre y apellido son requeridos' });
+    if (!phone) return res.status(400).json({ error: 'El teléfono es requerido' });
+    if (id_number && !/^[A-Za-z0-9\-\s]{5,25}$/.test(id_number)) return res.status(400).json({ error: 'La cédula o pasaporte no es válido' });
+    await db.run('UPDATE users SET name = $1, last_name = $2, phone = $3, id_number = $4, profile_completed = true WHERE id = $5',
+      [name, last_name, phone, id_number || null, req.user.id]);
+    res.json(await getMe(db, req.user.id));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al actualizar el perfil' });
+  }
+});
+
+// Cambiar correo: pide la contraseña actual. La cuenta del administrador principal no se cambia desde aquí.
+router.post('/me/email', authRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    const email = normEmail(req.body.email);
+    const current = String(req.body.current_password || '');
+    if (!req.user.password_hash) return res.status(400).json({ error: 'Tu cuenta no tiene contraseña. Crea una primero en la sección Contraseña.' });
+    if (req.user.role === 'admin') return res.status(403).json({ error: 'El correo de la cuenta administradora no se puede cambiar desde aquí.' });
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Correo inválido' });
+    if (!verifyPassword(current, req.user.password_hash)) return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+    if (email === req.user.email) return res.status(400).json({ error: 'Ese ya es tu correo' });
+    if (email === ADMIN_EMAIL) return res.status(409).json({ error: 'Ese correo no está disponible' });
+    const taken = await db.queryOne('SELECT id FROM users WHERE email = $1 AND id != $2', [email, req.user.id]);
+    if (taken) return res.status(409).json({ error: 'Ese correo ya está en uso' });
+    await db.run('UPDATE users SET email = $1 WHERE id = $2', [email, req.user.id]);
+    res.json(await getMe(db, req.user.id));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo cambiar el correo' });
+  }
+});
+
+// Cambiar (o crear) la contraseña
+router.post('/me/password', authRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    const next = String(req.body.new_password || '');
+    if (next.length < 8) return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
+    if (req.user.password_hash && !verifyPassword(String(req.body.current_password || ''), req.user.password_hash)) {
+      return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+    }
+    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [hashPassword(next), req.user.id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo cambiar la contraseña' });
+  }
+});
+
+// Foto de perfil (se guarda en la base de datos; solo la ve su dueño o un admin)
+router.post('/me/avatar', authRequired, uploadAvatar, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Elige una foto (JPG, PNG o WEBP)' });
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    await getDB().run(
+      'INSERT INTO user_files (user_id, avatar_data, avatar_mime, avatar_updated_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id) DO UPDATE SET avatar_data = EXCLUDED.avatar_data, avatar_mime = EXCLUDED.avatar_mime, avatar_updated_at = NOW()',
+      [req.user.id, req.file.buffer, MIME[ext] || 'image/jpeg']
+    );
+    res.json(await getMe(getDB(), req.user.id));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo guardar la foto' });
+  }
+});
+
+router.delete('/me/avatar', authRequired, async (req, res) => {
+  try {
+    await getDB().run('UPDATE user_files SET avatar_data = NULL, avatar_mime = NULL, avatar_updated_at = NULL WHERE user_id = $1', [req.user.id]);
+    res.json(await getMe(getDB(), req.user.id));
+  } catch (e) {
+    res.status(500).json({ error: 'No se pudo quitar la foto' });
+  }
+});
+
+router.get('/avatar/:userId', authRequired, async (req, res) => {
+  try {
+    const targetId = parseInt(req.params.userId, 10);
+    if (targetId !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    const f = await getDB().queryOne('SELECT avatar_data, avatar_mime FROM user_files WHERE user_id = $1', [targetId]);
+    if (!f || !f.avatar_data) return res.status(404).json({ error: 'Sin foto' });
+    res.set('Content-Type', f.avatar_mime || 'image/jpeg');
+    res.set('Cache-Control', 'private, max-age=0, must-revalidate');
+    res.send(f.avatar_data);
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
-router.put('/me', authRequired, async (req, res) => {
+// Cédula / pasaporte (foto o PDF)
+router.post('/me/id-document', authRequired, uploadIdDoc, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Adjunta una foto o PDF de tu cédula (JPG, PNG, WEBP o PDF)' });
+    await saveIdDoc(getDB(), req.user.id, req.file);
+    res.json(await getMe(getDB(), req.user.id));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo guardar el documento' });
+  }
+});
+
+router.delete('/me/id-document', authRequired, async (req, res) => {
   try {
     const db = getDB();
-    const { name, phone } = req.body;
-    await db.run('UPDATE users SET name = $1, phone = $2 WHERE id = $3', [name, phone, req.user.id]);
-    const user = await db.queryOne('SELECT id, name, email, phone, role FROM users WHERE id = $1', [req.user.id]);
-    res.json(user);
+    await db.run('UPDATE user_files SET id_data = NULL, id_mime = NULL WHERE user_id = $1', [req.user.id]);
+    await db.run('UPDATE users SET id_document_filename = NULL WHERE id = $1', [req.user.id]);
+    res.json(await getMe(db, req.user.id));
   } catch (e) {
-    res.status(500).json({ error: 'Error al actualizar perfil' });
+    res.status(500).json({ error: 'No se pudo eliminar el documento' });
   }
 });
 
@@ -212,7 +343,7 @@ router.put('/me', authRequired, async (req, res) => {
 // apellido y teléfono. La foto de
 // cédula o pasaporte es opcional por ahora — se guarda igual que los comprobantes
 // de pago: nunca pública, solo accesible por el propio dueño o un admin.
-router.post('/complete-profile', authRequired, uploadId.single('id_document'), async (req, res) => {
+router.post('/complete-profile', authRequired, uploadIdDoc, async (req, res) => {
   try {
     const db = getDB();
     const { name, last_name, phone } = req.body;
@@ -222,13 +353,10 @@ router.post('/complete-profile', authRequired, uploadId.single('id_document'), a
 
     const fields = ['name = $1', 'last_name = $2', 'phone = $3', 'profile_completed = true'];
     const params = [name.trim(), last_name.trim(), phone.trim()];
-    if (req.file) {
-      fields.push(`id_document_filename = $${params.length + 1}`);
-      params.push(req.file.filename);
-    }
     params.push(req.user.id);
 
     await db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length}`, params);
+    if (req.file) await saveIdDoc(db, req.user.id, req.file);
     const user = await db.queryOne(
       'SELECT id, name, last_name, email, phone, role, profile_completed, id_document_filename FROM users WHERE id = $1',
       [req.user.id]
@@ -249,9 +377,14 @@ router.get('/id-document/:userId', authRequired, async (req, res) => {
     if (targetId !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
+    const f = await db.queryOne('SELECT id_data, id_mime FROM user_files WHERE user_id = $1', [targetId]);
+    if (f && f.id_data) {
+      res.set('Content-Type', f.id_mime || 'application/octet-stream');
+      return res.send(f.id_data);
+    }
     const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);
     if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
-    res.sendFile(path.join(__dirname, '../uploads/ids', user.id_document_filename));
+    res.sendFile(path.join(__dirname, '../uploads/ids', user.id_document_filename), err => { if (err && !res.headersSent) res.status(404).json({ error: 'Sin documento' }); });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
   }
@@ -267,6 +400,7 @@ router.delete('/id-document/:userId', adminRequired, async (req, res) => {
     if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
 
     fs.unlink(path.join(__dirname, '../uploads/ids', user.id_document_filename), () => {});
+    await db.run('UPDATE user_files SET id_data = NULL, id_mime = NULL WHERE user_id = $1', [targetId]);
     await db.run('UPDATE users SET id_document_filename = NULL WHERE id = $1', [targetId]);
     res.json({ ok: true });
   } catch (e) {

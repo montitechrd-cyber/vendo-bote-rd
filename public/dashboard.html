@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261014u" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261014v" />
 </head>
 <body>
 
@@ -178,23 +178,71 @@
         <!-- Profile tab -->
         <div id="tab-profile" class="tab-content hidden">
           <h2 style="font-family:var(--serif);font-size:1.5rem;font-style:italic;color:var(--cream);margin-bottom:1.5rem;">Mi Perfil</h2>
-          <div style="background:var(--bg-card);border:1px solid var(--line-2);border-radius:var(--r);padding:2rem;max-width:500px;">
-            <div style="display:flex;flex-direction:column;gap:1rem;">
-              <div class="form-group">
-                <label class="form-label">Nombre completo</label>
-                <input type="text" class="form-input" id="profile-name" />
+          <div class="profile-stack">
+
+            <section class="profile-card" aria-labelledby="pf-photo-h">
+              <h3 class="profile-card-title" id="pf-photo-h">Foto de perfil</h3>
+              <div class="profile-photo-row">
+                <div class="dashboard-avatar profile-photo" id="profile-photo" style="margin:0;">—</div>
+                <div class="profile-photo-actions">
+                  <input type="file" id="avatar-file" accept=".jpg,.jpeg,.png,.webp" class="sr-only" style="position:absolute;width:1px;height:1px;opacity:0;" />
+                  <button type="button" class="btn btn-ghost btn-sm" id="avatar-pick">Cambiar foto</button>
+                  <button type="button" class="btn btn-ghost btn-sm hidden" id="avatar-remove">Quitar</button>
+                  <span class="profile-hint">JPG, PNG o WEBP. Se ajusta a un círculo.</span>
+                </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">Correo electrónico</label>
-                <input type="email" class="form-input" id="profile-email" disabled style="opacity:0.5;" />
+            </section>
+
+            <section class="profile-card" aria-labelledby="pf-data-h">
+              <h3 class="profile-card-title" id="pf-data-h">Datos personales</h3>
+              <div class="profile-grid">
+                <div class="form-group"><label class="form-label" for="profile-name">Nombre</label><input type="text" class="form-input" id="profile-name" autocomplete="given-name" maxlength="80" /></div>
+                <div class="form-group"><label class="form-label" for="profile-lastname">Apellido</label><input type="text" class="form-input" id="profile-lastname" autocomplete="family-name" maxlength="80" /></div>
+                <div class="form-group"><label class="form-label" for="profile-phone">Teléfono</label><input type="tel" class="form-input" id="profile-phone" placeholder="+1 809 000 0000" autocomplete="tel" maxlength="30" /></div>
+                <div class="form-group"><label class="form-label" for="profile-idnumber">Cédula o pasaporte</label><input type="text" class="form-input" id="profile-idnumber" placeholder="000-0000000-0" maxlength="25" /></div>
               </div>
-              <div class="form-group">
-                <label class="form-label">Teléfono</label>
-                <input type="tel" class="form-input" id="profile-phone" placeholder="+1 809 000 0000" />
+              <div id="profile-msg" class="hidden" role="status"></div>
+              <button class="btn btn-primary" id="save-profile-btn">Guardar cambios</button>
+            </section>
+
+            <section class="profile-card" aria-labelledby="pf-id-h">
+              <h3 class="profile-card-title" id="pf-id-h">Foto o PDF de la cédula</h3>
+              <p class="profile-hint" style="margin-bottom:0.75rem;">Solo tú y el equipo de Vendo Bote RD pueden verla.</p>
+              <div class="profile-id-row">
+                <span id="id-doc-status" class="badge badge-pending">Sin documento</span>
+                <input type="file" id="id-file" accept=".jpg,.jpeg,.png,.pdf,.webp" style="position:absolute;width:1px;height:1px;opacity:0;" />
+                <button type="button" class="btn btn-ghost btn-sm hidden" id="id-view">Ver</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="id-pick">Subir documento</button>
+                <button type="button" class="btn btn-ghost btn-sm hidden" id="id-remove" style="color:#B91C1C;">Eliminar</button>
               </div>
-              <div id="profile-msg" class="hidden"></div>
-              <button class="btn btn-primary" id="save-profile-btn" style="justify-content:center;">Guardar cambios</button>
-            </div>
+              <div id="id-msg" class="hidden" role="status"></div>
+            </section>
+
+            <section class="profile-card" aria-labelledby="pf-mail-h">
+              <h3 class="profile-card-title" id="pf-mail-h">Correo electrónico</h3>
+              <div class="form-group"><label class="form-label" for="profile-email">Correo actual</label><input type="email" class="form-input" id="profile-email" disabled style="opacity:0.6;" /></div>
+              <div id="email-form">
+                <div class="profile-grid">
+                  <div class="form-group"><label class="form-label" for="new-email">Nuevo correo</label><input type="email" class="form-input" id="new-email" autocomplete="email" /></div>
+                  <div class="form-group"><label class="form-label" for="email-pass">Contraseña actual</label><input type="password" class="form-input" id="email-pass" autocomplete="current-password" /></div>
+                </div>
+                <button class="btn btn-ghost" id="save-email-btn">Cambiar correo</button>
+              </div>
+              <p class="profile-hint hidden" id="email-note"></p>
+              <div id="email-msg" class="hidden" role="status"></div>
+            </section>
+
+            <section class="profile-card" aria-labelledby="pf-pass-h">
+              <h3 class="profile-card-title" id="pf-pass-h">Contraseña</h3>
+              <div class="profile-grid">
+                <div class="form-group" id="cur-pass-wrap"><label class="form-label" for="cur-pass">Contraseña actual</label><input type="password" class="form-input" id="cur-pass" autocomplete="current-password" /></div>
+                <div class="form-group"><label class="form-label" for="new-pass">Nueva contraseña</label><input type="password" class="form-input" id="new-pass" autocomplete="new-password" placeholder="Mínimo 8 caracteres" /></div>
+                <div class="form-group"><label class="form-label" for="new-pass2">Repite la nueva contraseña</label><input type="password" class="form-input" id="new-pass2" autocomplete="new-password" /></div>
+              </div>
+              <button class="btn btn-ghost" id="save-pass-btn">Cambiar contraseña</button>
+              <div id="pass-msg" class="hidden" role="status"></div>
+            </section>
+
           </div>
         </div>
 
@@ -220,6 +268,18 @@
 
   const fmt = (d) => window.VBR.fmtDateLong(d);
 
+  // Muestra la foto de perfil si existe; si no, las iniciales
+  let meState = null;
+  function setAvatars(initials) {
+    const has = meState && meState.has_avatar;
+    const html = has ? '<img src="/api/auth/avatar/' + meState.id + '?v=' + (meState.avatar_v || Date.now()) + '" alt="" />' : null;
+    ['user-avatar', 'sidebar-avatar', 'profile-photo'].forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      if (html) el.innerHTML = html; else el.textContent = initials || el.dataset.initials || '—';
+      if (initials) el.dataset.initials = initials;
+    });
+  }
+
   function initUI(userName, userEmail) {
     const first = (userName || userEmail || 'Usuario').split(' ')[0];
     const initials = (userName || userEmail || 'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -227,8 +287,7 @@
     document.getElementById('user-email-display').textContent = userEmail;
     document.getElementById('sidebar-name').textContent = userName || userEmail;
     document.getElementById('sidebar-email').textContent = userEmail;
-    document.getElementById('user-avatar').textContent = initials;
-    document.getElementById('sidebar-avatar').textContent = initials;
+    setAvatars(initials);
     document.getElementById('profile-name').value = userName || '';
     document.getElementById('profile-email').value = userEmail || '';
   }
@@ -250,6 +309,7 @@
         location.href = '/complete-profile.html';
         return;
       }
+    meState = me;
     initUI([me.name, me.last_name].filter(Boolean).join(' '), email);
     } catch {
       initUI(email, email);
@@ -467,22 +527,112 @@
   }
 
   /* ── Profile tab ── */
+  const $id = (x) => document.getElementById(x);
+  function flash(id, text, ok) {
+    const el = $id(id); el.className = ok ? 'form-success' : 'form-error'; el.textContent = text; el.classList.remove('hidden');
+    clearTimeout(el._t); el._t = setTimeout(() => el.classList.add('hidden'), 5000);
+  }
+  function fillProfile(u) {
+    meState = u;
+    $id('profile-name').value = u.name || '';
+    $id('profile-lastname').value = u.last_name || '';
+    $id('profile-email').value = u.email || '';
+    $id('profile-phone').value = u.phone || '';
+    $id('profile-idnumber').value = u.id_number || '';
+    const full = [u.name, u.last_name].filter(Boolean).join(' ');
+    const initials = (full || u.email || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    $id('user-greeting').textContent = 'Hola, ' + (u.name || 'Usuario');
+    $id('sidebar-name').textContent = full || u.email;
+    $id('sidebar-email').textContent = u.email; $id('user-email-display').textContent = u.email;
+    setAvatars(initials);
+    $id('avatar-remove').classList.toggle('hidden', !u.has_avatar);
+    // cédula
+    const has = !!u.has_id_document;
+    const st = $id('id-doc-status'); st.textContent = has ? 'Documento subido' : 'Sin documento'; st.className = 'badge ' + (has ? 'badge-confirmed' : 'badge-pending');
+    $id('id-view').classList.toggle('hidden', !has); $id('id-remove').classList.toggle('hidden', !has);
+    $id('id-pick').textContent = has ? 'Reemplazar' : 'Subir documento';
+    // correo / contraseña según el tipo de cuenta
+    const canEmail = u.has_password && u.role !== 'admin';
+    $id('email-form').classList.toggle('hidden', !canEmail);
+    const note = $id('email-note');
+    note.classList.toggle('hidden', canEmail);
+    note.textContent = u.role === 'admin' ? 'El correo de la cuenta administradora no se cambia desde aquí.' : 'Tu cuenta no tiene contraseña todavía: créala abajo y podrás cambiar tu correo.';
+    $id('cur-pass-wrap').classList.toggle('hidden', !u.has_password);
+    $id('save-pass-btn').textContent = u.has_password ? 'Cambiar contraseña' : 'Crear contraseña';
+  }
   function initProfileTab() {
-    window.VBR.api('/auth/me').then(u => {
-      document.getElementById('profile-name').value = u.name;
-      document.getElementById('profile-email').value = u.email;
-      document.getElementById('profile-phone').value = u.phone || '';
-    });
+    window.VBR.api('/auth/me').then(u => { if (!u.error) fillProfile(u); });
   }
 
-  document.getElementById('save-profile-btn').addEventListener('click', () => {
-    const name = document.getElementById('profile-name').value.trim();
-    const phone = document.getElementById('profile-phone').value.trim();
-    const msg = document.getElementById('profile-msg');
-    window.VBR.api('/auth/me', { method: 'PUT', body: { name, phone } }).then(u => {
-      msg.className = 'form-success'; msg.textContent = 'Perfil actualizado correctamente'; msg.classList.remove('hidden');
-      setTimeout(() => msg.classList.add('hidden'), 3000);
-    });
+  // Datos personales
+  $id('save-profile-btn').addEventListener('click', () => {
+    const body = { name: $id('profile-name').value.trim(), last_name: $id('profile-lastname').value.trim(), phone: $id('profile-phone').value.trim(), id_number: $id('profile-idnumber').value.trim() };
+    window.VBR.api('/auth/me', { method: 'PUT', body }).then(u => {
+      if (u.error) { flash('profile-msg', u.error, false); return; }
+      fillProfile(u); flash('profile-msg', 'Perfil actualizado correctamente', true);
+    }).catch(() => flash('profile-msg', 'Error de conexión', false));
+  });
+
+  // Correo
+  $id('save-email-btn').addEventListener('click', () => {
+    window.VBR.api('/auth/me/email', { method: 'POST', body: { email: $id('new-email').value, current_password: $id('email-pass').value } }).then(u => {
+      if (u.error) { flash('email-msg', u.error, false); return; }
+      $id('new-email').value = ''; $id('email-pass').value = '';
+      fillProfile(u); flash('email-msg', 'Correo actualizado. Úsalo la próxima vez que inicies sesión.', true);
+    }).catch(() => flash('email-msg', 'Error de conexión', false));
+  });
+
+  // Contraseña
+  $id('save-pass-btn').addEventListener('click', () => {
+    const n1 = $id('new-pass').value, n2 = $id('new-pass2').value;
+    if (n1 !== n2) { flash('pass-msg', 'Las contraseñas nuevas no coinciden', false); return; }
+    window.VBR.api('/auth/me/password', { method: 'POST', body: { current_password: $id('cur-pass').value, new_password: n1 } }).then(d => {
+      if (d.error) { flash('pass-msg', d.error, false); return; }
+      ['cur-pass', 'new-pass', 'new-pass2'].forEach(i => { $id(i).value = ''; });
+      flash('pass-msg', 'Contraseña actualizada', true); initProfileTab();
+    }).catch(() => flash('pass-msg', 'Error de conexión', false));
+  });
+
+  // Foto de perfil: se recorta al centro en cuadrado y se reduce a 400px antes de subirla
+  $id('avatar-pick').addEventListener('click', () => $id('avatar-file').click());
+  $id('avatar-file').addEventListener('change', async () => {
+    const f = $id('avatar-file').files[0]; if (!f) return;
+    try {
+      const bmp = await createImageBitmap(f);
+      const side = Math.min(bmp.width, bmp.height), size = Math.min(400, side);
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      c.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+      const fd = new FormData(); fd.append('avatar', blob, 'perfil.jpg');
+      const r = await fetch('/api/auth/me/avatar', { method: 'POST', credentials: 'same-origin', body: fd }).then(x => x.json());
+      if (r.error) { window.VBR.toast(r.error, 'error'); return; }
+      fillProfile(r); window.VBR.toast('Foto actualizada', 'success');
+    } catch { window.VBR.toast('No se pudo leer la imagen', 'error'); }
+    $id('avatar-file').value = '';
+  });
+  $id('avatar-remove').addEventListener('click', () => {
+    window.VBR.api('/auth/me/avatar', { method: 'DELETE' }).then(u => { if (!u.error) { fillProfile(u); window.VBR.toast('Foto eliminada', 'info'); } });
+  });
+
+  // Cédula (foto o PDF)
+  $id('id-pick').addEventListener('click', () => $id('id-file').click());
+  $id('id-file').addEventListener('change', async () => {
+    const f = $id('id-file').files[0]; if (!f) return;
+    if (f.size > 10 * 1024 * 1024) { flash('id-msg', 'El archivo supera los 10MB', false); return; }
+    const fd = new FormData(); fd.append('id_document', f);
+    const r = await fetch('/api/auth/me/id-document', { method: 'POST', credentials: 'same-origin', body: fd }).then(x => x.json()).catch(() => ({ error: 'Error de conexión' }));
+    $id('id-file').value = '';
+    if (r.error) { flash('id-msg', r.error, false); return; }
+    fillProfile(r); flash('id-msg', 'Documento guardado', true);
+  });
+  $id('id-view').addEventListener('click', async () => {
+    const r = await fetch('/api/auth/id-document/' + meState.id, { credentials: 'same-origin' });
+    if (!r.ok) { flash('id-msg', 'No se pudo abrir el documento', false); return; }
+    window.open(URL.createObjectURL(await r.blob()), '_blank');
+  });
+  $id('id-remove').addEventListener('click', () => {
+    if (!confirm('¿Eliminar tu documento de identidad?')) return;
+    window.VBR.api('/auth/me/id-document', { method: 'DELETE' }).then(u => { if (!u.error) { fillProfile(u); flash('id-msg', 'Documento eliminado', true); } });
   });
 
   /* ── Check URL params ── */

@@ -87,7 +87,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
 });
-app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth/reset', '/api/auth/google'], authLimiter);
+app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth/reset', '/api/auth/google', '/api/auth/me/email', '/api/auth/me/password'], authLimiter);
 
 const { adminRequired } = require('./middleware/auth');
 
