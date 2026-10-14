@@ -247,7 +247,7 @@ async function migratePerlaNegraCoverRename() {
 // Precios por día de la semana y combo de cumpleaños (tabla del dueño, 2026-10-12).
 // Se busca por nombre porque varias de estas embarcaciones se cargaron desde el panel.
 async function migrateDayBasedPricing() {
-  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'];
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Refresco'];
   const boats = [
     { like: '%Lupita%',         weekday: 500, weekday_birthday: 650,  weekend: 550, weekend_birthday: 750,  capacity: 15 },
     { like: '%Perla Negra%',    weekday: 700, weekday_birthday: 1100, weekend: 750, weekend_birthday: 1000, capacity: 12 },
@@ -379,7 +379,7 @@ async function migrateAndreaDelMarCombo() {
   const scheme = {
     type: 'day_based',
     prices: { weekday: 1500, weekday_birthday: 1800, weekend: 1500, weekend_birthday: 1800 },
-    birthday_combo: ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'],
+    birthday_combo: ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Refresco'],
     included,
   };
   const { rows } = await pool.query("SELECT id, capacity FROM boats WHERE slug = 'andrea-del-mar'");
@@ -490,7 +490,7 @@ async function migrateOutsideBocaChicaDetails() {
 // Catamarán 36 (salida desde Cap Cana): $1,950 por 4 horas, 18 personas.
 // El combo de cumpleaños incluye también la parrillada y el cocinero.
 async function migrateBirthdayComboCook() {
-  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Agua', 'Hielo', 'Refresco'];
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Refresco'];
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE pricing_scheme LIKE '%birthday_combo%'");
   for (const b of rows) {
     const scheme = JSON.parse(b.pricing_scheme);
@@ -523,6 +523,16 @@ async function migrateCookOnlyInCombo() {
     scheme.included = INCLUDED;
     await pool.query('UPDATE boats SET pricing_scheme = $1, amenities = $2, description = $3, short_description = $4 WHERE id = $5',
       [JSON.stringify(scheme), JSON.stringify(INCLUDED), fix(b.description), fix(b.short_description), b.id]);
+  }
+}
+// Agua y hielo van en el servicio normal, no son un extra del combo de cumpleaños.
+async function migrateComboWithoutWaterIce() {
+  const COMBO = ['1 hora de jetski', 'Decoración', 'Bizcocho', 'Parrillada', 'Cocinero', 'Refresco'];
+  const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE pricing_scheme LIKE '%birthday_combo%'");
+  for (const b of rows) {
+    const scheme = JSON.parse(b.pricing_scheme);
+    scheme.birthday_combo = COMBO;
+    await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
   }
 }
 async function migrateCatamaran36() {
@@ -571,6 +581,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-14-birthday-combo-cook', migrateBirthdayComboCook);
   await runDataMigrationOnce('2026-10-14-purge-test-bookings', purgeTestBookings);
   await runDataMigrationOnce('2026-10-14-cook-only-in-combo', migrateCookOnlyInCombo);
+  await runDataMigrationOnce('2026-10-14-combo-no-water-ice', migrateComboWithoutWaterIce);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
