@@ -535,6 +535,28 @@ async function migrateComboWithoutWaterIce() {
     await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
   }
 }
+// Descripciones listas para clientes: sin notas internas ni datos "pendientes de confirmar".
+async function migrateLaunchDescriptions() {
+  const rows = [
+    ['la-santa', 'La Santa es un yate privado con salida desde La Romana, ideal para pasar un día en el mar con tu grupo. Tiene capacidad para hasta 12 personas y es perfecto para celebraciones, paseos en familia o encuentros con amigos. Precio desde $1,600 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.', 'Yate privado La Santa para hasta 12 personas, con salida desde La Romana.'],
+    ['yate-2-la-romana', 'Yate privado con salida desde La Romana, pensado para disfrutar el mar con comodidad y privacidad. Tiene capacidad para hasta 15 personas, ideal para celebraciones y paseos en grupo. Precio desde $2,500 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.', 'Yate privado para hasta 15 personas, con salida desde La Romana.'],
+    ['azimut-nona', 'El Azimut Nona es un yate de lujo con salida desde La Romana, para quienes buscan una experiencia exclusiva en el mar. Tiene capacidad para hasta 15 personas y es ideal para celebraciones especiales y paseos privados. Precio: $5,000 USD por día. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.', 'Yate de lujo Azimut Nona para hasta 15 personas, con salida desde La Romana.'],
+    ['nicole', 'Nicole es una lancha privada con salida desde La Romana, perfecta para un paseo cómodo y relajado con tu familia o amigos. Tiene capacidad para hasta 12 personas. Precio: $1,800 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.', 'Lancha privada Nicole para hasta 12 personas, con salida desde La Romana.'],
+  ];
+  for (const [slug, description, short] of rows) {
+    await pool.query('UPDATE boats SET description = $1, short_description = $2 WHERE slug = $3', [description, short, slug]);
+  }
+  // Embarcaciones en venta: se quitan las frases internas ("sujeto a confirmación") y queda "precio a consultar"
+  const sale = await pool.query('SELECT id, description, sale_description FROM boats WHERE for_sale = true');
+  for (const b of sale.rows) {
+    const d = (b.description || '')
+      .replace(' Especificaciones referenciales; precio y detalles exactos sujetos a confirmación. Contáctanos por WhatsApp para más información.', ' Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.')
+      .replace('aproximadamente 50 pies', '50 pies');
+    const sd = (b.sale_description || '')
+      .replace('Precio y especificaciones exactas sujetas a confirmación — consultar por WhatsApp.', 'Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.');
+    await pool.query('UPDATE boats SET description = $1, sale_description = $2 WHERE id = $3', [d, sd, b.id]);
+  }
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -582,6 +604,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-14-purge-test-bookings', purgeTestBookings);
   await runDataMigrationOnce('2026-10-14-cook-only-in-combo', migrateCookOnlyInCombo);
   await runDataMigrationOnce('2026-10-14-combo-no-water-ice', migrateComboWithoutWaterIce);
+  await runDataMigrationOnce('2026-10-15-launch-descriptions', migrateLaunchDescriptions);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

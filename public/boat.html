@@ -525,6 +525,8 @@
 
     // Amenidades
     const amen = boat.amenities || [];
+    const amenBlock = document.getElementById('boat-amenities').parentElement;
+    if (amenBlock) amenBlock.style.display = amen.length ? '' : 'none';
     document.getElementById('boat-amenities').innerHTML = amen.map(a => `<span class="feature-tag">${esc(a)}</span>`).join('');
 
 
