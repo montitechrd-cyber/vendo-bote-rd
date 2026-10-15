@@ -294,58 +294,6 @@
   <section class="section">
     <div class="boat-detail-grid" id="boat-detail-grid">
 
-      <!-- Datos bancarios (referencia) -->
-      <div style="margin-bottom:2.5rem;" data-reveal>
-            <!-- Bank info de referencia -->
-            <div class="bank-box" style="max-width:560px;">
-              <div class="bank-box-title">🏦 Datos Bancarios</div>
-<div class="bank-box-tab" style="flex-wrap:wrap;">
-          <button class="bank-box-tab-btn active" onclick="switchBankB('popular',this)">Banco Popular</button>
-          <button class="bank-box-tab-btn" onclick="switchBankB('zelle',this)">Zelle</button>
-          <button class="bank-box-tab-btn" onclick="switchBankB('reservas',this)">Banreservas</button>
-          <button class="bank-box-tab-btn" onclick="switchBankB('reservasusd',this)">Banreservas USD</button>
-          <button class="bank-box-tab-btn" onclick="switchBankB('bhd',this)">Banco BHD</button>
-        </div>
-        <div class="bank-panel active" id="bk-popular">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta corriente</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" onclick="copyText('0832468474')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="bk-zelle">
-          <div class="bank-row"><span class="bank-key">Método</span><span class="bank-val">Zelle</span></div>
-          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" onclick="copyText('vendobote@icloud.com')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="bk-reservas">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en pesos (DOP)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="bk-reservasusd">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
-          <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en dólares (USD)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" onclick="copyText('9609859038')">Copiar</button></div></div>
-        </div>
-        <div class="bank-panel" id="bk-bhd">
-          <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco BHD</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.5rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
-        </div>
-              <p style="font-size:0.78rem;color:var(--cream-3);margin-top:1rem;line-height:1.5;">Para reservar, transfiere el monto y adjunta el comprobante al confirmar tu reserva.</p>
-            </div>
-            <script>
-            function switchBankB(bank, btn) {
-              document.querySelectorAll('#bk-popular,#bk-zelle,#bk-reservas,#bk-reservasusd,#bk-bhd').forEach(p => p.classList.remove('active'));
-              document.getElementById('bk-' + bank).classList.add('active');
-              btn.closest('.bank-box-tab').querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-            }
-            </script>
-      </div>
-
       <!-- Reviews -->
       <div data-reveal>
         <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1.25rem;">Reseñas</h3>
