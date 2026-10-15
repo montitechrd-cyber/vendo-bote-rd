@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015i" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015m" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -435,7 +435,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261015a" defer></script>
+<script src="/assets/js/main.js?v=20261015b" defer></script>
 <script type="module">
 (function () {
   window.logout = () => window.VBR_logout();
@@ -538,7 +538,8 @@
       const client = [[b.user_name, b.user_last_name].filter(Boolean).join(' '), b.user_phone, b.user_email].filter(Boolean).join(' · ');
       const canAct = b.status !== 'cancelled';
       return window.VBR.bookingCard(b, { client, actions:
-        '<button class="btn btn-ghost btn-sm" onclick="openVerifyModal(' + b.id + ')">Ver</button>' +
+        (b.receipt_filename ? '<button class="btn btn-ghost btn-sm" onclick="viewReceipt(' + b.id + ')">Comprobante</button>' : '') +
+        (canAct && b.payment_status === 'submitted' ? '<button class="btn btn-success btn-sm" onclick="verifyPayment(' + b.id + ',\'approve\')">Aprobar</button>' : '') +
         (canAct ? '<button class="btn btn-danger btn-sm" onclick="promptReject(' + b.id + ')">Rechazar</button>' : '') +
         '<button class="btn btn-ghost btn-sm" style="color:#B91C1C;" onclick="deleteBooking(' + b.id + ')">Eliminar</button>' });
     }).join('');

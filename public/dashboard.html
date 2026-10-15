@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015i" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015m" />
 </head>
 <body>
 
@@ -74,7 +74,7 @@
           </div>
 
           <!-- Filters -->
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+          <div class="booking-filters">
             <button class="location-tab active" onclick="filterBookings('all',this)">Todas</button>
             <button class="location-tab" onclick="filterBookings('pending',this)">Pendiente</button>
             <button class="location-tab" onclick="filterBookings('confirmed',this)">Confirmadas</button>
@@ -173,7 +173,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261015a" defer></script>
+<script src="/assets/js/main.js?v=20261015b" defer></script>
 <script type="module">
 (function () {
   let allBookings = [];

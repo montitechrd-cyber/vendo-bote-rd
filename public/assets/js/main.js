@@ -92,7 +92,7 @@
         '<div class="booking-card-location">📍 ' + esc(b.boat_location) + '</div>' +
         (opts.client ? '<div class="booking-card-client">👤 ' + esc(opts.client) + '</div>' : '') +
         '<div class="booking-card-dates">' +
-          '<div class="booking-card-date-item"><div class="booking-card-date-label">Fecha de llegada</div><div class="booking-card-date-val">' + fmtDateLong(b.start_date) + '</div></div>' +
+          '<div class="booking-card-date-item"><div class="booking-card-date-label">Fecha de llegada</div><div class="booking-card-date-val"><span class="d-long">' + fmtDateLong(b.start_date) + '</span><span class="d-short">' + fmtDateShort(b.start_date) + '</span></div></div>' +
           '<div class="booking-card-date-item"><div class="booking-card-date-label">Horario</div><div class="booking-card-date-val">' + esc(slotLabel(b.schedule)) + '</div></div>' +
         '</div>' +
         '<div class="booking-card-footer"><div>' +

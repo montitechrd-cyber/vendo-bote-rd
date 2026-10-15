@@ -2007,3 +2007,62 @@ ul { list-style: none; }
 .book-count { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
 .admin-filter-bar-actions { align-items: center; }
 @media (max-width: 900px) { .book-search { max-width: none; } .admin-filter-bar-actions { justify-content: space-between; } }
+
+/* Reservas en el teléfono: tarjeta compacta, cada texto en una sola línea */
+.booking-card-img { object-fit: cover; }
+.booking-card-date-val .d-short { display: none; }
+@media (max-width: 640px) {
+  .booking-card { flex-direction: column; border-radius: 16px; }
+  .booking-card-img { width: 100%; height: 128px; }
+  .booking-card-body { padding: 0.8rem 0.9rem 0.9rem; min-width: 0; }
+  .booking-card-header { flex-direction: column; align-items: stretch; gap: 0.4rem; margin-bottom: 0.45rem; }
+  .booking-card-header > div:first-child { display: flex; align-items: baseline; gap: 0.55rem; min-width: 0; }
+  .booking-card-name { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .booking-card-ref { margin: 0; flex-shrink: 0; font-size: 0.72rem; letter-spacing: 0.04em; color: var(--sky-3); font-weight: 700; }
+  .booking-card-badges { justify-content: flex-start; flex-wrap: nowrap; gap: 0.35rem; }
+  .booking-card-badges .badge { font-size: 0.625rem; padding: 0.22rem 0.55rem; letter-spacing: 0.04em; white-space: nowrap; }
+  .booking-card-location, .booking-card-client { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem; }
+  .booking-card-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin: 0.6rem 0 0.2rem; }
+  .booking-card-date-item { min-width: 0; padding: 0.4rem 0.55rem; }
+  .booking-card-date-label { font-size: 0.6rem; white-space: nowrap; }
+  .booking-card-date-val { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .booking-card-date-val .d-long { display: none; }
+  .booking-card-date-val .d-short { display: inline; }
+  .booking-card-footer { display: grid; grid-template-columns: 1fr; gap: 0.6rem; margin-top: 0.65rem; padding-top: 0.65rem; }
+  .booking-card-footer > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .booking-card-price { font-size: 1.2rem; white-space: nowrap; }
+  .booking-card-meta { margin: 0; white-space: nowrap; }
+  .booking-card-actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0.4rem; }
+  .booking-card-actions .btn { width: 100%; justify-content: center; padding: 0.5rem 0.4rem; font-size: 0.78rem; white-space: nowrap; }
+  /* Filtros del admin: compactos, en dos columnas */
+  .admin-filter-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .admin-filter-bar .book-search { grid-column: 1 / -1; max-width: none; }
+  .admin-filter-bar #book-filter-boat { grid-column: 1 / -1; }
+  .admin-filter-bar .filter-select, .admin-filter-bar .filter-input { width: 100%; min-width: 0; padding: 0.55rem 0.7rem; font-size: 0.85rem; }
+  .admin-filter-bar-actions { grid-column: 1 / -1; margin: 0; display: flex; justify-content: space-between; align-items: center; }
+  .admin-filter-bar-actions .btn { flex: 0 0 auto; }
+}
+
+/* Panel del cliente en el teléfono: menú en una fila y filtros compactos, para ver las reservas enseguida */
+.booking-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+@media (max-width: 760px) {
+  .dashboard-sidebar { padding: 0.45rem; margin-bottom: 0.25rem; }
+  .dashboard-sidebar #sidebar-avatar, .dashboard-sidebar #sidebar-name, .dashboard-sidebar #sidebar-email { display: none; }
+  .dashboard-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; margin: 0; padding: 0; border-top: 0; }
+  .dashboard-nav > div { margin: 0 !important; padding: 0 !important; border: 0 !important; }
+  .dashboard-nav-item { justify-content: center; gap: 0.35rem; padding: 0.55rem 0.3rem; font-size: 0.8rem; white-space: nowrap; width: 100%; }
+  .booking-filters { flex-wrap: nowrap; overflow-x: auto; gap: 0.4rem; margin-bottom: 1rem; padding-bottom: 0.2rem; scrollbar-width: none; }
+  .booking-filters::-webkit-scrollbar { display: none; }
+  .booking-filters .location-tab { flex: 0 0 auto; padding: 0.4rem 0.85rem; font-size: 0.8rem; white-space: nowrap; }
+  #tab-bookings > div:first-child { margin-bottom: 0.9rem !important; flex-wrap: nowrap !important; gap: 0.5rem !important; }
+  #tab-bookings > div:first-child h2 { font-size: 1.25rem !important; white-space: nowrap; }
+  #tab-bookings > div:first-child .btn { white-space: nowrap; padding: 0.5rem 0.9rem; font-size: 0.78rem; }
+}
+
+/* Acciones de las reservas: se acomodan en filas cuando son varias */
+.booking-card-actions { flex-wrap: wrap; }
+@media (max-width: 640px) { .booking-card-actions { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); } }
+
+/* Evita que filtros o tarjetas ensanchen la página en el teléfono */
+.dashboard-grid > * { min-width: 0; }
+.dashboard-grid { max-width: 100%; }
