@@ -1986,3 +1986,18 @@ ul { list-style: none; }
   .sum-row { font-size: 0.86rem; }
 }
 .sum-extra span { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Hero: ubicaciones arriba, título justo encima de la bandera de la embarcación y botones más abajo */
+.hero-content { align-self: stretch; width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; padding-top: calc(var(--nav-h, 72px) + 6.5vh); padding-bottom: clamp(2.5rem, 9vh, 5.5rem); }
+.hero-locations { gap: 0.55rem; margin-bottom: 0; }
+.hero-loc-row { order: -1; }
+.hero-actions { margin-top: auto; }
+@media (max-width: 1024px) {
+  .hero-content { padding-top: calc(var(--nav-h, 72px) + 1.2rem); padding-bottom: 2rem; }
+}
+@media (max-width: 640px) {
+  .hero-content { padding-top: calc(var(--nav-h, 72px) + 0.8rem); padding-bottom: 1.4rem; }
+  .hero-locations { gap: 0.4rem; }
+  .hero-loc-row span { letter-spacing: 0.14em; }
+}
+@media (max-width: 640px) and (orientation: landscape) { .hero-content { padding-top: calc(var(--nav-h, 72px) + 0.5rem); } }
