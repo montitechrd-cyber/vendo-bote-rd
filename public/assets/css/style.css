@@ -2073,3 +2073,40 @@ ul { list-style: none; }
   .admin-sidebar-logo-img { height: 140px; max-width: 100%; margin-bottom: 0.4rem; }
   .admin-sidebar-label { text-align: center; margin-top: 0; margin-bottom: 1.5rem; }
 }
+
+/* Reservas en el teléfono — versión compacta: miniatura a la izquierda, datos en líneas cortas, acciones abajo */
+@media (max-width: 640px) {
+  .booking-card { display: grid; grid-template-columns: 84px 1fr; column-gap: 0.75rem; row-gap: 0.15rem; padding: 0.75rem; border-radius: 16px; align-items: start; }
+  .booking-card-body, .booking-card-header { display: contents; }
+  .booking-card-img { grid-column: 1; grid-row: 1 / span 4; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; align-self: start; }
+  .booking-card-img-empty { min-height: 0; font-size: 1.6rem; }
+  .booking-card-header > div:first-child { grid-column: 2; display: block; min-width: 0; }
+  .booking-card-name { display: block; font-size: 1.02rem; line-height: 1.25; }
+  .booking-card-ref { display: block; margin-top: 0.05rem; font-size: 0.7rem; }
+  .booking-card-location { grid-column: 2; margin: 0; font-size: 0.78rem; }
+  .booking-card-client { grid-column: 2; margin: 0; font-size: 0.78rem; }
+  .booking-card-dates { grid-column: 2; display: flex; flex-wrap: nowrap; gap: 0; margin: 0; min-width: 0; }
+  .booking-card-date-item { background: none; border: 0; padding: 0; min-width: 0; border-radius: 0; }
+  .booking-card-date-item + .booking-card-date-item::before { content: '·'; margin: 0 0.35rem; color: var(--text-faint); }
+  .booking-card-date-item:first-child { flex: 0 0 auto; }
+  .booking-card-date-item:last-child { flex: 1 1 auto; min-width: 0; }
+  .booking-card-date-label { display: none; }
+  .booking-card-date-item { display: flex; align-items: baseline; }
+  .booking-card-date-val { font-size: 0.78rem; font-weight: 600; color: var(--navy); }
+  .booking-card-badges { grid-column: 1 / -1; order: 5; margin-top: 0.55rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .booking-card-footer { grid-column: 1 / -1; order: 6; display: grid; gap: 0.5rem; margin-top: 0.45rem; padding-top: 0.55rem; border-top: 1px solid var(--line); }
+  .booking-card-price { font-size: 1.1rem; }
+  .booking-card-actions { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 0.35rem; }
+  .booking-card-actions .btn { padding: 0.42rem 0.3rem; font-size: 0.74rem; min-height: 34px; }
+}
+
+@media (max-width: 640px) {
+  .booking-card-dates { flex-direction: column; gap: 0.05rem; }
+  .booking-card-date-item + .booking-card-date-item::before { content: none; margin: 0; }
+  .booking-card-date-item::before { margin-right: 0.35rem; font-size: 0.8rem; }
+  .booking-card-date-item:first-child::before { content: '📅'; }
+  .booking-card-date-item:last-child::before { content: '🕒'; }
+  .booking-card-date-item:last-child { flex: none; }
+  .booking-card-actions:has(.btn:nth-child(4)) { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) { .booking-card-dates { align-items: flex-start; } }

@@ -129,6 +129,27 @@ router.delete('/:id', adminRequired, async (req, res) => {
   }
 });
 
+// Eliminación completa. Si la embarcación tiene reservas activas o con historial (pendientes, confirmadas) no se elimina:
+// hay que desactivarla para no perder esas reservas. Las reservas canceladas sí se borran junto con ella.
+router.delete('/:id/permanent', adminRequired, async (req, res) => {
+  try {
+    const db = getDB();
+    if (req.body && req.body.confirmed !== true) return res.status(400).json({ error: 'Falta la confirmación' });
+    const boat = await db.queryOne('SELECT id, name FROM boats WHERE id = $1', [req.params.id]);
+    if (!boat) return res.status(404).json({ error: 'Embarcación no encontrada' });
+    const live = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [boat.id]);
+    if (live.n > 0) return res.status(409).json({ error: 'Esta embarcación tiene ' + live.n + ' reserva(s) pendientes o confirmadas. Recházalas o cancélalas primero, o usa Desactivar para conservar el historial.' });
+    await db.run('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [boat.id]);
+    await db.run('DELETE FROM reviews WHERE boat_id = $1', [boat.id]);
+    await db.run('DELETE FROM bookings WHERE boat_id = $1', [boat.id]);
+    await db.run('DELETE FROM boats WHERE id = $1', [boat.id]);
+    res.json({ success: true, message: 'Embarcación eliminada' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo eliminar la embarcación' });
+  }
+});
+
 router.get('/:slug', async (req, res) => {
   try {
     const db = getDB();

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015n" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261016c" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -709,7 +709,8 @@
           <td data-label="Estado"><span class="badge badge-${b.available?'confirmed':'cancelled'}">${b.available?'Activa':'Inactiva'}</span></td>
           <td data-label="Acciones" style="display:flex;gap:0.4rem;">
             <button class="btn btn-ghost btn-sm" onclick="openBoatModal(${b.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="deactivateBoat(${b.id},'${b.name}')" ${!b.available?'disabled':''}>Desactivar</button>
+            <button class="btn btn-ghost btn-sm" onclick="deactivateBoat(${b.id},'${esc(b.name)}')" ${!b.available?'disabled':''}>Desactivar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteBoat(${b.id})">Eliminar</button>
           </td>
         </tr>`;
       }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin embarcaciones en renta.</td></tr>';
@@ -727,6 +728,7 @@
           <td data-label="Acciones" style="display:flex;gap:0.4rem;">
             <button class="btn btn-ghost btn-sm" onclick="openBoatModal(${b.id})">Editar</button>
             <a href="/boat.html?slug=${encodeURIComponent(b.slug)}" target="_blank" class="btn btn-ghost btn-sm">Ver página</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteBoat(${b.id})">Eliminar</button>
           </td>
         </tr>`;
       }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--cream-3);padding:2rem;">Sin embarcaciones en venta.</td></tr>';
@@ -827,6 +829,17 @@
     if (!confirm(`¿Desactivar "${name}"? No aparecerá en el catálogo.`)) return;
     window.VBR.api('/boats/' + id, { method: 'DELETE' }).then(() => { window.VBR.toast('Embarcación desactivada', 'info'); loadBoatsAdmin(); })
       .catch(() => window.VBR.toast('Error al desactivar la embarcación', 'error'));
+  };
+
+  // Eliminar por completo: se pregunta dos veces antes de hacerlo
+  window.deleteBoat = function (id) {
+    const found = (allBoatsCached || []).find(x => x.id === id); const name = found ? found.name : 'esta embarcación';
+    if (!confirm('¿Deseas eliminar la embarcación "' + name + '" de la plataforma?')) return;
+    if (!confirm('¿Estás seguro? "' + name + '" se eliminará por completo y esta acción no se puede deshacer.')) return;
+    window.VBR.api('/boats/' + id + '/permanent', { method: 'DELETE', body: { confirmed: true } }).then(d => {
+      if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+      window.VBR.toast('Embarcación eliminada', 'info'); loadBoatsAdmin();
+    }).catch(() => window.VBR.toast('Error al eliminar la embarcación', 'error'));
   };
 
   /* ══════════════════════════════════════════
