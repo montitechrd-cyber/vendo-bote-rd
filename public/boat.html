@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015d" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015f" />
 </head>
 <body>
 
@@ -315,7 +315,7 @@
 
 <!-- Booking Modal -->
 <div class="modal-overlay" id="booking-modal" role="dialog" aria-modal="true">
-  <div class="modal" style="position:relative;max-width:500px;">
+  <div class="modal" style="position:relative;max-width:540px;">
     <button class="modal-close" id="modal-close" aria-label="Cerrar">✕</button>
     <div class="modal-title" id="modal-title">Confirmar Reserva</div>
     <div id="modal-body"></div>
@@ -1078,19 +1078,19 @@
       </div>` : '';
     document.getElementById('modal-title').textContent = 'Confirmar y pagar';
     document.getElementById('modal-body').innerHTML = `
-      <div style="background:var(--bg-2);border-radius:var(--r-sm);padding:1.25rem;margin-bottom:1.5rem;border:1px solid var(--line);">
-        <div style="font-family:var(--serif);font-size:1.1rem;font-style:italic;color:var(--cream);margin-bottom:0.75rem;">${boat.name}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div><div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Fecha</div><div style="font-size:0.88rem;color:var(--cream);">${fmt(selDate)}</div></div>
-          <div><div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Turno</div><div style="font-size:0.88rem;color:var(--cream);">${calc.scheduleLabel}</div></div>
-          <div><div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Duración</div><div style="font-size:0.88rem;color:var(--cream);">${calc.durationLabel}</div></div>
-          <div><div style="font-family:var(--mono);font-size:0.6875rem;color:var(--cream-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem;">Personas</div><div style="font-size:0.88rem;color:var(--cream);">${calc.guests}</div></div>
+      <div class="sum-card">
+        <div class="sum-head">
+          <div class="sum-boat">${boat.name}</div>
+          <div class="sum-loc">📍 ${boat.location}</div>
         </div>
-        ${addHTML}
-        <div style="border-top:1px solid var(--line);margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);">Total</span>
-          <span style="font-family:var(--serif);font-size:1.5rem;font-style:italic;font-weight:700;color:var(--sky-2);">$${Number(calc.total).toLocaleString()} USD</span>
+        <div class="sum-rows">
+          <div class="sum-row"><span>Fecha</span><strong>${window.VBR.fmtDateShort(selDate)}</strong></div>
+          <div class="sum-row"><span>Horario</span><strong>${calc.scheduleLabel}</strong></div>
+          <div class="sum-row"><span>Duración</span><strong>${calc.durationLabel}</strong></div>
+          <div class="sum-row"><span>Personas</span><strong>${calc.guests}</strong></div>
+          ${calc.extraLines.map(x => `<div class="sum-row sum-extra"><span>${x.label}</span><strong>+$${x.price.toLocaleString()}</strong></div>`).join('')}
         </div>
+        <div class="sum-total"><span>Total</span><strong>$${Number(calc.total).toLocaleString()} USD</strong></div>
       </div>
       <div class="form-group" style="margin-bottom:1.25rem;">
         <label class="form-label" for="special-requests">Solicitudes especiales (opcional)</label>
