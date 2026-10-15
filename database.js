@@ -587,6 +587,30 @@ async function purgeInactiveRentals() {
     console.log('Renta desactivada eliminada:', b.name);
   }
 }
+// Andrea del Mar con precios por día y combo único; los domingos el combo no incluye jetski; La Romana: horario estándar 10:30 AM – 5:30 PM.
+async function migrateAndreaAndRomana() {
+  const andrea = await pool.query("SELECT id, pricing_scheme, description FROM boats WHERE slug = 'andrea-del-mar'");
+  for (const b of andrea.rows) {
+    const scheme = JSON.parse(b.pricing_scheme);
+    scheme.prices = { weekday: 900, weekday_birthday: 1500, weekend: 1000, weekend_birthday: 1500 };
+    const desc = 'Renta de Andrea del Mar en Boca Chica, con capacidad para 30 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco.';
+    await pool.query('UPDATE boats SET pricing_scheme = $1, price_per_day = 900, description = $2 WHERE id = $3', [JSON.stringify(scheme), desc, b.id]);
+  }
+  // Los domingos el combo no incluye la hora de jetski (en ninguna embarcación)
+  const dayBased = await pool.query("SELECT id, description FROM boats WHERE pricing_scheme LIKE '%day_based%'");
+  for (const b of dayBased.rows) {
+    const d = (b.description || '');
+    if (d.includes('Los domingos el combo')) continue;
+    const nd = d.replace('cocinero y refresco.', 'cocinero y refresco. Los domingos el combo no incluye el jetski.');
+    await pool.query('UPDATE boats SET description = $1 WHERE id = $2', [nd, b.id]);
+  }
+  // La Romana: un solo horario estándar, de 10:30 AM a 5:30 PM (7 horas)
+  const romana = await pool.query("SELECT id, price_per_day FROM boats WHERE location = 'La Romana' AND COALESCE(for_sale, false) = false");
+  for (const b of romana.rows) {
+    const scheme = { type: 'hourly', packages: [{ hours: 7, price: Number(b.price_per_day) }], time_slots: ['10:30 AM – 5:30 PM'] };
+    await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
+  }
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -637,6 +661,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-15-launch-descriptions', migrateLaunchDescriptions);
   await runDataMigrationOnce('2026-10-16-purge-inactive-boats', purgeInactiveBoats);
   await runDataMigrationOnce('2026-10-16-purge-inactive-rentals', purgeInactiveRentals);
+  await runDataMigrationOnce('2026-10-16-andrea-romana', migrateAndreaAndRomana);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

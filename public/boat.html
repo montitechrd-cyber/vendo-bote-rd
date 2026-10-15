@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261016c" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261016d" />
 </head>
 <body>
 
@@ -592,12 +592,7 @@
     const p = boat.pricing_scheme.prices;
     sec.style.display = 'block';
     const diff = document.getElementById('birthday-diff');
-    if (selDate) {
-      const k = dayKey();
-      diff.textContent = '+$' + (p[k + '_birthday'] - p[k]).toLocaleString() + ' sobre el precio normal';
-    } else {
-      diff.textContent = 'Selecciona la fecha para ver el precio';
-    }
+    diff.textContent = ''; diff.style.display = 'none';
   }
 
   // Lo incluido depende del servicio elegido: normal o con combo de cumpleaños (solo Boca Chica).
@@ -609,12 +604,14 @@
     const s = boat.pricing_scheme;
     const dayBased = isDayBased();
     const base = (dayBased && s.included) || ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
-    const combo = (dayBased && selBirthday) ? (s.birthday_combo || []) : [];
+    const sunday = !!selDate && new Date(selDate + 'T00:00:00').getDay() === 0;
+    // Los domingos el combo no incluye la hora de jetski (en ninguna embarcación)
+    const combo = (dayBased && selBirthday) ? (s.birthday_combo || []).filter(i => !(sunday && /jetski|jet ski/i.test(i))) : [];
     // con el combo, la lista del combo se muestra completa (incluye parrillada y cocinero) y arriba solo queda lo que el combo no repite
     const baseShown = combo.length ? base.filter(i => !combo.includes(i)) : base;
     document.getElementById('included-title').textContent = 'Incluido en el precio';
     document.getElementById('included-text').innerHTML = baseShown.map(i => incChip(i, false)).join('') +
-      (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') : '');
+      (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') + (sunday ? '<div class="inc-note">Los domingos el combo no incluye el jetski.</div>' : '') : '');
   }
 
   window.toggleBirthday = function (checked) { selBirthday = !!checked; renderIncluded(); updateSummary(); };
@@ -697,6 +694,7 @@
     selDate = ds;
     selSlot = null;
     renderDayBasedUI();
+    renderIncluded();
     renderCalendar();
     refreshSlotUI();
     updateSummary();
@@ -855,7 +853,7 @@
       base = scheme.prices[k];
       durationLabel = '1 turno (6 horas)';
       scheduleLabel = selSlot === '9am-3pm' ? '9:00 AM – 3:00 PM' : '4:00 PM – 10:00 PM';
-      if (selBirthday) extraLines.push({ label: 'Combo de cumpleaños', price: scheme.prices[k + '_birthday'] - base });
+      if (selBirthday) extraLines.push({ label: 'Combo de cumpleaños', price: scheme.prices[k + '_birthday'] - base, hidden: true });
     } else if (scheme) {
       const pkg = (scheme.packages || []).find(p => p.hours === selPackageHours) || scheme.packages[0];
       base = pkg.price;
@@ -890,7 +888,7 @@
       document.getElementById('sum-days').textContent = calc.durationLabel;
       const addLine = document.getElementById('sum-additionals-line');
       if (calc.extraLines.length) {
-        document.getElementById('sum-additionals').textContent = calc.extraLines.map(l => l.label + ' +$' + l.price.toLocaleString()).join(' · ');
+        document.getElementById('sum-additionals').textContent = calc.extraLines.map(l => l.hidden ? l.label : l.label + ' +$' + l.price.toLocaleString()).join(' · ');
         addLine.style.display = 'flex';
       } else {
         addLine.style.display = 'none';
@@ -1048,7 +1046,7 @@
           <div class="sum-row"><span>Horario</span><strong>${calc.scheduleLabel}</strong></div>
           <div class="sum-row"><span>Duración</span><strong>${calc.durationLabel}</strong></div>
           <div class="sum-row"><span>Personas</span><strong>${calc.guests}</strong></div>
-          ${calc.extraLines.map(x => `<div class="sum-row sum-extra"><span>${x.label}</span><strong>+$${x.price.toLocaleString()}</strong></div>`).join('')}
+          ${calc.extraLines.map(x => `<div class="sum-row sum-extra"><span>${x.label}</span><strong>${x.hidden ? 'Incluido' : '+$' + x.price.toLocaleString()}</strong></div>`).join('')}
         </div>
         <div class="sum-total"><span>Total</span><strong>$${Number(calc.total).toLocaleString()} USD</strong></div>
       </div>

@@ -2110,3 +2110,5 @@ ul { list-style: none; }
   .booking-card-actions:has(.btn:nth-child(4)) { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) { .booking-card-dates { align-items: flex-start; } }
+
+.inc-note { flex-basis: 100%; font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }

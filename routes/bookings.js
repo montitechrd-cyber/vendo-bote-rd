@@ -100,7 +100,9 @@ router.post('/', authRequired, uploadReceipt, async (req, res) => {
         total = withCombo;
         selectedAdditionals.push('birthday_combo');
         additionals_price += amt;
-        metaParts.push(`Combo de cumpleaños (${(scheme.birthday_combo || []).join(', ')}): ${amt >= 0 ? '+' : '-'}$${Math.abs(amt)}`);
+        // Los domingos el combo no incluye la hora de jetski
+        const comboItems = (scheme.birthday_combo || []).filter(i => !(start.getDay() === 0 && /jetski|jet ski/i.test(i)));
+        metaParts.push(`Combo de cumpleaños (${comboItems.join(', ')})`);
       }
     } else if (scheme) {
       const pkg = (scheme.packages || []).find(p => p.hours === Number(package_hours)) || scheme.packages?.[0];
