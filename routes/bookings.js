@@ -444,19 +444,4 @@ router.delete('/:id', adminRequired, async (req, res) => {
   }
 });
 
-router.post('/:id/review', authRequired, async (req, res) => {
-  try {
-    const db = getDB();
-    const { rating, comment } = req.body;
-    const booking = await db.queryOne(`SELECT * FROM bookings WHERE id=$1 AND user_id=$2 AND status='confirmed'`, [req.params.id, req.user.id]);
-    if (!booking) return res.status(404).json({ error: 'Reserva no encontrada o no confirmada' });
-    const existing = await db.queryOne('SELECT id FROM reviews WHERE booking_id = $1', [booking.id]);
-    if (existing) return res.status(409).json({ error: 'Ya enviaste una reseña' });
-    await db.run('INSERT INTO reviews (booking_id,user_id,boat_id,rating,comment) VALUES ($1,$2,$3,$4,$5)', [booking.id, req.user.id, booking.boat_id, rating, comment]);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
 module.exports = router;

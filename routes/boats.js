@@ -135,12 +135,7 @@ router.get('/:slug', async (req, res) => {
     const boat = await db.queryOne('SELECT * FROM boats WHERE slug = $1', [req.params.slug]);
     if (!boat) return res.status(404).json({ error: 'Embarcación no encontrada' });
 
-    const reviews = await db.query(
-      `SELECT r.*, u.name as user_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.boat_id = $1 ORDER BY r.created_at DESC`,
-      [boat.id]
-    );
-    const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
-    res.json({ ...parseBoat(boat), reviews, avg_rating: avgRating, review_count: reviews.length });
+    res.json(parseBoat(boat));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error del servidor' });

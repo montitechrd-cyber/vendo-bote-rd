@@ -326,7 +326,6 @@ router.get('/embarcacion/:slug', async (req, res, next) => {
         robots: 'noindex, follow',
       }), 404);
     }
-    const reviews = await db.query('SELECT rating FROM reviews WHERE boat_id = $1', [boat.id]);
 
     const url = `${siteUrl()}/embarcacion/${encodeURIComponent(boat.slug)}`;
     const forSale = Boolean(boat.for_sale);
@@ -358,13 +357,6 @@ router.get('/embarcacion/:slug', async (req, res, next) => {
           price: Number(price),
           availability: boat.available || forSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           seller: { '@id': siteUrl() + '/#organization' },
-        },
-      }),
-      ...(reviews.length && {
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1),
-          reviewCount: reviews.length,
         },
       }),
     };
