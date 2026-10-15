@@ -572,6 +572,21 @@ async function purgeInactiveBoats() {
     console.log('Embarcación desactivada eliminada:', b.name);
   }
 }
+// Segunda pasada: en producción había 10 desactivadas porque las de venta también figuran como no disponibles;
+// se eliminan solo las EN RENTA desactivadas, y únicamente si son exactamente 2.
+async function purgeInactiveRentals() {
+  const { rows } = await pool.query('SELECT id, name FROM boats WHERE available = false AND COALESCE(for_sale, false) = false');
+  if (rows.length !== 2) { console.log('Rentas desactivadas encontradas:', rows.length, '- no se eliminó ninguna'); return; }
+  for (const b of rows) {
+    const live = await pool.query("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [b.id]);
+    if (live.rows[0].n > 0) { console.log('Se omitió', b.name, 'por tener reservas'); continue; }
+    await pool.query('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [b.id]);
+    await pool.query('DELETE FROM reviews WHERE boat_id = $1', [b.id]);
+    await pool.query('DELETE FROM bookings WHERE boat_id = $1', [b.id]);
+    await pool.query('DELETE FROM boats WHERE id = $1', [b.id]);
+    console.log('Renta desactivada eliminada:', b.name);
+  }
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -621,6 +636,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-14-combo-no-water-ice', migrateComboWithoutWaterIce);
   await runDataMigrationOnce('2026-10-15-launch-descriptions', migrateLaunchDescriptions);
   await runDataMigrationOnce('2026-10-16-purge-inactive-boats', purgeInactiveBoats);
+  await runDataMigrationOnce('2026-10-16-purge-inactive-rentals', purgeInactiveRentals);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }
