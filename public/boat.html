@@ -114,22 +114,10 @@
         <p id="boat-description" style="color:var(--cream-2);line-height:1.85;font-size:0.95rem;"></p>
       </div>
 
-      <!-- Features -->
-      <div style="margin-bottom:2rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Características</h3>
-        <div class="feature-tags" id="boat-features"></div>
-      </div>
-
       <!-- Amenities -->
       <div style="margin-bottom:2rem;" data-reveal>
         <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h3>
         <div class="feature-tags" id="boat-amenities"></div>
-      </div>
-
-      <!-- Rules -->
-      <div style="margin-bottom:2.5rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Reglas de la embarcación</h3>
-        <ul id="boat-rules" style="display:flex;flex-direction:column;gap:0.5rem;"></ul>
       </div>
 
       </div>
@@ -284,7 +272,7 @@
 
             <div class="wizard-next-hint">
               <span style="font-size:1.1rem;">📌</span>
-              <span>Próximo paso: al reservar te llevaremos a subir tu comprobante de transferencia y confirmar tu reserva.</span>
+              <span>Al reservar adjuntarás tu comprobante de transferencia y enviaremos tu reserva para confirmarla.</span>
             </div>
 
           </div>
@@ -610,15 +598,10 @@
       window.VBR?.toast(has ? 'Eliminado de favoritos' : 'Guardado en favoritos', 'success');
     };
 
-    // Features / amenities / rules
-    const feats = boat.features || [];
-    document.getElementById('boat-features').innerHTML = feats.map(f => `<span class="feature-tag">✓ ${esc(f)}</span>`).join('');
-
+    // Amenidades
     const amen = boat.amenities || [];
-    document.getElementById('boat-amenities').innerHTML = amen.map(a => `<span class="feature-tag">🌟 ${esc(a)}</span>`).join('');
+    document.getElementById('boat-amenities').innerHTML = amen.map(a => `<span class="feature-tag">${esc(a)}</span>`).join('');
 
-    const rules = boat.rules || [];
-    document.getElementById('boat-rules').innerHTML = rules.map(r => `<li style="display:flex;gap:0.6rem;font-size:0.88rem;color:var(--cream-2);"><span style="color:var(--sky-2);flex-shrink:0;">—</span>${esc(r)}</li>`).join('');
 
     // Reviews
     const revList = document.getElementById('reviews-list');
