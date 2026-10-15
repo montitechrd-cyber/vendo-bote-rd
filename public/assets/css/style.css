@@ -1954,3 +1954,12 @@ ul { list-style: none; }
 /* Botones secundarios en fondos claros (paneles): texto oscuro y borde visible */
 .admin-main .btn-ghost, .booking-card .btn-ghost, .profile-card .btn-ghost, .dashboard-grid .btn-ghost, .modal .btn-ghost { background: #fff; color: var(--navy); border: 1.5px solid var(--line-2); text-shadow: none; backdrop-filter: none; }
 .admin-main .btn-ghost:hover, .booking-card .btn-ghost:hover, .profile-card .btn-ghost:hover, .dashboard-grid .btn-ghost:hover, .modal .btn-ghost:hover { background: var(--sky-lighter, #EAF6FE); border-color: var(--sky); color: var(--sky-3); }
+
+/* Datos de la embarcación: cada uno en una sola línea */
+.boat-spec-item .boat-spec-label, .boat-spec-item .boat-spec-val { white-space: nowrap; }
+
+/* Datos de la embarcación: ícono a la izquierda y, al lado, la etiqueta sobre el valor; cada uno en una sola línea */
+.boat-info .boat-spec-item { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 0.7rem; row-gap: 0; align-items: center; }
+.boat-info .boat-spec-icon { grid-row: 1 / span 2; width: 34px; height: 34px; }
+.boat-info .boat-spec-label { align-self: end; letter-spacing: 0.1em; }
+.boat-info .boat-spec-val { align-self: start; font-size: 0.95rem; }

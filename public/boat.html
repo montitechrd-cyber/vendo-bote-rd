@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015b" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015d" />
 </head>
 <body>
 
@@ -563,7 +563,7 @@
       ['👥', 'Capacidad', boat.capacity + ' personas'],
       boat.for_sale
         ? ['🏷️', 'Venta', boat.sale_price ? '$' + Number(boat.sale_price).toLocaleString() : 'Consultar']
-        : ['💰', 'Precio', dayBased ? 'Desde $' + dayBasedMinPrice().toLocaleString() + ' / día' : '$' + Number(boat.price_per_day).toLocaleString() + ' / día'],
+        : ['💰', 'Precio', dayBased ? 'Desde $' + dayBasedMinPrice().toLocaleString() : '$' + Number(boat.price_per_day).toLocaleString()],
       ['📍', 'Puerto', boat.location],
     ];
     document.getElementById('boat-specs').innerHTML = specsData.map(([icon, label, v]) => `
