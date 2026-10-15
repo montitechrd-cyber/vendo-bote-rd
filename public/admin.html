@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel — VENDO BOTE RD</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261015h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261015i" />
   <style>
     /* ── Admin Calendar Redesign ── */
     .cal-shell {
@@ -229,22 +229,26 @@
         <p class="admin-subtitle">Gestiona las reservas de la plataforma</p>
       </div>
       <div class="admin-filter-bar">
-        <select class="filter-select" id="book-filter-status">
+        <input type="search" class="filter-input book-search" id="book-search" placeholder="Buscar por código, cliente o embarcación" aria-label="Buscar reservas" autocomplete="off" />
+        <select class="filter-select" id="book-filter-status" aria-label="Filtrar por estado">
           <option value="">Todos los estados</option>
-          <option value="pending">Pendiente</option>
+          <option value="pending">Pendientes</option>
           <option value="confirmed">Confirmadas</option>
           <option value="cancelled">Canceladas</option>
         </select>
-        <select class="filter-select" id="book-filter-pay">
+        <select class="filter-select" id="book-filter-pay" aria-label="Filtrar por pago">
           <option value="">Todos los pagos</option>
-          <option value="pending">Sin pago</option>
-          <option value="submitted">Comprobante enviado</option>
+          <option value="submitted">En verificación</option>
           <option value="verified">Pago verificado</option>
           <option value="rejected">Pago rechazado</option>
+          <option value="pending">Sin pago</option>
+        </select>
+        <select class="filter-select" id="book-filter-boat" aria-label="Filtrar por embarcación">
+          <option value="">Todas las embarcaciones</option>
         </select>
         <div class="admin-filter-bar-actions">
-          <button class="btn btn-primary btn-sm" onclick="loadAllBookings()">Filtrar</button>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('book-filter-status').value='';document.getElementById('book-filter-pay').value='';loadAllBookings()">Limpiar</button>
+          <span class="book-count" id="book-count" aria-live="polite"></span>
+          <button type="button" class="btn btn-ghost btn-sm hidden" id="book-clear">Limpiar filtros</button>
         </div>
       </div>
       <div class="booking-list" id="all-bookings-list"><p style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas.</p></div>
@@ -511,26 +515,52 @@
   }
 
   /* ── All bookings ── */
-  window.loadAllBookings = function () {
+  /* ── Todas las reservas: los filtros se aplican al instante, sin botón ── */
+  let allBookingsData = [];
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  function renderAllBookings() {
+    const q = norm(document.getElementById('book-search').value.trim());
     const status = document.getElementById('book-filter-status').value;
     const pay = document.getElementById('book-filter-pay').value;
-    let url = '/bookings?';
-    if (status) url += 'status=' + status + '&';
-    if (pay) url += 'payment_status=' + pay;
-    window.VBR.api(url).then(data => {
-      const list = document.getElementById('all-bookings-list');
-      if (!data.length) { list.innerHTML = '<p style="text-align:center;color:var(--cream-3);padding:2rem;">Sin reservas registradas.</p>'; return; }
-      list.innerHTML = data.map(b => {
-        const client = [[b.user_name, b.user_last_name].filter(Boolean).join(' '), b.user_phone, b.user_email].filter(Boolean).join(' · ');
-        const canAct = b.status !== 'cancelled';
-        return window.VBR.bookingCard(b, { client, actions:
-          '<button class="btn btn-ghost btn-sm" onclick="openVerifyModal(' + b.id + ')">Ver</button>' +
-          (canAct ? '<button class="btn btn-danger btn-sm" onclick="promptReject(' + b.id + ')">Rechazar</button>' : '') +
-          '<button class="btn btn-ghost btn-sm" style="color:#B91C1C;" onclick="deleteBooking(' + b.id + ')">Eliminar</button>' });
-      }).join('');
-      window.VBR.observeReveals && window.VBR.observeReveals();
+    const boat = document.getElementById('book-filter-boat').value;
+    const data = allBookingsData.filter(b =>
+      (!status || b.status === status) && (!pay || b.payment_status === pay) && (!boat || String(b.boat_id) === boat) &&
+      (!q || norm([b.booking_ref, b.boat_name, b.user_name, b.user_last_name, b.user_email, b.user_phone].join(' ')).includes(q)));
+    const active = !!(q || status || pay || boat);
+    document.getElementById('book-clear').classList.toggle('hidden', !active);
+    document.getElementById('book-count').textContent = data.length + (data.length === 1 ? ' reserva' : ' reservas');
+    const list = document.getElementById('all-bookings-list');
+    if (!data.length) {
+      list.innerHTML = '<p style="text-align:center;color:var(--cream-3);padding:2rem;">' + (active ? 'Ninguna reserva coincide con los filtros.' : 'Sin reservas registradas.') + '</p>';
+      return;
+    }
+    list.innerHTML = data.map(b => {
+      const client = [[b.user_name, b.user_last_name].filter(Boolean).join(' '), b.user_phone, b.user_email].filter(Boolean).join(' · ');
+      const canAct = b.status !== 'cancelled';
+      return window.VBR.bookingCard(b, { client, actions:
+        '<button class="btn btn-ghost btn-sm" onclick="openVerifyModal(' + b.id + ')">Ver</button>' +
+        (canAct ? '<button class="btn btn-danger btn-sm" onclick="promptReject(' + b.id + ')">Rechazar</button>' : '') +
+        '<button class="btn btn-ghost btn-sm" style="color:#B91C1C;" onclick="deleteBooking(' + b.id + ')">Eliminar</button>' });
+    }).join('');
+    window.VBR.observeReveals && window.VBR.observeReveals();
+  }
+  window.loadAllBookings = function () {
+    window.VBR.api('/bookings').then(data => {
+      allBookingsData = Array.isArray(data) ? data : [];
+      // lista de embarcaciones que tienen reservas, conservando la selección actual
+      const sel = document.getElementById('book-filter-boat'), keep = sel.value;
+      const boats = [...new Map(allBookingsData.map(b => [String(b.boat_id), b.boat_name])).entries()].sort((x, y) => String(x[1]).localeCompare(String(y[1])));
+      sel.innerHTML = '<option value="">Todas las embarcaciones</option>' + boats.map(([id, n]) => '<option value="' + esc(id) + '">' + esc(n) + '</option>').join('');
+      sel.value = boats.some(([id]) => id === keep) ? keep : '';
+      renderAllBookings();
     }).catch(() => window.VBR.toast('Error cargando reservas', 'error'));
   };
+  ['book-filter-status', 'book-filter-pay', 'book-filter-boat'].forEach(id => document.getElementById(id).addEventListener('change', renderAllBookings));
+  document.getElementById('book-search').addEventListener('input', renderAllBookings);
+  document.getElementById('book-clear').addEventListener('click', () => {
+    ['book-search', 'book-filter-status', 'book-filter-pay', 'book-filter-boat'].forEach(id => { document.getElementById(id).value = ''; });
+    renderAllBookings();
+  });
 
   /* ── Pending payments ── */
   function loadPendingPayments() {

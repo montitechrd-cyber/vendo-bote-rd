@@ -2001,3 +2001,9 @@ ul { list-style: none; }
   .hero-loc-row span { letter-spacing: 0.14em; }
 }
 @media (max-width: 640px) and (orientation: landscape) { .hero-content { padding-top: calc(var(--nav-h, 72px) + 0.5rem); } }
+
+/* Filtros de reservas: búsqueda + selectores que se aplican al instante */
+.book-search { flex: 1 1 260px; min-width: 200px; max-width: 360px; }
+.book-count { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+.admin-filter-bar-actions { align-items: center; }
+@media (max-width: 900px) { .book-search { max-width: none; } .admin-filter-bar-actions { justify-content: space-between; } }
