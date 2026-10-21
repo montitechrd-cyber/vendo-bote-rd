@@ -386,6 +386,12 @@ ul { list-style: none; }
   box-shadow: 0 4px 20px rgba(3,105,161,0.35);
 }
 .btn-primary:hover { background: var(--sky-3); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(15,52,96,0.22); }
+/* CTA del hero: ámbar para que resalte sobre el video del mar */
+.btn-cta {
+  background: var(--sand); color: var(--text); font-weight: 700;
+  box-shadow: 0 6px 24px rgba(245,166,35,0.45), 0 0 0 1px rgba(255,255,255,0.35) inset;
+}
+.btn-cta:hover { background: var(--sand-2); color: var(--text); transform: translateY(-3px); box-shadow: 0 14px 34px rgba(232,146,26,0.5); }
 .btn-ghost {
   border: 2px solid rgba(255,255,255,0.85); color: white;
   background: rgba(15,52,96,0.28);
