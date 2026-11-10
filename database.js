@@ -611,6 +611,28 @@ async function migrateAndreaAndRomana() {
     await pool.query('UPDATE boats SET pricing_scheme = $1 WHERE id = $2', [JSON.stringify(scheme), b.id]);
   }
 }
+// Coral de Hielo (Boca Chica, 30 personas): el servicio normal ya incluye 1 hora de jetski ($800);
+// combo completo con decoración, bizcocho y BBQ en vivo ($1,000 entre semana, $1,200 fin de semana).
+async function addCoralDeHielo() {
+  const exists = await pool.query("SELECT 1 FROM boats WHERE slug = 'coral-de-hielo'");
+  if (exists.rowCount) return;
+  const dir = '/assets/img/RENTAS/CORAL DE HIELO/';
+  const images = ['portada.jpg', 'portada.mp4', 'foto-1.jpeg', 'foto-2.jpeg', 'foto-3.jpeg', 'foto-4.jpeg', 'foto-5.jpeg', 'foto-6.jpeg', 'foto-7.jpeg', 'foto-8.jpeg'].map(f => dir + f);
+  const included = ['1 hora de jetski', 'Agua', 'Hielo', 'Gasolina', 'Tripulación'];
+  const scheme = {
+    type: 'day_based',
+    prices: { weekday: 800, weekday_birthday: 1000, weekend: 800, weekend_birthday: 1200 },
+    birthday_combo: ['Decoración', 'Bizcocho', 'BBQ en vivo'],
+    included,
+  };
+  const description = 'Renta de Coral de Hielo en Boca Chica, con capacidad para 30 personas. Yate con salón interior, camarotes y baños. El servicio normal incluye 1 hora de jetski, agua, hielo, gasolina y tripulación. Con el combo completo se agrega decoración, bizcocho y BBQ en vivo; el precio del combo varía según el día de la semana. También puedes rentarlo con BBQ en vivo y 1 hora de jetski por $1,000 USD: escríbenos por WhatsApp para coordinarlo.';
+  await pool.query(
+    `INSERT INTO boats (name, slug, description, short_description, location, capacity, price_per_day, images, features, amenities, rules, available, featured, pricing_scheme)
+     VALUES ($1,$2,$3,$4,'Boca Chica',30,800,$5,'[]',$6,$7,true,true,$8)`,
+    ['Coral de Hielo', 'coral-de-hielo', description, 'Yate Coral de Hielo en Boca Chica para hasta 30 personas.',
+     JSON.stringify(images), JSON.stringify(included), JSON.stringify(['Máximo 30 personas']), JSON.stringify(scheme)]
+  );
+}
 async function migrateCatamaran36() {
   const { rows } = await pool.query("SELECT id, pricing_scheme FROM boats WHERE slug = 'catamaran-36' OR name ILIKE '%Catamar_n 36%'");
   for (const b of rows) {
@@ -662,6 +684,7 @@ async function init() {
   await runDataMigrationOnce('2026-10-16-purge-inactive-boats', purgeInactiveBoats);
   await runDataMigrationOnce('2026-10-16-purge-inactive-rentals', purgeInactiveRentals);
   await runDataMigrationOnce('2026-10-16-andrea-romana', migrateAndreaAndRomana);
+  await runDataMigrationOnce('2026-11-10-coral-de-hielo', addCoralDeHielo);
   console.log('  Base de datos PostgreSQL lista.');
   return db;
 }

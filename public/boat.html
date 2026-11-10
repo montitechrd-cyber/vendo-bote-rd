@@ -597,7 +597,7 @@
 
   // Lo incluido depende del servicio elegido: normal o con combo de cumpleaños (solo Boca Chica).
   const INC_EMOJI = { 'parrillada': '🍖', 'agua': '💧', 'hielo': '🧊', 'gasolina': '⛽', 'tripulación': '⚓', 'cocinero': '👨‍🍳',
-    '1 hora de jetski': '🌊', '1 hora de jet ski': '🌊', 'jetski': '🌊', 'decoración': '🎈', 'bizcocho': '🎂', 'refresco': '🥤' };
+    '1 hora de jetski': '🌊', '1 hora de jet ski': '🌊', 'jetski': '🌊', 'decoración': '🎈', 'bizcocho': '🎂', 'refresco': '🥤', 'bbq en vivo': '🍖' };
   const incChip = (name, extra) => '<span class="inc-chip' + (extra ? ' is-combo' : '') + '"><span aria-hidden="true">' + (INC_EMOJI[String(name).toLowerCase()] || '✔️') + '</span>' + name + '</span>';
   function renderIncluded() {
     if (boat.location !== 'Boca Chica') return;
@@ -611,7 +611,7 @@
     const baseShown = combo.length ? base.filter(i => !combo.includes(i)) : base;
     document.getElementById('included-title').textContent = 'Incluido en el precio';
     document.getElementById('included-text').innerHTML = baseShown.map(i => incChip(i, false)).join('') +
-      (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') + (sunday ? '<div class="inc-note">Los domingos el combo no incluye el jetski.</div>' : '') : '');
+      (combo.length ? '<div class="inc-combo-title">🎉 Con el combo de cumpleaños</div>' + combo.map(i => incChip(i, true)).join('') + (sunday && (s.birthday_combo || []).some(i => /jetski|jet ski/i.test(i)) ? '<div class="inc-note">Los domingos el combo no incluye el jetski.</div>' : '') : '');
   }
 
   window.toggleBirthday = function (checked) { selBirthday = !!checked; renderIncluded(); updateSummary(); };
