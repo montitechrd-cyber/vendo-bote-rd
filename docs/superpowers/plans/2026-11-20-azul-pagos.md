@@ -31,7 +31,7 @@
 
 ---
 
-### Tarea 1: Núcleo AZUL (`utils/azul.js`)
+### Task 1: Núcleo AZUL (`utils/azul.js`)
 
 **Files:** Create `utils/azul.js`, `tests/azul.test.js`; Modify `package.json` (script `"test": "node --test tests/"`).
 
@@ -50,7 +50,7 @@
 - [ ] **Paso 4:** `npm test` — Esperado: todo PASA.
 - [ ] **Paso 5:** commit `feat: núcleo AZUL (montos y AuthHash)`.
 
-### Tarea 2: Base de datos, retención de turno, cotización y tasa
+### Task 2: Base de datos, retención de turno, cotización y tasa
 
 **Files:** Modify `database.js` (tabla e índice), `routes/bookings.js` (usar cotización compartida y estados), `routes/boats.js:181`, `routes/rates.js`; Create `utils/booking-quote.js`, `utils/card-holds.js`, `utils/rates.js`, `tests/booking-quote.test.js`.
 
@@ -68,7 +68,7 @@
 - [ ] **Paso 5:** `npm test` PASA; arrancar `npm run dev` y crear una reserva por transferencia con el flujo actual (comprobante) — Esperado: sigue funcionando igual.
 - [ ] **Paso 6:** commit `refactor: cotización compartida, retención de turno y tabla card_payments`.
 
-### Tarea 3: Rutas AZUL (`routes/azul.js`) y endurecimiento del servidor
+### Task 3: Rutas AZUL (`routes/azul.js`) y endurecimiento del servidor
 
 **Files:** Create `routes/azul.js`, `tests/azul-routes.test.js`; Modify `server.js` (montaje, CSP `form-action`, limitadores), `utils/email.js` (recibo al cliente y aviso admin).
 
@@ -87,7 +87,7 @@
 - [ ] **Paso 5:** `utils/email.js`: `sendCardReceipt(booking, user, payment)` (modelo de recibo: negocio, dirección, referencia, fecha, monto en RD$ y USD, últimos datos de la autorización: `AuthorizationCode`, `RRN`; nunca tarjeta) y `sendCardNeedsReview(booking, user, payment)` al admin. Escapar todo con `esc()`.
 - [ ] **Paso 6:** `npm test` PASA. Commit `feat: rutas de pago AZUL con verificación de hash`.
 
-### Tarea 4: Simulador local de AZUL y prueba de punta a punta
+### Task 4: Simulador local de AZUL y prueba de punta a punta
 
 **Files:** Create `scripts/azul-sim.js`, `tests/e2e-azul.md` (guion de prueba manual con resultados); Modify `scripts/dev.js` (arrancar el simulador solo con `AZUL_ENV=test` y sin `NODE_ENV=production`), `.env.example`.
 
@@ -98,7 +98,7 @@
 - [ ] **Paso 3:** `npm run dev` y probar con el navegador: aprobada → reserva `confirmed/verified` y calendario ocupado; declinada → turno liberado; cancelada → turno liberado; recargar la URL de aprobada → sin cambios; alterar el monto de la URL de retorno → no confirma; expirar 15 min (adelantando `created_at` en la BD local) → turno libre. Registrar resultados en `tests/e2e-azul.md`.
 - [ ] **Paso 4:** commit `test: simulador AZUL y prueba de punta a punta local`.
 
-### Tarea 5: Interfaz de pago y estados
+### Task 5: Interfaz de pago y estados
 
 **Files:** Modify `public/assets/js/boat.js` (`showModal`, `submitBooking`), `public/boat.html` (si hace falta contenedor), `public/assets/css/style.css`, `public/assets/js/dashboard.js`, `public/assets/js/main.js:78`, `public/assets/js/admin.js:75`; Create `public/pago-resultado.html`, `public/assets/js/pago-resultado.js`.
 
@@ -111,7 +111,7 @@
 - [ ] **Paso 5:** verificar en el navegador integrado a ancho de teléfono y de laptop (flujo con el simulador de la Tarea 4); sin errores en consola; CSP sin violaciones.
 - [ ] **Paso 6:** commit `feat: pago con tarjeta en el checkout y pantalla de resultado`.
 
-### Tarea 6: Requisitos del sitio exigidos por AZUL (páginas legales)
+### Task 6: Requisitos del sitio exigidos por AZUL (páginas legales)
 
 **Files:** Create `public/terminos.html`, `public/reembolsos.html`, `public/privacidad.html`, `public/seguridad-pagos.html`, `public/assets/img/pagos/` (visa.svg, mastercard.svg, verified-by-visa.svg, mastercard-idcheck.svg); Modify el pie de `public/index.html`, `boat.html`, `embarcaciones.html`, `ventas.html`, `dashboard.html`, `auth.html`; `routes/seo.js` (sitemap/etiquetas de las páginas nuevas).
 
@@ -121,7 +121,7 @@
 - [ ] **Paso 4:** los logos SVG son versiones simples hechas a mano; avisar al dueño que deben sustituirse por los oficiales que entrega AZUL/las marcas antes de certificar.
 - [ ] **Paso 5:** revisar en navegador (teléfono y laptop), sin scripts en línea; commit `feat: páginas legales y logos exigidos por AZUL`.
 
-### Tarea 7: Documento PCI/seguridad y revisión final
+### Task 7: Documento PCI/seguridad y revisión final
 
 **Files:** Create `docs/seguridad/pci-dss-saq-a.md`; Modify `.env.example`.
 
