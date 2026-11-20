@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node scripts/dev.js",
-    "dev:db": "node scripts/dev-db.js"
+    "dev:db": "node scripts/dev-db.js",
+    "db:sync": "node scripts/sync-catalog.js"
   },
   "dependencies": {
     "compression": "^1.8.2",
