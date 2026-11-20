@@ -117,7 +117,7 @@ app.get('/api/admin/stats', adminRequired, async (req, res) => {
   try {
     const db = getDB();
     const [boats, bookings, pending, confirmed, revenue, recent] = await Promise.all([
-      db.queryOne('SELECT COUNT(*) as c FROM boats WHERE available = true'),
+      db.queryOne('SELECT COUNT(*) as c FROM boats WHERE available = true OR for_sale = true'),
       db.queryOne('SELECT COUNT(*) as c FROM bookings'),
       db.queryOne("SELECT COUNT(*) as c FROM bookings WHERE payment_status = 'submitted'"),
       db.queryOne("SELECT COUNT(*) as c FROM bookings WHERE status = 'confirmed'"),

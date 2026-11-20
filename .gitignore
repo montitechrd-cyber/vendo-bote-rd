@@ -30,3 +30,4 @@ skills-lock.json
 # Docs/borradores de trabajo, no del producto
 DEPLOY-HOSTINGER.md
 scratch_deployment_guide.html
+.localdb/

@@ -22,42 +22,7 @@ const db = {
 };
 
 async function createTables() {
-  // Migrations for existing tables
-  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS schedule TEXT DEFAULT 'full-day'`).catch(() => {});
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id TEXT`).catch(() => {});
-  await pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
-  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS users_clerk_id_idx ON users(clerk_id) WHERE clerk_id IS NOT NULL`).catch(() => {});
-  // For-sale columns (added post-launch)
-  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS for_sale BOOLEAN DEFAULT FALSE`).catch(() => {});
-  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS sale_price REAL`).catch(() => {});
-  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS sale_description TEXT`).catch(() => {});
-  // Esquema de precio por paquete de horas (renta fuera de Boca Chica: 3h/4h, hora extra, cargo por persona extra, extras de comida)
-  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS pricing_scheme TEXT`).catch(() => {});
-  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_meta TEXT`).catch(() => {});
-  // Perfil: cédula (número) y archivos del usuario (foto de perfil y documento) guardados en la base de datos,
-  // en tabla aparte para no cargarlos en cada petición autenticada.
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_number TEXT`).catch(() => {});
-  await pool.query(`CREATE TABLE IF NOT EXISTS user_files (
-    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    avatar_data BYTEA, avatar_mime TEXT, avatar_updated_at TIMESTAMPTZ,
-    id_data BYTEA, id_mime TEXT
-  )`).catch(() => {});
-  // Comprobantes de pago guardados en la base de datos (el disco del servidor se borra en cada despliegue)
-  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_data BYTEA`).catch(() => {});
-  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_mime TEXT`).catch(() => {});
-  // Evita doble reserva del mismo turno a nivel de base de datos (la validación en la ruta
-  // es check-then-insert y por sí sola no cierra la carrera entre dos solicitudes simultáneas).
-  // Un turno solo queda ocupado (y aparece en el calendario) cuando la reserva ya tiene comprobante enviado o pago verificado.
-  await pool.query(`DROP INDEX IF EXISTS bookings_slot_unique_idx`).catch(() => {});
-  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_active_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`).catch(() => {});
-  // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
-  // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});
-  // Restablecer / crear contraseña por correo (se guarda solo el hash del token)
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash TEXT`).catch(() => {});
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMPTZ`).catch(() => {});
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_document_filename TEXT`).catch(() => {});
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE`).catch(() => {});
+  // Primero las tablas base (en una base vacía los ALTER de abajo necesitan que ya existan)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -133,6 +98,42 @@ async function createTables() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  // Migraciones sobre tablas existentes
+  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS schedule TEXT DEFAULT 'full-day'`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS users_clerk_id_idx ON users(clerk_id) WHERE clerk_id IS NOT NULL`).catch(() => {});
+  // For-sale columns (added post-launch)
+  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS for_sale BOOLEAN DEFAULT FALSE`).catch(() => {});
+  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS sale_price REAL`).catch(() => {});
+  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS sale_description TEXT`).catch(() => {});
+  // Esquema de precio por paquete de horas (renta fuera de Boca Chica: 3h/4h, hora extra, cargo por persona extra, extras de comida)
+  await pool.query(`ALTER TABLE boats ADD COLUMN IF NOT EXISTS pricing_scheme TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_meta TEXT`).catch(() => {});
+  // Perfil: cédula (número) y archivos del usuario (foto de perfil y documento) guardados en la base de datos,
+  // en tabla aparte para no cargarlos en cada petición autenticada.
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_number TEXT`).catch(() => {});
+  await pool.query(`CREATE TABLE IF NOT EXISTS user_files (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    avatar_data BYTEA, avatar_mime TEXT, avatar_updated_at TIMESTAMPTZ,
+    id_data BYTEA, id_mime TEXT
+  )`).catch(() => {});
+  // Comprobantes de pago guardados en la base de datos (el disco del servidor se borra en cada despliegue)
+  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_data BYTEA`).catch(() => {});
+  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_mime TEXT`).catch(() => {});
+  // Evita doble reserva del mismo turno a nivel de base de datos (la validación en la ruta
+  // es check-then-insert y por sí sola no cierra la carrera entre dos solicitudes simultáneas).
+  // Un turno solo queda ocupado (y aparece en el calendario) cuando la reserva ya tiene comprobante enviado o pago verificado.
+  await pool.query(`DROP INDEX IF EXISTS bookings_slot_unique_idx`).catch(() => {});
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_active_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`).catch(() => {});
+  // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
+  // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});
+  // Restablecer / crear contraseña por correo (se guarda solo el hash del token)
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMPTZ`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_document_filename TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE`).catch(() => {});
 }
 
 async function seedData() {

@@ -181,7 +181,7 @@ router.get('/:id/availability', async (req, res) => {
     let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`;
     const params = [boat.id];
 
-    if (year && month) {
+    if (year && month && Number.isInteger(parseInt(year, 10)) && Number.isInteger(parseInt(month, 10))) {
       sql += ` AND EXTRACT(YEAR FROM start_date::date) = $2 AND EXTRACT(MONTH FROM start_date::date) = $3`;
       params.push(parseInt(year), parseInt(month));
     }

@@ -339,6 +339,7 @@ router.delete('/me/avatar', authRequired, async (req, res) => {
 router.get('/avatar/:userId', authRequired, async (req, res) => {
   try {
     const targetId = parseInt(req.params.userId, 10);
+    if (!Number.isInteger(targetId)) return res.status(400).json({ error: 'Usuario inválido' });
     if (targetId !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
     const f = await getDB().queryOne('SELECT avatar_data, avatar_mime FROM user_files WHERE user_id = $1', [targetId]);
     if (!f || !f.avatar_data) return res.status(404).json({ error: 'Sin foto' });
@@ -380,15 +381,17 @@ router.delete('/me/id-document', authRequired, async (req, res) => {
 router.post('/complete-profile', authRequired, uploadIdDoc, async (req, res) => {
   try {
     const db = getDB();
-    const { name, last_name, phone } = req.body;
-    const id_number = String(req.body.id_number || '').trim();
-    if (!name?.trim() || !last_name?.trim() || !phone?.trim() || !id_number) {
+    const name = String(req.body.name || '').trim().slice(0, 80);
+    const last_name = String(req.body.last_name || '').trim().slice(0, 80);
+    const phone = String(req.body.phone || '').trim().slice(0, 30);
+    const id_number = String(req.body.id_number || '').trim().slice(0, 25);
+    if (!name || !last_name || !phone || !id_number) {
       return res.status(400).json({ error: 'Nombre, apellido, teléfono y cédula o pasaporte son requeridos' });
     }
     if (!ID_NUMBER_RE.test(id_number)) return res.status(400).json({ error: 'La cédula o pasaporte no es válido' });
 
     const fields = ['name = $1', 'last_name = $2', 'phone = $3', 'id_number = $4', 'profile_completed = true'];
-    const params = [name.trim(), last_name.trim(), phone.trim(), id_number];
+    const params = [name, last_name, phone, id_number];
     params.push(req.user.id);
 
     await db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length}`, params);
@@ -409,7 +412,8 @@ router.post('/complete-profile', authRequired, uploadIdDoc, async (req, res) => 
 router.get('/id-document/:userId', authRequired, async (req, res) => {
   try {
     const db = getDB();
-    const targetId = parseInt(req.params.userId);
+    const targetId = parseInt(req.params.userId, 10);
+    if (!Number.isInteger(targetId)) return res.status(400).json({ error: 'Usuario inválido' });
     if (targetId !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Acceso denegado' });
     }
@@ -431,7 +435,8 @@ router.get('/id-document/:userId', authRequired, async (req, res) => {
 router.delete('/id-document/:userId', adminRequired, async (req, res) => {
   try {
     const db = getDB();
-    const targetId = parseInt(req.params.userId);
+    const targetId = parseInt(req.params.userId, 10);
+    if (!Number.isInteger(targetId)) return res.status(400).json({ error: 'Usuario inválido' });
     const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);
     if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
 

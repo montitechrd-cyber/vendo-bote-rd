@@ -22,7 +22,7 @@ echo.
 call npm install
 
 echo.
-echo  Iniciando servidor en http://localhost:3000
+echo  Iniciando servidor en http://localhost:3001
 echo.
 start http://localhost:3001
 node server.js

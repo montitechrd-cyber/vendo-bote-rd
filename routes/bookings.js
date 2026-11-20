@@ -50,6 +50,8 @@ router.post('/', authRequired, uploadReceipt, async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Adjunta el comprobante de pago para completar la reserva (JPG, PNG, WEBP o PDF).' });
     let { special_requests } = req.body;
     if (!boat_id || !start_date || !schedule) return res.status(400).json({ error: 'Datos de reserva incompletos' });
+    if (!/^\d+$/.test(String(boat_id))) return res.status(400).json({ error: 'Embarcación inválida' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(start_date))) return res.status(400).json({ error: 'Fecha inválida' });
     if (special_requests != null) {
       special_requests = String(special_requests).slice(0, 500);
     }
@@ -426,6 +428,7 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
       res.status(400).json({ error: 'Acción inválida' });
     }
   } catch (e) {
+    console.error(e);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
