@@ -167,6 +167,16 @@ app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth
 
 const { adminRequired } = require('./middleware/auth');
 
+// Registro de actividad administrativa: últimos 200 eventos (solo admin con 2FA activado)
+app.get('/api/admin/audit', adminRequired, async (req, res) => {
+  try {
+    const rows = await getDB().query(
+      `SELECT a.id, a.at, a.action, a.entity, a.entity_id, a.ip, a.detail, u.email AS user_email
+       FROM audit_log a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id DESC LIMIT 200`);
+    res.json(rows);
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
 app.get('/api/admin/stats', adminRequired, async (req, res) => {
   try {
     const db = getDB();

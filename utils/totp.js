@@ -72,7 +72,8 @@ const otpauthUrl = (secretBase32, account, issuer = 'Vendo Bote RD') =>
 
 // ── Cifrado del secreto en reposo ──
 function masterKey(secret) {
-  const s = secret || process.env.SESSION_SECRET;
+  // En producción SESSION_SECRET es obligatoria (session.js no arranca sin ella); solo en desarrollo hay una clave fija de pruebas.
+  const s = secret || process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? null : 'vbr-solo-desarrollo');
   if (!s) throw new Error('Falta SESSION_SECRET para cifrar el secreto 2FA');
   return Buffer.from(crypto.hkdfSync('sha256', s, 'vbr-totp-salt-v1', 'vbr-totp-enc-v1', 32));
 }

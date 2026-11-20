@@ -31,6 +31,8 @@ function adminRequired(req, res, next) {
     .then(user => {
       if (!user) return res.status(401).json({ error: 'No autenticado' });
       if (user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+      // PCI DSS 8: un admin sin 2FA activado puede entrar, pero solo puede usar la configuración del 2FA (/api/auth/2fa/*, que usa authRequired)
+      if (!user.totp_enabled) return res.status(403).json({ error: 'Activa la verificación en dos pasos para usar el panel de administración.', code: 'totp_setup_required' });
       req.user = user;
       next();
     })

@@ -1,6 +1,7 @@
 const express = require('express');
 const { getDB } = require('../database');
 const { adminRequired } = require('../middleware/auth');
+const { audit } = require('../utils/audit');
 
 const { SLOT_HOLDING_PAYMENT_STATUSES, HOLD_MINUTES } = require('../utils/card-holds');
 
@@ -97,6 +98,7 @@ router.post('/', adminRequired, async (req, res) => {
        JSON.stringify(rules||[]), available ?? true, featured ?? false, !!for_sale, sale_price || null, sale_description || null,
        pricing_scheme ? (typeof pricing_scheme === 'string' ? pricing_scheme : JSON.stringify(pricing_scheme)) : null]
     );
+    await audit(db, req, 'boat.create', 'boat', result.lastInsertRowid, slug);
     res.json({ id: result.lastInsertRowid });
   } catch (e) {
     console.error(e);
@@ -119,6 +121,7 @@ router.put('/:id', adminRequired, async (req, res) => {
        for_sale === undefined ? null : !!for_sale, sale_price || null, sale_description || null,
        pricing_scheme ? (typeof pricing_scheme === 'string' ? pricing_scheme : JSON.stringify(pricing_scheme)) : null]
     );
+    await audit(db, req, 'boat.update', 'boat', req.params.id);
     res.json({ success: true });
   } catch (e) {
     console.error(e);
@@ -130,6 +133,7 @@ router.delete('/:id', adminRequired, async (req, res) => {
   try {
     const db = getDB();
     await db.run('UPDATE boats SET available = false WHERE id = $1', [req.params.id]);
+    await audit(db, req, 'boat.deactivate', 'boat', req.params.id);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
@@ -154,6 +158,7 @@ router.delete('/:id/permanent', adminRequired, async (req, res) => {
     await db.run('DELETE FROM reviews WHERE boat_id = $1', [boat.id]);
     await db.run('DELETE FROM bookings WHERE boat_id = $1', [boat.id]);
     await db.run('DELETE FROM boats WHERE id = $1', [boat.id]);
+    await audit(db, req, 'boat.delete', 'boat', boat.id, boat.name);
     res.json({ success: true, message: 'Embarcación eliminada' });
   } catch (e) {
     console.error(e);

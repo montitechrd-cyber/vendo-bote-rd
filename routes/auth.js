@@ -8,6 +8,10 @@ const { setSession, clearSession, sessionFromRequest, hashPassword, verifyPasswo
 const { allValid } = require('../utils/filecheck');
 const DUMMY_HASH = hashPassword('contrasena-de-relleno'); // para que login tarde igual exista o no el correo
 const { sendPasswordReset, sendEmailVerification } = require('../utils/email');
+const { sessionVersion } = require('../utils/session');
+const totp = require('../utils/totp');
+const { audit } = require('../utils/audit');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
@@ -167,7 +171,7 @@ router.post('/google', async (req, res) => {
     }
 
     const db = getDB();
-    let user = await db.queryOne('SELECT id, password_hash, email_verified FROM users WHERE email = $1', [email]);
+    let user = await db.queryOne('SELECT id, password_hash, email_verified, role, totp_enabled FROM users WHERE email = $1', [email]);
     if (user && !user.email_verified) {
       // Alguien registró este correo sin confirmarlo. Google acaba de demostrar que el correo es de quien entra:
       // se borra la contraseña de quien lo registró primero y la cuenta pasa a ser de su dueño real.
@@ -182,14 +186,179 @@ router.post('/google', async (req, res) => {
         'INSERT INTO users (name, last_name, email, role, email_verified) VALUES ($1, $2, $3, $4, true) RETURNING id',
         [name, lastName, email, role]
       );
-      user = { id: r.lastInsertRowid, password_hash: null };
+      user = { id: r.lastInsertRowid, password_hash: null, role, totp_enabled: false };
     }
-    setSession(res, user.id, user.password_hash);
-    res.json({ ok: true });
+    await finishLogin(req, res, user);
   } catch (e) {
     console.error('[auth] google:', e.message);
     res.status(401).json({ error: 'No se pudo iniciar sesión con Google' });
   }
+});
+
+/* ── 2FA TOTP de administradores (PCI DSS 8) ── */
+// Límite estricto del paso del código y de la gestión del 2FA (además del límite general de /login)
+const totpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: Number(process.env.TOTP_LIMIT) || 10,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
+});
+router.use(['/login/2fa', '/2fa'], (req, res, next) => (req.method === 'GET' ? next() : totpLimiter(req, res, next)));
+
+// Bloqueo por cuenta (en memoria): 5 códigos fallidos en 15 min => 15 min sin poder probar más, venga de la IP que venga
+const totpFails = new Map();
+const lockedOut = (uid) => { const f = totpFails.get(uid); return !!f && f.n >= 5 && Date.now() < f.until; };
+function noteTotpFail(uid) {
+  const f = totpFails.get(uid);
+  const n = f && Date.now() < f.until ? f.n + 1 : 1;
+  totpFails.set(uid, { n, until: Date.now() + 15 * 60 * 1000 });
+  if (totpFails.size > 500) for (const [k, v] of totpFails) if (Date.now() > v.until) totpFails.delete(k);
+}
+
+// Comprueba el segundo factor de un admin con 2FA activo: código TOTP (sin reutilizar) o código de recuperación (una sola vez).
+// Devuelve 'totp', 'recovery' o null.
+async function checkSecondFactor(db, user, code) {
+  if (!user || !user.totp_enabled || !user.totp_secret_enc) return null;
+  if (lockedOut(user.id)) return null;
+  const raw = String(code || '').trim().slice(0, 40);
+  let ok = null;
+  if (/^\d{3}\s?\d{3}$/.test(raw)) {
+    let secret;
+    try { secret = totp.decryptSecret(user.totp_secret_enc); } catch (e) { console.error('[2fa] no se pudo descifrar el secreto:', e.message); return null; }
+    const step = totp.verifyTotp(secret, raw, { lastStep: user.totp_last_step });
+    if (step != null) {
+      // Atómico: solo gana quien avance el último paso usado (dos peticiones con el mismo código no pasan las dos)
+      const r = await db.run('UPDATE users SET totp_last_step = $1 WHERE id = $2 AND (totp_last_step IS NULL OR totp_last_step < $1)', [step, user.id]);
+      if (r.rowCount === 1) ok = 'totp';
+    }
+  } else if (totp.looksLikeRecovery(raw)) {
+    const r = await db.run('UPDATE totp_recovery_codes SET used_at = NOW() WHERE user_id = $1 AND code_hash = $2 AND used_at IS NULL', [user.id, totp.hashRecovery(raw)]);
+    if (r.rowCount === 1) ok = 'recovery';
+  }
+  if (ok) totpFails.delete(user.id); else noteTotpFail(user.id);
+  return ok;
+}
+
+// Cierra el inicio de sesión con contraseña/Google/restablecer. Un admin con 2FA activo NO recibe sesión aquí:
+// recibe un reto firmado (5 min) y la sesión solo se emite al validar el código en /login/2fa.
+async function finishLogin(req, res, user) {
+  if (user.role === 'admin' && user.totp_enabled) {
+    return res.json({ ok: true, totp_required: true, challenge: totp.signChallenge(user.id, sessionVersion(user.password_hash)) });
+  }
+  setSession(res, user.id, user.password_hash);
+  if (user.role === 'admin') await audit(getDB(), { user: { id: user.id }, ip: req.ip }, 'admin.login', 'user', user.id, 'sin 2FA activado');
+  res.json({ ok: true });
+}
+
+router.post('/login/2fa', async (req, res) => {
+  const bad = () => res.status(401).json({ error: 'Código incorrecto o vencido. Inténtalo de nuevo.' });
+  try {
+    const db = getDB();
+    const ch = totp.readChallenge(req.body.challenge);
+    if (!ch) return res.status(401).json({ error: 'La verificación venció. Vuelve a iniciar sesión.', expired: true });
+    const user = await db.queryOne('SELECT * FROM users WHERE id = $1', [ch.uid]);
+    if (!user || user.role !== 'admin' || !user.totp_enabled || ch.v !== sessionVersion(user.password_hash)) {
+      return res.status(401).json({ error: 'La verificación venció. Vuelve a iniciar sesión.', expired: true });
+    }
+    const who = { user: { id: user.id }, ip: req.ip };
+    if (lockedOut(user.id)) {
+      await audit(db, who, 'admin.login_fail', 'user', user.id, 'cuenta bloqueada temporalmente');
+      return res.status(429).json({ error: 'Demasiados códigos incorrectos. Espera 15 minutos.' });
+    }
+    const how = await checkSecondFactor(db, user, req.body.code);
+    if (!how) { await audit(db, who, 'admin.login_fail', 'user', user.id, 'paso 2FA'); return bad(); }
+    setSession(res, user.id, user.password_hash);
+    await audit(db, who, 'admin.login', 'user', user.id, how === 'recovery' ? 'con código de recuperación' : 'con 2FA');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo iniciar sesión' });
+  }
+});
+
+function adminOnly(req, res, next) {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+  next();
+}
+
+async function replaceRecoveryCodes(db, userId) {
+  const codes = totp.newRecoveryCodes();
+  await db.run('DELETE FROM totp_recovery_codes WHERE user_id = $1', [userId]);
+  for (const c of codes) await db.run('INSERT INTO totp_recovery_codes (user_id, code_hash) VALUES ($1, $2)', [userId, totp.hashRecovery(c)]);
+  return codes;
+}
+
+router.get('/2fa/status', authRequired, adminOnly, async (req, res) => {
+  try {
+    const left = req.user.totp_enabled
+      ? (await getDB().queryOne('SELECT COUNT(*)::int AS n FROM totp_recovery_codes WHERE user_id = $1 AND used_at IS NULL', [req.user.id])).n : 0;
+    res.json({ enabled: !!req.user.totp_enabled, recovery_left: left });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// Paso 1: genera un secreto nuevo (cifrado en la base, aún sin activar) y lo muestra una sola vez para escanearlo o teclearlo
+router.post('/2fa/setup', authRequired, adminOnly, async (req, res) => {
+  try {
+    if (req.user.totp_enabled) return res.status(409).json({ error: 'El 2FA ya está activado. Desactívalo primero para configurarlo de nuevo.' });
+    const secret = totp.generateSecret();
+    await getDB().run('UPDATE users SET totp_secret_enc = $1, totp_enabled = FALSE, totp_last_step = NULL WHERE id = $2', [totp.encryptSecret(secret), req.user.id]);
+    res.set('Cache-Control', 'no-store');
+    res.json({ secret: totp.groupSecret(secret), otpauth: totp.otpauthUrl(secret, req.user.email) });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'No se pudo preparar el 2FA' }); }
+});
+
+// Paso 2: confirma con un primer código, activa el 2FA y entrega los códigos de recuperación (única vez que se ven)
+router.post('/2fa/enable', authRequired, adminOnly, async (req, res) => {
+  try {
+    const db = getDB();
+    const u = req.user;
+    if (u.totp_enabled) return res.status(409).json({ error: 'El 2FA ya está activado.' });
+    if (!u.totp_secret_enc) return res.status(400).json({ error: 'Primero genera el secreto.' });
+    let secret;
+    try { secret = totp.decryptSecret(u.totp_secret_enc); } catch { return res.status(400).json({ error: 'Genera el secreto de nuevo.' }); }
+    const step = totp.verifyTotp(secret, req.body.code);
+    if (step == null) return res.status(400).json({ error: 'El código no coincide. Revisa que la hora del teléfono sea automática y prueba con el siguiente código.' });
+    await db.run('UPDATE users SET totp_enabled = TRUE, totp_last_step = $1 WHERE id = $2', [step, u.id]);
+    const codes = await replaceRecoveryCodes(db, u.id);
+    await audit(db, req, 'admin.2fa_enable', 'user', u.id);
+    res.set('Cache-Control', 'no-store');
+    res.json({ ok: true, recovery_codes: codes });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'No se pudo activar el 2FA' }); }
+});
+
+// Desactivar y regenerar los códigos de recuperación exigen contraseña (si la cuenta tiene) + un código vigente
+async function reauth(req, res) {
+  const u = req.user;
+  if (!u.totp_enabled) { res.status(400).json({ error: 'El 2FA no está activado.' }); return false; }
+  if (u.password_hash && !verifyPassword(String(req.body.password || '').slice(0, 200), u.password_hash)) {
+    await audit(getDB(), req, 'admin.2fa_reauth_fail', 'user', u.id, 'contraseña');
+    res.status(401).json({ error: 'La contraseña no es correcta' }); return false;
+  }
+  if (!(await checkSecondFactor(getDB(), u, req.body.code))) {
+    await audit(getDB(), req, 'admin.2fa_reauth_fail', 'user', u.id, 'código');
+    res.status(401).json({ error: 'El código no es correcto' }); return false;
+  }
+  return true;
+}
+
+router.post('/2fa/disable', authRequired, adminOnly, async (req, res) => {
+  try {
+    if (!(await reauth(req, res))) return;
+    const db = getDB();
+    await db.run('UPDATE users SET totp_enabled = FALSE, totp_secret_enc = NULL, totp_last_step = NULL WHERE id = $1', [req.user.id]);
+    await db.run('DELETE FROM totp_recovery_codes WHERE user_id = $1', [req.user.id]);
+    await audit(db, req, 'admin.2fa_disable', 'user', req.user.id);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'No se pudo desactivar el 2FA' }); }
+});
+
+router.post('/2fa/recovery-codes', authRequired, adminOnly, async (req, res) => {
+  try {
+    if (!(await reauth(req, res))) return;
+    const codes = await replaceRecoveryCodes(getDB(), req.user.id);
+    await audit(getDB(), req, 'admin.2fa_recovery_regen', 'user', req.user.id);
+    res.set('Cache-Control', 'no-store');
+    res.json({ ok: true, recovery_codes: codes });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'No se pudieron regenerar los códigos' }); }
 });
 
 router.post('/login', async (req, res) => {
@@ -197,14 +366,14 @@ router.post('/login', async (req, res) => {
     const db = getDB();
     const email = normEmail(req.body.email);
     const password = String(req.body.password || '');
-    const user = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
+    const user = await db.queryOne('SELECT id, password_hash, role, totp_enabled FROM users WHERE email = $1', [email]);
     // Mismo mensaje y mismo tiempo de respuesta exista o no la cuenta (no revela qué correos están registrados).
     const okPass = verifyPassword(password.slice(0, 200), user && user.password_hash ? user.password_hash : DUMMY_HASH);
     if (!user || !user.password_hash || !okPass) {
+      if (user && user.role === 'admin') await audit(db, { user: { id: user.id }, ip: req.ip }, 'admin.login_fail', 'user', user.id, 'contraseña');
       return res.status(401).json({ error: 'Correo o contraseña incorrectos. Si tu cuenta es anterior, usa "Olvidé mi contraseña".' });
     }
-    setSession(res, user.id, user.password_hash);
-    res.json({ ok: true });
+    await finishLogin(req, res, user);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'No se pudo iniciar sesión' });
@@ -281,14 +450,13 @@ router.post('/reset', async (req, res) => {
     const password = String(req.body.password || '');
     if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
     const user = await db.queryOne(
-      'SELECT id FROM users WHERE reset_token_hash = $1 AND reset_expires > NOW()',
+      'SELECT id, role, totp_enabled FROM users WHERE reset_token_hash = $1 AND reset_expires > NOW()',
       [hashResetToken(req.body.token)]
     );
     if (!user) return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo.' });
     const newHash = hashPassword(password);
     await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL, email_verified = true WHERE id = $2', [newHash, user.id]);
-    setSession(res, user.id, newHash);
-    res.json({ ok: true });
+    await finishLogin(req, res, { ...user, password_hash: newHash });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'No se pudo cambiar la contraseña' });

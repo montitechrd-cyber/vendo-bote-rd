@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const { getDB } = require('../database');
 const { authRequired, adminRequired } = require('../middleware/auth');
+const { audit } = require('../utils/audit');
 const email = require('../utils/email');
 
 const router = express.Router();
@@ -219,10 +220,12 @@ router.get('/:id/receipt', authRequired, async (req, res) => {
     const booking = await db.queryOne('SELECT user_id FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
     if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    if (booking.user_id !== req.user.id && !req.user.totp_enabled) return res.status(403).json({ error: 'Activa la verificación en dos pasos para ver comprobantes.', code: 'totp_setup_required' });
 
     const payment = await db.queryOne('SELECT receipt_filename, receipt_data, receipt_mime FROM payments WHERE booking_id = $1', [req.params.id]);
     if (!payment?.receipt_data) return res.status(404).json({ error: 'Sin comprobante' });
 
+    if (booking.user_id !== req.user.id) await audit(db, req, 'receipt.view', 'booking', req.params.id);
     res.set('Content-Type', payment.receipt_mime || 'application/octet-stream');
     res.set('Content-Disposition', `inline; filename="${payment.receipt_filename}"`);
     res.send(payment.receipt_data);
@@ -337,6 +340,7 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
         [booking.id]
       );
       const user = await db.queryOne('SELECT name, email, phone FROM users WHERE id = $1', [booking.user_id]);
+      await audit(db, req, 'booking.verify_payment', 'booking', booking.id, 'aprobado');
       email.sendPaymentApproved(fullBooking, user).catch(console.error);
       res.json({ success: true, message: 'Pago verificado y reserva confirmada' });
     } else if (action === 'reject') {
@@ -348,6 +352,7 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
         [booking.id]
       );
       const user = await db.queryOne('SELECT name, email, phone FROM users WHERE id = $1', [booking.user_id]);
+      await audit(db, req, 'booking.verify_payment', 'booking', booking.id, 'rechazado');
       email.sendPaymentRejected(fullBooking, user, rejection_reason).catch(console.error);
       res.json({ success: true, message: 'Pago rechazado' });
     } else {
@@ -372,6 +377,7 @@ router.delete('/:id', adminRequired, async (req, res) => {
     await db.run('DELETE FROM reviews WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM payments WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM bookings WHERE id = $1', [booking.id]);
+    await audit(db, req, 'booking.delete', 'booking', booking.id);
     res.json({ success: true, message: 'Reserva eliminada' });
   } catch (e) {
     console.error(e);
