@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const ESTADOS = {
-    aprobado: { cls: 'ok', icon: '✓', title: '¡Pago aprobado!', msg: 'Tu pago con tarjeta fue aprobado y tu reserva quedó confirmada. Te enviamos los detalles por correo.' },
+    aprobado: { cls: 'ok', icon: '✓', title: '¡Pago aprobado!', msg: 'Tu pago con tarjeta fue aprobado y tu reserva quedó confirmada. Te enviamos el recibo por correo. Guarda ese correo y este comprobante: los necesitarás ante cualquier consulta.' },
     declinado: { cls: 'bad', icon: '✕', title: 'Pago declinado', msg: 'Tu banco no aprobó el pago y no se te cobró. Puedes intentarlo de nuevo con otra tarjeta o reservar por transferencia.' },
     cancelado: { cls: 'warn', icon: '!', title: 'Pago cancelado', msg: 'Cancelaste el pago y no se te cobró nada. Si aún quieres reservar, vuelve a la embarcación y elige tu método de pago.' },
     revision: { cls: 'warn', icon: '⏳', title: 'Pago en revisión', msg: 'Recibimos tu pago, pero necesitamos revisar tu reserva (por ejemplo, el turno ya no estaba disponible). Nuestro equipo te contactará pronto; si no se confirma, te devolveremos el dinero.' },

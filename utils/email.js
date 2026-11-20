@@ -10,6 +10,8 @@ const transporter = nodemailer.createTransport({
 
 const SITE_URL = (process.env.SITE_URL || 'https://vendoboterd.com').replace(/[/]+$/, '');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'montitechrd@gmail.com';
+// Correo público de atención al cliente (el que ven los clientes en los recibos y en el sitio)
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'info@vendoboterd.com';
 // Avisos de reservas y comprobantes: llegan al correo admin y a Penélope (se pueden sumar más en NOTIFY_EMAILS, separados por coma)
 const ADMIN_RECIPIENTS = [...new Set([ADMIN_EMAIL, 'penelope.1021@hotmail.com', ...(process.env.NOTIFY_EMAILS || '').split(',')].map(e => e.trim()).filter(Boolean))];
 
@@ -62,7 +64,7 @@ function wrap(title, body) {
   <tr><td align="center" style="padding:18px 24px 12px;background:#ffffff;"><img src="${SITE_URL}/assets/img/email-logo.png" width="150" alt="Vendo Bote RD" style="display:block;border:0;height:auto;"/></td></tr>
   <tr><td align="center" style="background:${C.navy};color:#ffffff;padding:11px 24px;font-size:14px;font-weight:700;letter-spacing:0.04em;">${title}</td></tr>
   <tr><td style="padding:20px 24px 8px;">${html}</td></tr>
-  <tr><td align="center" style="padding:14px 24px 18px;border-top:1px solid ${C.line};font-size:12px;line-height:1.5;color:${C.mute};">Correo automático de <strong>Vendo Bote RD</strong> · <a href="mailto:${ADMIN_EMAIL}" style="color:${C.sky};">${ADMIN_EMAIL}</a></td></tr>
+  <tr><td align="center" style="padding:14px 24px 18px;border-top:1px solid ${C.line};font-size:12px;line-height:1.5;color:${C.mute};">Correo automático de <strong>Vendo Bote RD</strong> · <a href="mailto:${CONTACT_EMAIL}" style="color:${C.sky};">${CONTACT_EMAIL}</a></td></tr>
 </table></td></tr></table></body></html>`;
 }
 
