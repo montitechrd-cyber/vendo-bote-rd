@@ -114,6 +114,15 @@ function withHead(html, { title, description, canonical, image, type = 'website'
   return html.replace('</head>', `  ${tags}\n</head>`);
 }
 
+// Rellena el contenido de un elemento por id (ej. <h1 id="boat-name"></h1>) para que Google
+// lo lea en el HTML inicial, sin depender de que se ejecute el JavaScript de la página.
+function fill(html, tag, id, inner) {
+  return html.replace(new RegExp(`(<${tag} id="${id}"[^>]*>)(</${tag}>)`), `$1${inner}$2`);
+}
+
+const linkStyle = 'color:var(--navy);font-weight:600;';
+const mutedStyle = 'color:var(--text-muted);line-height:1.85;font-size:0.95rem;';
+
 function send(res, html, status = 200) {
   res.status(status).type('html').send(html);
 }
@@ -206,7 +215,11 @@ function faqHtml() {
     `<details class="seo-faq-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n');
 }
 
-router.get(['/', '/index.html'], (req, res) => {
+router.get(['/', '/index.html'], async (req, res) => {
+  let featured = [];
+  try {
+    featured = await getDB().query('SELECT name, slug FROM boats WHERE featured = true AND available = true ORDER BY price_per_day DESC LIMIT 6');
+  } catch (e) { console.error(e); }
   let html = readPage('index.html').replace('<!--SEO_FAQ-->', faqHtml());
   html = withHead(html, {
     title: 'Renta de Botes, Yates y Lanchas en República Dominicana | VENDO BOTE RD',
@@ -216,6 +229,15 @@ router.get(['/', '/index.html'], (req, res) => {
     ld: [
       organizationLd(),
       websiteLd(),
+      ...(featured.length ? [{
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Embarcaciones destacadas en renta',
+        itemListElement: featured.map((b, i) => ({
+          '@type': 'ListItem', position: i + 1, name: b.name,
+          url: `${siteUrl()}/embarcacion/${encodeURIComponent(b.slug)}`,
+        })),
+      }] : []),
       {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
@@ -248,6 +270,36 @@ router.get('/embarcaciones.html', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Texto de la página por ciudad: usa solo datos reales de la base (cantidad, capacidad, precio)
+function cityText(key, loc, boats) {
+  const caps = boats.map((b) => b.capacity).filter(Boolean);
+  const prices = boats.map((b) => Number(b.price_per_day)).filter(Boolean);
+  const stats = boats.length
+    ? `Hoy tenemos ${boats.length} ${boats.length === 1 ? 'embarcación disponible' : 'embarcaciones disponibles'} en ${esc(loc.name)}${caps.length ? `, para grupos de hasta ${Math.max(...caps)} personas` : ''}${prices.length ? ` y con precios desde US$${Math.min(...prices).toLocaleString('en-US')} por día` : ''}.`
+    : '';
+  const others = Object.keys(LOCATIONS).filter((k) => k !== key).map((k) =>
+    `<a href="/renta-de-botes-en-${k}" style="${linkStyle}">Botes en ${esc(LOCATIONS[k].name)}</a>`).join(' · ');
+  return `
+<section class="section" aria-labelledby="seo-loc-title">
+  <div class="section-inner" style="max-width:860px;">
+    <h2 id="seo-loc-title" class="section-title" style="text-align:left;">Botes en renta en <em class="accent">${esc(loc.name)}</em></h2>
+    <p style="${mutedStyle}margin-bottom:1rem;">${esc(loc.intro)}</p>
+    ${stats ? `<p style="${mutedStyle}margin-bottom:1.5rem;">${stats}</p>` : ''}
+    ${boats.length ? `<h3 style="font-family:var(--serif);color:var(--navy);margin-bottom:0.5rem;">Embarcaciones disponibles en ${esc(loc.name)}</h3>
+    <ul style="${mutedStyle}line-height:2;padding-left:1.1rem;margin-bottom:1.5rem;">${boats.map((b) =>
+      `<li><a href="/embarcacion/${encodeURIComponent(b.slug)}" style="${linkStyle}">${esc(b.name)}</a>${b.capacity ? ` · hasta ${b.capacity} personas` : ''}</li>`).join('')}</ul>` : ''}
+    <h3 style="font-family:var(--serif);color:var(--navy);margin-bottom:0.5rem;">Cómo reservar tu bote en ${esc(loc.name)}</h3>
+    <ol style="${mutedStyle}padding-left:1.2rem;margin-bottom:1.5rem;">
+      <li>Elige la embarcación que mejor se ajuste a tu grupo.</li>
+      <li>Selecciona la fecha y el horario en el calendario de disponibilidad.</li>
+      <li>Paga por transferencia bancaria y sube tu comprobante en la plataforma.</li>
+      <li>Nuestro equipo verifica el pago y confirma tu reserva.</li>
+    </ol>
+    <p style="${mutedStyle}">También puedes ver ${others}, o escribirnos por <a href="https://wa.me/14073614042" rel="noopener" style="${linkStyle}">WhatsApp</a> si tienes dudas. ¿Quieres comprar en lugar de rentar? Mira las <a href="/ventas.html" style="${linkStyle}">embarcaciones en venta</a>.</p>
+  </div>
+</section>`;
+}
+
 router.get('/renta-de-botes-en-:city', async (req, res, next) => {
   try {
     const loc = LOCATIONS[req.params.city];
@@ -265,15 +317,7 @@ router.get('/renta-de-botes-en-:city', async (req, res, next) => {
       .replace(/<p class="page-subtitle">[\s\S]*?<\/p>/, `<p class="page-subtitle">${esc(loc.subtitle)}</p>`)
       .replace('<div class="section-kicker">Todas las Embarcaciones</div>', `<div class="section-kicker">${esc(loc.name)}, República Dominicana</div>`)
       .replace('<!--SEO_LOCATION-->', `<script>window.__VBR_LOCATION=${JSON.stringify(loc.name)};</script>`)
-      .replace('<!--SEO_TEXT-->', `
-<section class="section" aria-labelledby="seo-loc-title">
-  <div class="section-inner" style="max-width:860px;">
-    <h2 id="seo-loc-title" class="section-title" style="text-align:left;">Botes en renta en <em class="accent">${esc(loc.name)}</em></h2>
-    <p style="color:var(--text-muted);line-height:1.85;font-size:0.95rem;margin-bottom:1.25rem;">${esc(loc.intro)}</p>
-    ${boats.length ? `<ul style="color:var(--text-muted);line-height:2;font-size:0.95rem;padding-left:1.1rem;">${boats.map((b) =>
-      `<li><a href="/embarcacion/${encodeURIComponent(b.slug)}" style="color:var(--navy);font-weight:600;">${esc(b.name)}</a>${b.capacity ? ` · hasta ${b.capacity} personas` : ''}</li>`).join('')}</ul>` : ''}
-  </div>
-</section>`);
+      .replace('<!--SEO_TEXT-->', cityText(req.params.city, loc, boats));
 
     html = withHead(html, {
       title: loc.title,
@@ -366,7 +410,28 @@ router.get('/embarcacion/:slug', async (req, res, next) => {
       }),
     };
 
-    const html = withHead(readPage('boat.html'), {
+    const parseList = (v) => { try { return JSON.parse(v || '[]'); } catch { return []; } };
+    const amenities = parseList(boat.amenities);
+    const related = forSale
+      ? await db.query('SELECT name, slug, location FROM boats WHERE for_sale = true AND id <> $1 ORDER BY sale_price ASC LIMIT 6', [boat.id])
+      : await db.query('SELECT name, slug, location FROM boats WHERE available = true AND location = $2 AND id <> $1 ORDER BY featured DESC, created_at DESC LIMIT 6', [boat.id, boat.location]);
+    const relatedHtml = related.length ? `
+<section class="section" aria-labelledby="seo-related-title">
+  <div class="section-inner" style="max-width:860px;">
+    <h2 id="seo-related-title" class="section-title" style="text-align:left;font-size:1.4rem;">${forSale ? 'Otras embarcaciones en venta' : `Otros botes en renta en ${esc(boat.location)}`}</h2>
+    <ul style="${mutedStyle}line-height:2;padding-left:1.1rem;">${related.map((b) =>
+      `<li><a href="/embarcacion/${encodeURIComponent(b.slug)}" style="${linkStyle}">${esc(b.name)}</a>${!forSale && b.location ? ` · ${esc(b.location)}` : ''}</li>`).join('')}</ul>
+  </div>
+</section>` : '';
+
+    let page = readPage('boat.html').replace('<!--SEO_RELATED-->', relatedHtml);
+    page = fill(page, 'h1', 'boat-name', esc(boat.name));
+    page = fill(page, 'span', 'breadcrumb-name', esc(boat.name));
+    page = fill(page, 'span', 'boat-location-tag', boat.location ? `📍 ${esc(boat.location)}` : '');
+    page = fill(page, 'p', 'boat-description', esc(boat.description || ''));
+    page = fill(page, 'div', 'boat-amenities', amenities.map((a) => `<span class="feature-tag">${esc(a)}</span>`).join(''));
+
+    const html = withHead(page, {
       title, description, canonical: url, type: 'product', image: photos[0],
       ld: [
         product,

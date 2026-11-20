@@ -97,7 +97,7 @@
 
 <div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
 
-<nav class="nav is-scrolled" id="nav" role="navigation">
+<nav class="nav is-scrolled" id="nav" aria-label="Principal">
   <a href="/">
     <img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" />
   </a>
@@ -130,6 +130,7 @@
   </div>
 </div>
 
+<main id="contenido">
 <div class="page">
   <!-- Page hero -->
   <div class="page-hero">
@@ -182,6 +183,7 @@
       </div>
 
       <!-- Grid — reuses exact .card / .boats-grid classes -->
+      <h2 class="sr-only">Embarcaciones en venta</h2>
       <div class="boats-grid" id="sale-grid">
         <div class="skeleton" style="height:520px;border-radius:16px"></div>
         <div class="skeleton" style="height:520px;border-radius:16px"></div>
@@ -207,6 +209,8 @@
     </div>
   </section>
 </div>
+
+</main>
 
 <footer class="footer">
   <div class="footer-inner">

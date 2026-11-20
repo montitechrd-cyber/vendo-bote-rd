@@ -13,7 +13,7 @@
 
 <div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
 
-<nav class="nav is-scrolled" id="nav">
+<nav class="nav is-scrolled" id="nav" aria-label="Principal">
   <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" /></a>
   <div class="nav-links">
     <div class="nav-dropdown">
@@ -40,6 +40,7 @@
   </div>
 </div>
 
+<main id="contenido">
 <!-- Loading skeleton -->
 <div id="page-loading" class="page" style="padding:calc(var(--nav-h) + 2rem) 2rem;">
   <div style="max-width:1280px;margin:0 auto;">
@@ -105,13 +106,13 @@
 
       <!-- Description -->
       <div style="margin-bottom:2.5rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Descripción</h3>
+        <h2 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Descripción</h2>
         <p id="boat-description" style="color:var(--cream-2);line-height:1.85;font-size:0.95rem;"></p>
       </div>
 
       <!-- Amenities -->
       <div style="margin-bottom:2rem;" data-reveal>
-        <h3 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h3>
+        <h2 style="font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--cream);margin-bottom:1rem;">Amenidades incluidas</h2>
         <div class="feature-tags" id="boat-amenities"></div>
       </div>
 
@@ -297,6 +298,9 @@
     <button class="btn btn-primary" id="sticky-book-btn">Reservar</button>
   </div>
 </div>
+
+<!--SEO_RELATED-->
+</main>
 
 <!-- Booking Modal -->
 <div class="modal-overlay" id="booking-modal" role="dialog" aria-modal="true">
