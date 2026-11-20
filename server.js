@@ -54,7 +54,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // SEO (robots.txt, sitemap.xml, metadatos por página): debe ir ANTES del static
 // para que las páginas HTML salgan con su title/description/JSON-LD propios.
 app.use(require('./routes/seo'));
-app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1d' }));
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
+  maxAge: '1d',
+  // imagenes, video y fuentes casi nunca cambian de nombre: cache larga; css/js se versionan con ?v=
+  setHeaders(res, file) { if (/\.(jpe?g|png|webp|avif|gif|svg|mp4|woff2?)$/i.test(file)) res.setHeader('Cache-Control', 'public, max-age=2592000'); }
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 // Los comprobantes de pago NO se sirven como archivos estáticos públicos (pueden
 // contener datos bancarios) — se sirven autenticados vía GET /api/bookings/:id/receipt.

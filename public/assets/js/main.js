@@ -131,9 +131,9 @@
     const splash = $('[data-splash]');
     if (!splash) return;
     const hide = () => splash.classList.add('is-out');
-    if (document.readyState === 'complete') setTimeout(hide, 700);
-    else window.addEventListener('load', () => setTimeout(hide, 500));
-    setTimeout(hide, 3800);
+    if (document.readyState === 'complete') setTimeout(hide, 150);
+    else window.addEventListener('load', () => setTimeout(hide, 150));
+    setTimeout(hide, 2200);
   }
 
   /* ── Nav ── */

@@ -3,7 +3,6 @@
    Estilo fresco, playero, blanco y azul caribe
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 /* ── Custom Properties ── */
 :root {
@@ -2127,7 +2126,7 @@ ul { list-style: none; }
 .hx-gull{position:absolute;left:0;animation:hxGull 40s linear infinite}.hx-gull svg{animation:hxFlap .9s ease-in-out infinite}
 .hx-gull.g1{top:20%}.hx-gull.g2{top:26%;animation-duration:50s;animation-delay:-16s}
 .hx-spark{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px rgba(255,255,255,.9);animation:hxTwinkle 3s ease-in-out infinite}
-.hx-main{position:relative;z-index:3;flex:1;min-height:0;width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;padding:calc(var(--nav-h,72px) + 4px) 1.5rem 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.hx-main{position:relative;z-index:3;flex:1;min-height:0;width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;padding:calc(var(--nav-h,72px) + 4px) 1.5rem clamp(70px,14vh,150px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .hx-logo-wrap{position:relative;height:clamp(110px,23vh,250px);aspect-ratio:1;margin:0 0 -1.5vh;flex:0 1 auto;animation:hxRise 1s .1s both}
 .hx-logo-wrap::before{content:'';position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(43,181,230,.22),rgba(43,181,230,.08) 40%,transparent 68%)}
 .hx-logo{position:relative;width:100%;height:100%;object-fit:contain;animation:hxFloat 6s ease-in-out infinite;filter:drop-shadow(0 18px 30px rgba(10,91,184,.18))}
@@ -2188,12 +2187,17 @@ ul { list-style: none; }
 .hx-btn{font-size:.95rem;font-weight:600;padding:12px 26px;border-radius:999px;transition:background .2s,transform .2s;cursor:pointer}
 .hx-btn-p{background:#F5A623;color:#0b1b33;box-shadow:0 10px 24px rgba(245,166,35,.35)}.hx-btn-p:hover{background:#ffb83d;transform:translateY(-2px)}
 .hx-btn-g{background:rgba(255,255,255,.7);backdrop-filter:blur(14px);border:1px solid rgba(10,91,184,.18);color:#0a5bb8}.hx-btn-g:hover{background:#fff}
-.hx-waves{position:relative;z-index:1;flex:0 0 auto;height:clamp(60px,10vh,110px);overflow:hidden;pointer-events:none}
-.hx-waves .w{position:absolute;bottom:0;width:200%}
-.hx-waves .w1{height:100%;animation:hxSwell 28s linear infinite}
-.hx-waves .w2{height:74%;animation:hxSwell 18s linear infinite reverse}
-.hx-waves .w3{height:46%;animation:hxSwell 12s linear infinite}
-.hx-waves .foam{animation:hxFoam 6s linear infinite}
+.hx-waves{position:absolute;left:0;right:0;bottom:0;z-index:1;height:clamp(150px,27vh,290px);overflow:hidden;pointer-events:none}
+.hx-waves .w{position:absolute;left:0;bottom:0;width:200%;height:100%;will-change:transform}
+.hx-waves .wa{height:92%;animation:hxSwell 40s linear infinite,hxBob 7s ease-in-out infinite}
+.hx-waves .wb{height:80%;animation:hxSwell 28s linear infinite reverse,hxBob 6s ease-in-out -2s infinite}
+.hx-waves .wc{height:64%;animation:hxSwell 19s linear infinite,hxBob 5s ease-in-out -1s infinite}
+.hx-waves .wd{height:46%;animation:hxSwell 13s linear infinite reverse,hxBob 4s ease-in-out -3s infinite}
+.hx-waves .we{height:30%;animation:hxSwell 9s linear infinite,hxBob 3.4s ease-in-out -.5s infinite}
+.hx-waves .foam{animation:hxFoam 7s linear infinite}
+.hx-waves .glint{position:absolute;width:46px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);opacity:0;animation:hxGlint 4.2s ease-in-out infinite}
+@keyframes hxBob{0%,100%{translate:0 0}50%{translate:0 -9px}}
+@keyframes hxGlint{0%,100%{opacity:0;transform:scaleX(.4)}50%{opacity:.9;transform:scaleX(1)}}
 @keyframes hxRise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes hxFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
 @keyframes hxRays{0%,100%{opacity:.35}50%{opacity:.75}}
@@ -2217,7 +2221,9 @@ ul { list-style: none; }
   .hx-field+.hx-field::before{display:none}
   .hx-go{grid-column:1 / -1;width:100%;border-radius:18px;margin-top:6px;height:48px}
   .hx-go-t{display:inline}
+  .hx-field{position:static}
   .hx-pop,.hx-pop-cal{left:0;right:0;width:auto;transform:none}
+  .hx-pop-cal{padding:14px}
   @keyframes hxPopC{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
   .hx-actions{gap:8px}.hx-btn{padding:10px 18px;font-size:.88rem}
 }
@@ -2268,7 +2274,7 @@ ul { list-style: none; }
 .cx-inner{position:relative;max-width:1000px;margin:0 auto;text-align:center}
 .cx-kicker{display:inline-block;padding:6px 16px;border-radius:999px;background:#fff;border:1px solid rgba(10,91,184,.15);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a5bb8}
 .cx-title{margin:.9rem 0 0;font-weight:800;font-size:clamp(2rem,5vw,3.6rem);line-height:1.05;letter-spacing:-.04em;color:#0b1b33;font-family:inherit}
-.cx-grad{background:linear-gradient(90deg,#0a5bb8,#2bb5e6,#6fd6f7,#2bb5e6,#0a5bb8);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:cxSheen 8s linear infinite;font-style:normal}
+.cx-title em,.cx-grad{background:linear-gradient(90deg,#0a5bb8,#2bb5e6,#6fd6f7,#2bb5e6,#0a5bb8);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:cxSheen 8s linear infinite;font-style:normal}
 @keyframes cxSheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cx-sub{margin:.8rem auto 0;max-width:36em;font-size:clamp(.95rem,1.4vw,1.1rem);color:#5a6b82;font-weight:500}
 .cx-card{margin-top:clamp(1.4rem,3vw,2rem);background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid #fff;border-radius:28px;box-shadow:0 18px 50px rgba(10,61,133,.14);padding:clamp(1rem,2.4vw,1.6rem);text-align:left;display:flex;flex-direction:column;gap:1.15rem}
