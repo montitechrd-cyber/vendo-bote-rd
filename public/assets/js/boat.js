@@ -799,7 +799,7 @@
         </div>
         <label class="pay-terms" for="accept-terms">
           <input type="checkbox" id="accept-terms" />
-          <span>Acepto los <a href="/terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> y la <a href="/reembolsos.html" target="_blank" rel="noopener">Política de reembolsos</a>. Más sobre la <a href="/seguridad-pagos.html" target="_blank" rel="noopener">seguridad de los pagos</a>.</span>
+          <span>Acepto los <a href="/terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> y la <a href="/reembolsos.html" target="_blank" rel="noopener">Política de reembolsos y cambios de fecha</a>. Más sobre la <a href="/seguridad-pagos.html" target="_blank" rel="noopener">seguridad de los pagos</a>.</span>
         </label>
         <button class="btn btn-primary w-full" id="pay-card-btn" style="justify-content:center;" disabled>Pagar con tarjeta</button>
       </div>
@@ -883,7 +883,7 @@
   // Inicia el pago: el servidor calcula el monto y firma; el navegador envía el formulario a AZUL.
   function payWithCard(calc) {
     const btn = document.getElementById('pay-card-btn');
-    if (!document.getElementById('accept-terms').checked) { window.VBR.toast('Debes aceptar los Términos y la Política de reembolsos', 'error'); return; }
+    if (!document.getElementById('accept-terms').checked) { window.VBR.toast('Debes aceptar los Términos y la Política de reembolsos y cambios de fecha', 'error'); return; }
     const label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Conectando con AZUL…';
     const reset = () => { btn.disabled = !document.getElementById('accept-terms').checked; btn.textContent = label; };

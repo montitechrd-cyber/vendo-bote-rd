@@ -364,7 +364,7 @@ const LEGAL_PAGES = {
   },
   'reembolsos.html': {
     title: 'Política de Reembolsos, Devoluciones y Cancelaciones | VENDO BOTE RD',
-    description: 'Política de reembolsos, devoluciones y cancelaciones de VENDO BOTE RD: plazos, cambios de fecha, mal tiempo y devolución a tu tarjeta.',
+    description: 'Política de reembolsos, devoluciones y cancelaciones de VENDO BOTE RD: no se devuelve dinero: se cambia la fecha. Plazos de cambio, mal tiempo y errores de cobro.',
   },
   'privacidad.html': {
     title: 'Política de Privacidad | VENDO BOTE RD',
