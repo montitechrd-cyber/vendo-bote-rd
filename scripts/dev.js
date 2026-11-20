@@ -95,5 +95,13 @@ async function ensureDatabase() {
 (async () => {
   if (isLocal) await ensureDatabase();
   else console.log('  AVISO: DATABASE_URL apunta a un servidor remoto (' + host + '). Todo lo que hagas afecta esa base' + (process.env.DB_READONLY === '1' ? ' (solo lectura).' : '.'));
+  // Simulador local de AZUL: solo con AZUL_ENV=test, fuera de producción y con AZUL_PAYMENT_URL apuntando a localhost.
+  try {
+    const pu = process.env.AZUL_PAYMENT_URL ? new URL(process.env.AZUL_PAYMENT_URL) : null;
+    if (process.env.AZUL_ENV === 'test' && process.env.NODE_ENV !== 'production' && pu && ['localhost', '127.0.0.1', '::1', '[::1]'].includes(pu.hostname)) {
+      process.env.AZUL_SIM_PORT = process.env.AZUL_SIM_PORT || pu.port || '4010';
+      require('./azul-sim.js').server.listen(Number(process.env.AZUL_SIM_PORT), '127.0.0.1', () => console.log('  Simulador AZUL en ' + process.env.AZUL_PAYMENT_URL));
+    }
+  } catch (e) { console.log('  No se pudo iniciar el simulador AZUL:', e.message); }
   require('../server.js');
 })().catch(e => { console.error('  Error preparando la base local:', e.message || e); process.exit(1); });
