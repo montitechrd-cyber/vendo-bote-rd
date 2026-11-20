@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isCard = (b) => b.payment_method === 'card' || b.payment_status === 'card_pending';
   function payLabel(b) {
     if (b.payment_status === 'verified') return b.payment_method === 'card' ? 'Pagado con tarjeta' : 'Verificado';
-    return { submitted: 'En revisión', rejected: 'Rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado' }[b.payment_status] || 'Sin pago';
+    return { submitted: 'En revisión', rejected: 'Rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado', cancelled: 'Cancelado' }[b.payment_status] || 'Sin pago';
   }
   function payClass(b) {
     return b.payment_status === 'verified' ? 'verified' : (b.payment_status === 'submitted' || b.payment_status === 'card_pending') ? 'submitted' : (b.payment_status === 'rejected' || b.payment_status === 'expired') ? 'rejected' : 'pending';

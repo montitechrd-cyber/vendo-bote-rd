@@ -98,7 +98,7 @@
 
   function badgeHtml(status, payStatus, payMethod) {
     const statusMap = { pending:'Pendiente', confirmed:'Confirmada', cancelled:'Cancelada' };
-    const payMap = { pending:'Sin pago', submitted:'En verificación', verified:'Pago verificado', rejected:'Pago rechazado', card_pending:'Pago con tarjeta pendiente', expired:'Expirado' };
+    const payMap = { pending:'Sin pago', submitted:'En verificación', verified:'Pago verificado', rejected:'Pago rechazado', card_pending:'Pago con tarjeta pendiente', expired:'Expirado', cancelled:'Pago cancelado' };
     const statusClass = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
     const payClass = payStatus === 'verified' ? 'verified' : (payStatus === 'submitted' || payStatus === 'card_pending') ? 'submitted' : (payStatus === 'rejected' || payStatus === 'expired') ? 'rejected' : 'pending';
     const payLabel = (payStatus === 'verified' && payMethod === 'card') ? 'Pagado con tarjeta' : (payMap[payStatus]||payStatus);

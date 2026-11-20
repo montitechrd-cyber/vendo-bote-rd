@@ -2384,3 +2384,8 @@ ul { list-style: none; }
 .legal-body .pay-result a.btn { text-decoration: none; min-height: 48px; padding: 0.8rem 1.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
 .legal-body .pay-result a.btn-primary { background: var(--sky-3, #0369A1); color: #fff; border: 1.5px solid transparent; }
 .legal-body .pay-result a.btn-ghost { background: #fff; color: var(--navy); border: 1.5px solid var(--line-2); }
+
+/* Pago con tarjeta: botón deshabilitado visible y etiquetas del detalle de reserva sin recortar */
+.btn:disabled, .btn:disabled:hover { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+#detail-modal-body .boat-spec-val { white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
+#detail-modal-body .boat-spec-val .badge { margin: 2px; }

@@ -73,7 +73,7 @@
 
   function statusBadges(status, payStatus, payMethod) {
     const st = { pending: 'Pendiente', confirmed: 'Confirmada', cancelled: 'Cancelada' };
-    const pay = { pending: 'Sin pago', submitted: 'En verificación', verified: 'Pago verificado', rejected: 'Pago rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado' };
+    const pay = { pending: 'Sin pago', submitted: 'En verificación', verified: 'Pago verificado', rejected: 'Pago rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado', cancelled: 'Pago cancelado' };
     const sc = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
     const pc = payStatus === 'verified' ? 'verified' : (payStatus === 'submitted' || payStatus === 'card_pending') ? 'submitted' : (payStatus === 'rejected' || payStatus === 'expired') ? 'rejected' : 'pending';
     const payLabel = (payStatus === 'verified' && payMethod === 'card') ? 'Pagado con tarjeta' : (pay[payStatus] || payStatus);
