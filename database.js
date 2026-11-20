@@ -136,7 +136,7 @@ async function createTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS card_payments (
       id SERIAL PRIMARY KEY,
-      booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE RESTRICT,
       order_number TEXT UNIQUE NOT NULL,
       amount_dop_cents BIGINT NOT NULL,
       itbis_dop_cents BIGINT NOT NULL,
@@ -152,6 +152,26 @@ async function createTables() {
       completed_at TIMESTAMPTZ
     )`).catch(() => {});
   await pool.query(`CREATE INDEX IF NOT EXISTS card_payments_booking_idx ON card_payments(booking_id)`).catch(() => {});
+  await pool.query(`ALTER TABLE card_payments ADD COLUMN IF NOT EXISTS dup_notified BOOLEAN NOT NULL DEFAULT false`).catch(() => {});
+  // Expiración de retenciones: índice parcial para que el UPDATE periódico no recorra toda la tabla
+  await pool.query(`CREATE INDEX IF NOT EXISTS bookings_card_pending_created_idx ON bookings(created_at) WHERE payment_status = 'card_pending'`).catch(() => {});
+  // Una sola retención con tarjeta activa por usuario (evita bloquear decenas de turnos con peticiones en paralelo)
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_user_card_pending_idx ON bookings(user_id) WHERE status = 'pending' AND payment_status = 'card_pending'`).catch(() => {});
+  // El registro del cobro no se borra en cascada con la reserva (trazabilidad): ON DELETE RESTRICT.
+  // Idempotente: solo recrea la constraint si la existente no es ya RESTRICT (confdeltype 'r').
+  await pool.query(`
+    DO $$
+    DECLARE c RECORD;
+    BEGIN
+      IF to_regclass('card_payments') IS NULL THEN RETURN; END IF;
+      FOR c IN
+        SELECT conname FROM pg_constraint
+        WHERE conrelid = 'card_payments'::regclass AND contype = 'f' AND confrelid = 'bookings'::regclass AND confdeltype <> 'r'
+      LOOP
+        EXECUTE format('ALTER TABLE card_payments DROP CONSTRAINT %I', c.conname);
+        EXECUTE 'ALTER TABLE card_payments ADD CONSTRAINT card_payments_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE RESTRICT';
+      END LOOP;
+    END $$`).catch((e) => console.error('Migración card_payments RESTRICT:', e.message));
   // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
   // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});

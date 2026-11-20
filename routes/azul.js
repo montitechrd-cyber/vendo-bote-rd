@@ -5,17 +5,18 @@
 const express = require('express');
 const crypto = require('node:crypto');
 const { getDB } = require('../database');
-const { authRequired } = require('../middleware/auth');
+const { authRequired, adminRequired } = require('../middleware/auth');
 const emailUtil = require('../utils/email');
 const azul = require('../utils/azul');
 const { computeQuote } = require('../utils/booking-quote');
 const { generateRef } = require('../utils/booking-ref');
 const { SLOT_HOLDING_PAYMENT_STATUSES, expireCardHolds } = require('../utils/card-holds');
-const { getUsdDopRate } = require('../utils/rates');
+const { getUsdDopRate, inRange: rateInRange } = require('../utils/rates');
 
 const router = express.Router();
 
 const RATE_ERROR = 'No pudimos obtener la tasa del día; intenta de nuevo o paga por transferencia';
+const USER_HOLD_ERROR = 'Ya tienes un pago con tarjeta en curso. Complétalo o espera 15 minutos.';
 const RESPONSE_FIELDS = ['OrderNumber', 'Amount', 'AuthorizationCode', 'DateTime', 'ResponseCode', 'IsoCode', 'ResponseMessage', 'ErrorDescription', 'RRN', 'AuthHash'];
 
 // ---------- utilidades ----------
@@ -52,6 +53,14 @@ function itbisRate(env) {
   return Number.isFinite(r) && r >= 0 && r <= 1 ? r : 0;
 }
 
+// ¿Se puede cobrar con tarjeta en este entorno? Sin credenciales no; en producción solo con AZUL_ENV=prod
+// (o AZUL_ALLOW_TEST_IN_PROD=1, explícito): con credenciales de pruebas se confirmarían reservas reales sin dinero real.
+function cardEnabled(env) {
+  if (!env.AZUL_MERCHANT_ID || !env.AZUL_AUTH_KEY) return false;
+  if (env.NODE_ENV === 'production' && env.AZUL_ENV !== 'prod' && env.AZUL_ALLOW_TEST_IN_PROD !== '1') return false;
+  return true;
+}
+
 const fail = (status, error, extra) => ({ status, body: { error, ...(extra || {}) } });
 
 // ---------- inicio del pago ----------
@@ -59,7 +68,10 @@ const fail = (status, error, extra) => ({ status, body: { error, ...(extra || {}
 async function startPayment(deps, user, body) {
   const { db, getRate, env } = deps;
   const b = body || {};
-  if (!env.AZUL_MERCHANT_ID || !env.AZUL_AUTH_KEY) return fail(503, 'El pago con tarjeta no está disponible por ahora. Puedes pagar por transferencia.');
+  if (!cardEnabled(env)) {
+    if (env.AZUL_MERCHANT_ID && env.AZUL_AUTH_KEY) console.error('AZUL: en producción AZUL_ENV no es "prod" (y falta AZUL_ALLOW_TEST_IN_PROD=1); se rechaza el inicio del pago');
+    return fail(503, 'El pago con tarjeta no está disponible por ahora. Puedes pagar por transferencia.');
+  }
   const baseUrl = String(deps.baseUrl || '').replace(/\/+$/, '');
   if (env.NODE_ENV === 'production' && !/^https:\/\//i.test(baseUrl)) {
     console.error('AZUL: SITE_URL de producción no es https; se rechaza el inicio del pago');
@@ -71,6 +83,13 @@ async function startPayment(deps, user, body) {
     return fail(403, 'Confirma tu correo para poder reservar. Te enviamos un enlace al registrarte; puedes pedir otro desde tu panel.', { code: 'email_unverified' });
   }
   if (b.accept_terms !== true) return fail(400, 'Debes aceptar los términos y condiciones para pagar con tarjeta.');
+
+  // Una sola retención con tarjeta activa por usuario (el índice único lo garantiza aun con peticiones en paralelo)
+  const active = await db.queryOne("SELECT id FROM bookings WHERE user_id = $1 AND status = 'pending' AND payment_status = 'card_pending' LIMIT 1", [user.id]);
+  if (active) return fail(409, USER_HOLD_ERROR);
+  // Tope diario de intentos de tarjeta que acabaron sin pagar (retención renovable sin coste)
+  const failed = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE user_id = $1 AND payment_method = 'card' AND payment_status IN ('expired','cancelled','rejected') AND created_at > NOW() - INTERVAL '24 hours'", [user.id]);
+  if (failed.n >= 5) return fail(429, 'Has iniciado muchos pagos con tarjeta sin completarlos hoy. Intenta de nuevo mañana o paga por transferencia.');
 
   const waiting = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE user_id = $1 AND status = 'pending' AND payment_status IN ('submitted','card_pending')", [user.id]);
   if (waiting.n >= 3) return fail(429, 'Ya tienes 3 reservas esperando verificación de pago. Espera a que las revisemos antes de crear otra.');
@@ -89,7 +108,7 @@ async function startPayment(deps, user, body) {
   let rate;
   try {
     rate = (await getRate()).rate;
-    if (!(rate > 0)) throw new Error('tasa inválida');
+    if (!rateInRange(rate)) throw new Error('tasa fuera de rango');
   } catch {
     return fail(503, RATE_ERROR);
   }
@@ -113,7 +132,11 @@ async function startPayment(deps, user, body) {
        JSON.stringify(quote.additionals), quote.additionalsPrice, special_requests || null, schedule, quote.meta]
     );
   } catch (e) {
-    if (e.code === '23505') return fail(409, 'Ese turno ya está reservado');
+    if (e.code === '23505') {
+      // Dos índices únicos parciales: el del turno y el de una retención activa por usuario
+      const userIdx = e.constraint === 'bookings_user_card_pending_idx' || /\(user_id\)/.test(String(e.detail || ''));
+      return fail(409, userIdx ? USER_HOLD_ERROR : 'Ese turno ya está reservado');
+    }
     throw e;
   }
   const bookingId = inserted.lastInsertRowid;
@@ -213,6 +236,20 @@ async function releaseHold(db, cp, ref, cpStatus, bookingPayStatus, params) {
   return { estado: cpStatus === 'declined' ? 'declinado' : 'cancelado', ref };
 }
 
+// Segunda respuesta aprobada, con hash válido, de una orden ya aprobada pero con otro código de autorización
+// o RRN: posible doble cobro. Se registra y se avisa al admin UNA sola vez; al cliente se le sigue diciendo 'aprobado'.
+async function checkDuplicateApproval({ db, email }, cp, ref, params, trusted) {
+  if (!trusted || !azul.isApproved(params)) return;
+  const auth = cleanText(params.AuthorizationCode, 40) || '', rrn = cleanText(params.RRN, 40) || '';
+  if (auth === (cp.authorization_code || '') && rrn === (cp.rrn || '')) return;
+  try {
+    const r = await db.run('UPDATE card_payments SET dup_notified = true WHERE id = $1 AND dup_notified = false', [cp.id]);
+    if (!r.rowCount) return;
+    console.error(`AZUL: segunda aprobación distinta (posible doble cobro) orderNumber=${cp.order_number} bookingRef=${ref}`);
+    fireAndForget(() => email.sendCardDuplicateApproval(cp.order_number, ref));
+  } catch (e) { console.error('AZUL: no se pudo registrar la segunda aprobación:', e.message); }
+}
+
 // deps: { db, email, authKey }  ·  input: { kind: 'approved'|'declined'|'cancelled', orderNumber, params }
 // Devuelve { estado: 'aprobado'|'declinado'|'cancelado'|'revision', ref }.
 async function handleReturn(deps, input) {
@@ -230,10 +267,13 @@ async function handleReturn(deps, input) {
     return { estado: 'revision', ref: undefined };
   }
   const ref = cp.booking_ref;
-  if (cp.status === 'approved') return { estado: 'aprobado', ref }; // idempotente: sin repetir efectos
 
   // La respuesta es de confianza solo con hash válido y el mismo OrderNumber de la URL.
   const trusted = !!authKey && azul.verifyResponseHash(params, authKey) && params.OrderNumber === orderNumber;
+  if (cp.status === 'approved') { // idempotente: sin repetir efectos
+    await checkDuplicateApproval(deps, cp, ref, params, trusted);
+    return { estado: 'aprobado', ref };
+  }
   const amountOk = trusted && /^\d{1,18}$/.test(String(params.Amount)) && BigInt(params.Amount) === BigInt(cp.amount_dop_cents);
   const iso = trusted ? params.IsoCode : undefined;
 
@@ -290,7 +330,26 @@ async function handleReturn(deps, input) {
 // ---------- rutas HTTP ----------
 
 router.get('/config', (req, res) => {
-  res.json({ enabled: !!(process.env.AZUL_MERCHANT_ID && process.env.AZUL_AUTH_KEY) });
+  res.json({ enabled: cardEnabled(process.env) });
+});
+
+// Cobros con tarjeta que no terminaron en 'approved', 'declined' ni 'cancelled': por revisar y conciliar con AZUL.
+router.get('/admin/review', adminRequired, async (req, res) => {
+  try {
+    const rows = await getDB().query(
+      `SELECT cp.id, cp.order_number, b.booking_ref, cp.status, cp.usd_total, cp.amount_dop_cents, cp.created_at, cp.completed_at, cp.iso_code
+       FROM card_payments cp JOIN bookings b ON b.id = cp.booking_id
+       WHERE cp.status NOT IN ('approved','declined','cancelled')
+       ORDER BY cp.created_at DESC LIMIT 200`
+    );
+    res.json(rows.map((r) => ({
+      id: r.id, order_number: r.order_number, booking_ref: r.booking_ref, status: r.status, usd_total: r.usd_total,
+      amount_dop: Number(r.amount_dop_cents) / 100, created_at: r.created_at, completed_at: r.completed_at, iso_code: r.iso_code,
+    })));
+  } catch (e) {
+    console.error('AZUL: error al listar pagos por revisar:', e.message);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
 });
 
 router.post('/start', authRequired, async (req, res) => {
@@ -299,7 +358,7 @@ router.post('/start', authRequired, async (req, res) => {
     const baseUrl = isProd
       ? (process.env.SITE_URL || 'https://vendoboterd.com')
       : `${req.protocol}://${req.get('host')}`;
-    const r = await startPayment({ db: getDB(), getRate: getUsdDopRate, env: process.env, baseUrl }, req.user, req.body);
+    const r = await startPayment({ db: getDB(), getRate: () => getUsdDopRate({ forCard: true }), env: process.env, baseUrl }, req.user, req.body);
     res.status(r.status).json(r.body);
   } catch (e) {
     console.error('AZUL: error al iniciar el pago:', e.message);
@@ -329,3 +388,4 @@ module.exports.handleReturn = handleReturn;
 module.exports.startPayment = startPayment;
 module.exports.generateOrderNumber = generateOrderNumber;
 module.exports.resolveActionUrl = resolveActionUrl;
+module.exports.cardEnabled = cardEnabled;

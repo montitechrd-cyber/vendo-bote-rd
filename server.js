@@ -10,6 +10,12 @@ const { init, getDB } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// Railway sin NODE_ENV=production: se fuerza el modo producción ANTES de leer isDev, para que no fallen abiertas
+// las protecciones (URL de AZUL fija, https, cookie Secure, CORS restringido).
+if (process.env.RAILWAY_ENVIRONMENT && process.env.NODE_ENV !== 'production') {
+  console.warn('AVISO: RAILWAY_ENVIRONMENT está definido y NODE_ENV no es "production"; se fuerza NODE_ENV=production.');
+  process.env.NODE_ENV = 'production';
+}
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Necesario detrás de cualquier proxy real (Render, Railway, Nginx, Cloudflare...):
@@ -128,10 +134,11 @@ const writeLimiter = rateLimit({
 });
 app.use('/api/bookings', (req, res, next) => (req.method === 'POST' ? writeLimiter(req, res, next) : next()));
 
-// Pago con tarjeta (AZUL): iniciar pago como writeLimiter; rutas de retorno 30 por 15 min por IP
+// Pago con tarjeta (AZUL): iniciar pago, tope propio (10 por 15 min por IP); rutas de retorno, tope holgado
+// (CGNAT móvil: muchos clientes comparten IP) y, si se excede, redirige a la pantalla de resultado en revisión.
 const azulStartLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: Number(process.env.WRITE_LIMIT) || 20,
+  max: Number(process.env.AZUL_START_LIMIT) || 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
@@ -139,10 +146,10 @@ const azulStartLimiter = rateLimit({
 app.use('/api/payments/azul/start', (req, res, next) => (req.method === 'POST' ? azulStartLimiter(req, res, next) : next()));
 const azulReturnLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Demasiadas solicitudes, intenta de nuevo en unos minutos' },
+  handler: (req, res) => res.redirect(302, '/pago-resultado.html?estado=revision'),
 });
 app.use(['/api/payments/azul/approved', '/api/payments/azul/declined', '/api/payments/azul/cancelled'], azulReturnLimiter);
 
@@ -214,6 +221,11 @@ fs.mkdirSync(path.join(__dirname, 'uploads', 'receipts'), { recursive: true });
 fs.mkdirSync(path.join(__dirname, 'uploads', 'ids'), { recursive: true });
 
 init().then(() => {
+  // Expiración de retenciones con tarjeta cada 60 s (en lugar de escribir en cada GET público) + aviso al admin
+  require('./utils/card-expiry-job').startCardExpiryJob(getDB(), require('./utils/email'));
+  if (process.env.NODE_ENV === 'production' && process.env.AZUL_ENV !== 'prod' && process.env.AZUL_ALLOW_TEST_IN_PROD === '1') {
+    console.warn('AVISO: AZUL_ALLOW_TEST_IN_PROD=1 con AZUL_ENV distinto de "prod": el pago con tarjeta usa el entorno de PRUEBAS de AZUL en producción. Quítalo al terminar.');
+  }
   app.listen(PORT, () => {
     console.log(`\n  VENDO BOTE RD - Servidor corriendo en http://localhost:${PORT}\n`);
   });

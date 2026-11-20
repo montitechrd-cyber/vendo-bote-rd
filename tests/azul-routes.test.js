@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const azul = require('../utils/azul');
-const { handleReturn, startPayment, generateOrderNumber, resolveActionUrl } = require('../routes/azul');
+const { handleReturn, startPayment, generateOrderNumber, resolveActionUrl, cardEnabled } = require('../routes/azul');
 
 const KEY = 'clave-de-prueba';
 
@@ -35,7 +35,8 @@ function fakeDb(over = {}) {
         Object.assign(st.booking, { status: 'cancelled', payment_status: p[1] });
         return { rowCount: 1 };
       }
-      if (sql.includes("UPDATE card_payments SET status = 'approved'")) { st.cp.status = 'approved'; return { rowCount: 1 }; }
+      if (sql.includes("UPDATE card_payments SET status = 'approved'")) { Object.assign(st.cp, { status: 'approved', authorization_code: p[3], rrn: p[4] }); return { rowCount: 1 }; }
+      if (sql.includes('SET dup_notified = true')) { if (st.cp.dup_notified) return { rowCount: 0 }; st.cp.dup_notified = true; return { rowCount: 1 }; }
       if (sql.includes("UPDATE card_payments SET status = 'needs_review'")) {
         if (st.cp.status === 'needs_review' || st.cp.status === 'approved') return { rowCount: 0 };
         st.cp.status = 'needs_review'; return { rowCount: 1 };
@@ -48,7 +49,8 @@ function fakeDb(over = {}) {
 }
 
 function fakeEmail() {
-  const e = { receipts: 0, reviews: 0 };
+  const e = { receipts: 0, reviews: 0, dups: 0 };
+  e.sendCardDuplicateApproval = async () => { e.dups++; };
   e.sendCardReceipt = async () => { e.receipts++; };
   e.sendCardNeedsReview = async () => { e.reviews++; };
   return e;
@@ -191,6 +193,31 @@ test('cancelled sobre un pago ya aprobado no lo deshace', async () => {
   assert.equal(db.st.booking.status, 'confirmed');
 });
 
+test('B2: segunda aprobación válida con otro código/RRN: aviso una sola vez, el cliente ve aprobado', async () => {
+  const db = fakeDb(), email = fakeEmail();
+  await run(db, email, 'approved', resp());
+  assert.equal(email.dups, 0);
+  // repetición idéntica: sin aviso
+  assert.equal((await run(db, email, 'approved', resp())).estado, 'aprobado');
+  assert.equal(email.dups, 0);
+  // otro código de autorización o RRN con hash válido: aviso
+  const logs = []; const orig = console.error; console.error = (...a) => logs.push(a.join(' '));
+  try {
+    assert.equal((await run(db, email, 'approved', resp({ AuthorizationCode: 'OTRO99' }))).estado, 'aprobado');
+    assert.equal((await run(db, email, 'approved', resp({ RRN: '1000' }))).estado, 'aprobado');
+  } finally { console.error = orig; }
+  assert.equal(email.dups, 1);
+  assert.ok(logs.some((l) => l.includes('123456789012') && l.includes('VB-1234')));
+  assert.equal(db.st.booking.payment_status, 'verified');
+});
+
+test('B2: una segunda "aprobación" con hash inválido no avisa', async () => {
+  const db = fakeDb(), email = fakeEmail();
+  await run(db, email, 'approved', resp());
+  await run(db, email, 'approved', resp({ AuthorizationCode: 'X', AuthHash: 'malo' }));
+  assert.equal(email.dups, 0);
+});
+
 test('los registros no incluyen AuthHash ni la clave', async () => {
   const logs = [];
   const orig = [console.error, console.log, console.warn];
@@ -225,7 +252,10 @@ function startDeps(over = {}) {
   const boat = { id: 3, name: 'Bote', location: 'Boca Chica', capacity: 10, price_per_day: 200, pricing_scheme: null, available: true };
   const db = {
     inserted,
+    async query() { return []; }, // expireCardHolds: sin retenciones vencidas
     async queryOne(sql, p) {
+      if (sql.includes("payment_status = 'card_pending' LIMIT 1")) return over.active ? { id: 1 } : undefined;
+      if (sql.includes("payment_method = 'card'")) return { n: over.failed || 0 };
       if (sql.includes('COUNT(*)')) return { n: over.waiting || 0 };
       if (sql.includes('FROM boats')) return boat;
       if (sql.includes('FROM bookings WHERE boat_id')) return over.conflict ? { id: 1 } : undefined;
@@ -234,7 +264,7 @@ function startDeps(over = {}) {
     },
     async run(sql, p) {
       if (sql.includes('UPDATE bookings SET status')) return { rowCount: 0 };
-      if (sql.includes('INSERT INTO bookings')) { inserted.bookings.push(p); return { lastInsertRowid: 77 }; }
+      if (sql.includes('INSERT INTO bookings')) { if (over.insertError) throw over.insertError; inserted.bookings.push(p); return { lastInsertRowid: 77 }; }
       if (sql.includes('INSERT INTO card_payments')) { inserted.cps.push(p); return { lastInsertRowid: 1 }; }
       if (sql.includes('DELETE FROM bookings')) { inserted.deleted = true; return { rowCount: 1 }; }
       throw new Error('run no previsto: ' + sql);
@@ -293,4 +323,66 @@ test('start: en producción SITE_URL debe ser https', async () => {
   const r = await startPayment(d, user, body);
   assert.equal(r.status, 503);
   assert.equal(d.db.inserted.bookings.length, 0);
+});
+
+test('A2: ya hay una retención con tarjeta activa del usuario → 409 en curso, sin insertar', async () => {
+  const d = startDeps({ active: true });
+  const r = await startPayment(d, user, body);
+  assert.equal(r.status, 409);
+  assert.equal(r.body.error, 'Ya tienes un pago con tarjeta en curso. Complétalo o espera 15 minutos.');
+  assert.equal(d.db.inserted.bookings.length, 0);
+});
+
+test('A2: 23505 del índice por usuario (carrera) → 409 en curso; el del turno → turno ocupado', async () => {
+  const e1 = Object.assign(new Error('dup'), { code: '23505', constraint: 'bookings_user_card_pending_idx' });
+  const r1 = await startPayment(startDeps({ insertError: e1 }), user, body);
+  assert.equal(r1.status, 409);
+  assert.match(r1.body.error, /en curso/);
+  const e2 = Object.assign(new Error('dup'), { code: '23505', constraint: 'bookings_slot_active_idx' });
+  const r2 = await startPayment(startDeps({ insertError: e2 }), user, body);
+  assert.equal(r2.status, 409);
+  assert.equal(r2.body.error, 'Ese turno ya está reservado');
+  const e3 = Object.assign(new Error('dup'), { code: '23505', detail: 'Key (user_id)=(5) already exists.' });
+  assert.match((await startPayment(startDeps({ insertError: e3 }), user, body)).body.error, /en curso/);
+});
+
+test('M1: tope diario de intentos de tarjeta sin completar → 429', async () => {
+  assert.equal((await startPayment(startDeps({ failed: 4 }), user, body)).status, 200);
+  const r = await startPayment(startDeps({ failed: 5 }), user, body);
+  assert.equal(r.status, 429);
+  assert.match(r.body.error, /mañana|transferencia/);
+});
+
+test('M2: tasa fuera de rango (0.58) → 503 sin crear reserva; 58 → 200', async () => {
+  const d = startDeps({ getRate: async () => ({ rate: 0.58 }) });
+  const r = await startPayment(d, user, body);
+  assert.equal(r.status, 503);
+  assert.equal(r.body.error, 'No pudimos obtener la tasa del día; intenta de nuevo o paga por transferencia');
+  assert.equal(d.db.inserted.bookings.length, 0);
+  assert.equal((await startPayment(startDeps({ getRate: async () => ({ rate: 58 }) }), user, body)).status, 200);
+});
+
+test('M3: en producción con AZUL_ENV=test → 503 sin reserva; con AZUL_ALLOW_TEST_IN_PROD=1 → 200', async () => {
+  const prodTest = { NODE_ENV: 'production', AZUL_ENV: 'test' };
+  const d = startDeps({ env: prodTest });
+  d.baseUrl = 'https://vendoboterd.com';
+  const orig = console.error; console.error = () => {};
+  try {
+    const r = await startPayment(d, user, body);
+    assert.equal(r.status, 503);
+    assert.equal(d.db.inserted.bookings.length, 0);
+  } finally { console.error = orig; }
+  const d2 = startDeps({ env: { ...prodTest, AZUL_ALLOW_TEST_IN_PROD: '1' } });
+  d2.baseUrl = 'https://vendoboterd.com';
+  assert.equal((await startPayment(d2, user, body)).status, 200);
+});
+
+test('M3: cardEnabled (usada por /config)', () => {
+  const base = { AZUL_MERCHANT_ID: '1', AZUL_AUTH_KEY: 'k' };
+  assert.equal(cardEnabled({ ...base, NODE_ENV: 'development', AZUL_ENV: 'test' }), true);
+  assert.equal(cardEnabled({ ...base, NODE_ENV: 'production', AZUL_ENV: 'prod' }), true);
+  assert.equal(cardEnabled({ ...base, NODE_ENV: 'production', AZUL_ENV: 'test' }), false);
+  assert.equal(cardEnabled({ ...base, NODE_ENV: 'production' }), false);
+  assert.equal(cardEnabled({ ...base, NODE_ENV: 'production', AZUL_ENV: 'test', AZUL_ALLOW_TEST_IN_PROD: '1' }), true);
+  assert.equal(cardEnabled({ NODE_ENV: 'development' }), false);
 });
