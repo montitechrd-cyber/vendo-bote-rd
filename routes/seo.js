@@ -10,10 +10,13 @@ const router = express.Router();
 const PUBLIC = path.join(__dirname, '..', 'public');
 
 const SITE_NAME = 'VENDO BOTE RD';
+function ogDefault() { return siteUrl() + OG_DEFAULT_PATH; }
 const PHONE = '+14073614042';
 const EMAIL = 'info@vendoboterd.com';
 const INSTAGRAM = 'https://www.instagram.com/vendobote_rd/';
 
+// Imagen 1200x630 (proporción 1.91:1) para vistas previas en WhatsApp, Facebook, X y Google
+const OG_DEFAULT_PATH = '/assets/img/og-default.jpg';
 function siteUrl() {
   const u = (process.env.SITE_URL || '').trim().replace(/\/+$/, '');
   // El .env.example trae un marcador; no lo usamos como URL canónica real.
@@ -100,6 +103,8 @@ function withHead(html, { title, description, canonical, image, type = 'website'
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${esc(canonical)}" />`,
     image ? `<meta property="og:image" content="${esc(image)}" />` : '',
+    image ? `<meta property="og:image:alt" content="${esc(title)}" />` : '',
+    image === ogDefault() ? '<meta property="og:image:width" content="1200" />\n  <meta property="og:image:height" content="630" />' : '',
     `<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />`,
     `<meta name="twitter:title" content="${esc(title)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
@@ -207,7 +212,7 @@ router.get(['/', '/index.html'], (req, res) => {
     title: 'Renta de Botes, Yates y Lanchas en República Dominicana | VENDO BOTE RD',
     description: 'Renta de botes, yates, lanchas y catamaranes en Boca Chica, Punta Cana y La Romana. También venta e importación de embarcaciones en República Dominicana. Reserva en línea.',
     canonical: siteUrl() + '/',
-    image: siteUrl() + '/assets/img/logo.png',
+    image: ogDefault(),
     ld: [
       organizationLd(),
       websiteLd(),
@@ -236,7 +241,7 @@ router.get('/embarcaciones.html', async (req, res, next) => {
       title: 'Catálogo de Botes, Yates y Lanchas en Renta | VENDO BOTE RD',
       description: 'Explora el catálogo de embarcaciones en renta en República Dominicana: yates, lanchas y catamaranes en Boca Chica, Punta Cana y La Romana. Reserva en línea.',
       canonical: siteUrl() + '/embarcaciones.html',
-      image: siteUrl() + '/assets/img/logo.png',
+      image: ogDefault(),
       ld: [breadcrumbLd([['Inicio', siteUrl() + '/'], ['Catálogo', siteUrl() + '/embarcaciones.html']])],
     });
     send(res, html);
@@ -274,7 +279,7 @@ router.get('/renta-de-botes-en-:city', async (req, res, next) => {
       title: loc.title,
       description: loc.description,
       canonical: url,
-      image: photo ? absUrl(photo) : siteUrl() + '/assets/img/logo.png',
+      image: photo ? absUrl(photo) : ogDefault(),
       ld: [
         breadcrumbLd([['Inicio', siteUrl() + '/'], ['Catálogo', siteUrl() + '/embarcaciones.html'], [loc.name, url]]),
         {
@@ -299,7 +304,7 @@ router.get('/ventas.html', (req, res) => {
     title: 'Botes, Yates y Lanchas en Venta en República Dominicana | VENDO BOTE RD',
     description: 'Compra botes, yates, lanchas y catamaranes en República Dominicana. Embarcaciones en venta e importación desde Estados Unidos y el Caribe con VENDO BOTE RD.',
     canonical: siteUrl() + '/ventas.html',
-    image: siteUrl() + '/assets/img/logo.png',
+    image: ogDefault(),
     ld: [breadcrumbLd([['Inicio', siteUrl() + '/'], ['En venta', siteUrl() + '/ventas.html']])],
   });
   send(res, html);
