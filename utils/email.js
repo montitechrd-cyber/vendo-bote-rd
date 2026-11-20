@@ -205,4 +205,19 @@ async function sendPasswordReset(user, link) {
   });
 }
 
-module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendPasswordReset };
+async function sendEmailVerification(user, link) {
+  if (!process.env.EMAIL_USER) throw new Error('EMAIL_USER no configurado');
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: '✅ Confirma tu correo — Vendo Bote RD',
+    html: wrap('Confirma tu correo', `
+      <p class="greeting">Hola ${esc(user.name)},</p>
+      <p class="intro">Gracias por crear tu cuenta. Confirma que este correo es tuyo para poder reservar. El enlace es válido por 48 horas.</p>
+      <div class="cta"><a class="btn" href="${link}">Confirmar mi correo</a></div>
+      <p style="font-size:12px;color:#5B84A8;line-height:1.7;margin-top:24px;">Si no creaste esta cuenta, ignora este correo.</p>
+    `),
+  });
+}
+
+module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendPasswordReset, sendEmailVerification };

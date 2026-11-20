@@ -138,6 +138,12 @@ async function createTables() {
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMPTZ`).catch(() => {});
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_document_filename TEXT`).catch(() => {});
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE`).catch(() => {});
+  // Verificación del correo (evita que alguien registre el correo de otra persona y se quede con su cuenta)
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verify_hash TEXT`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verify_expires TIMESTAMPTZ`);
+  // Sesiones cerradas con "Cerrar sesión" (la cookie robada deja de servir aunque no haya expirado)
+  await pool.query(`CREATE TABLE IF NOT EXISTS revoked_sessions (token_hash TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL)`);
 }
 
 async function seedData() {
@@ -504,17 +510,6 @@ async function migrateBirthdayComboCook() {
   }
 }
 // Limpieza única pedida por la dueña: todas las reservas hechas hasta esa hora eran pruebas.
-async function purgeTestBookings() {
-  const cutoff = '2026-10-14T20:01:00Z';
-  const old = await pool.query('SELECT id FROM bookings WHERE created_at <= $1', [cutoff]);
-  const ids = old.rows.map(r => r.id);
-  if (ids.length) {
-    await pool.query('DELETE FROM reviews WHERE booking_id = ANY($1)', [ids]);
-    await pool.query('DELETE FROM payments WHERE booking_id = ANY($1)', [ids]);
-    await pool.query('DELETE FROM bookings WHERE id = ANY($1)', [ids]);
-  }
-  console.log('Reservas de prueba eliminadas:', ids.length);
-}
 // La parrillada y el cocinero van únicamente con el combo de cumpleaños (no en el servicio normal).
 async function migrateCookOnlyInCombo() {
   const INCLUDED = ['Agua', 'Hielo', 'Gasolina', 'Tripulación'];
@@ -564,34 +559,8 @@ async function migrateLaunchDescriptions() {
 }
 // Elimina las embarcaciones desactivadas pedidas por la dueña. Solo actúa si son exactamente 2 (por seguridad)
 // y sin reservas activas; si no, no borra nada y deja el aviso en el registro.
-async function purgeInactiveBoats() {
-  const { rows } = await pool.query('SELECT id, name FROM boats WHERE available = false');
-  if (rows.length !== 2) { console.log('Embarcaciones desactivadas encontradas:', rows.length, '- no se eliminó ninguna'); return; }
-  for (const b of rows) {
-    const live = await pool.query("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [b.id]);
-    if (live.rows[0].n > 0) { console.log('Se omitió', b.name, 'por tener reservas'); continue; }
-    await pool.query('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [b.id]);
-    await pool.query('DELETE FROM reviews WHERE boat_id = $1', [b.id]);
-    await pool.query('DELETE FROM bookings WHERE boat_id = $1', [b.id]);
-    await pool.query('DELETE FROM boats WHERE id = $1', [b.id]);
-    console.log('Embarcación desactivada eliminada:', b.name);
-  }
-}
 // Segunda pasada: en producción había 10 desactivadas porque las de venta también figuran como no disponibles;
 // se eliminan solo las EN RENTA desactivadas, y únicamente si son exactamente 2.
-async function purgeInactiveRentals() {
-  const { rows } = await pool.query('SELECT id, name FROM boats WHERE available = false AND COALESCE(for_sale, false) = false');
-  if (rows.length !== 2) { console.log('Rentas desactivadas encontradas:', rows.length, '- no se eliminó ninguna'); return; }
-  for (const b of rows) {
-    const live = await pool.query("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [b.id]);
-    if (live.rows[0].n > 0) { console.log('Se omitió', b.name, 'por tener reservas'); continue; }
-    await pool.query('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [b.id]);
-    await pool.query('DELETE FROM reviews WHERE boat_id = $1', [b.id]);
-    await pool.query('DELETE FROM bookings WHERE boat_id = $1', [b.id]);
-    await pool.query('DELETE FROM boats WHERE id = $1', [b.id]);
-    console.log('Renta desactivada eliminada:', b.name);
-  }
-}
 // Andrea del Mar con precios por día y combo único; los domingos el combo no incluye jetski; La Romana: horario estándar 10:30 AM – 5:30 PM.
 async function migrateAndreaAndRomana() {
   const andrea = await pool.query("SELECT id, pricing_scheme, description FROM boats WHERE slug = 'andrea-del-mar'");
@@ -665,6 +634,10 @@ async function init() {
   if (READONLY) { console.log('  Modo solo lectura (DB_READONLY=1): sin migraciones ni datos base.'); return; }
   await createTables();
   await seedData();
+  // Las cuentas que ya existían se consideran verificadas (solo las nuevas deben confirmar su correo)
+  await runDataMigrationOnce('2026-11-21-email-verified-existing', async () => {
+    await pool.query('UPDATE users SET email_verified = true');
+  });
   await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
   await runDataMigrationOnce('2026-09-28-boat-cover-photos', migrateBoatCoverPhotos);
   await runDataMigrationOnce('2026-10-12-perla-negra-cover-rename', migratePerlaNegraCoverRename);
@@ -683,12 +656,9 @@ async function init() {
   await runDataMigrationOnce('2026-10-13-catamaran-36', migrateCatamaran36);
   await runDataMigrationOnce('2026-10-13-catamaran-tobogan', migrateCatamaranTobogan);
   await runDataMigrationOnce('2026-10-14-birthday-combo-cook', migrateBirthdayComboCook);
-  await runDataMigrationOnce('2026-10-14-purge-test-bookings', purgeTestBookings);
   await runDataMigrationOnce('2026-10-14-cook-only-in-combo', migrateCookOnlyInCombo);
   await runDataMigrationOnce('2026-10-14-combo-no-water-ice', migrateComboWithoutWaterIce);
   await runDataMigrationOnce('2026-10-15-launch-descriptions', migrateLaunchDescriptions);
-  await runDataMigrationOnce('2026-10-16-purge-inactive-boats', purgeInactiveBoats);
-  await runDataMigrationOnce('2026-10-16-purge-inactive-rentals', purgeInactiveRentals);
   await runDataMigrationOnce('2026-10-16-andrea-romana', migrateAndreaAndRomana);
   await runDataMigrationOnce('2026-11-10-coral-de-hielo', addCoralDeHielo);
   console.log('  Base de datos PostgreSQL lista.');

@@ -52,7 +52,10 @@ function parseCookies(header) {
 }
 
 function sessionFromRequest(req) {
-  return readToken(parseCookies(req.headers.cookie)[COOKIE]);
+  const token = parseCookies(req.headers.cookie)[COOKIE];
+  const s = readToken(token);
+  if (s) s.th = crypto.createHash('sha256').update(token).digest('hex'); // huella para poder revocar esta sesión
+  return s;
 }
 function userIdFromRequest(req) {
   const s = sessionFromRequest(req);

@@ -316,7 +316,7 @@ router.get('/renta-de-botes-en-:city', async (req, res, next) => {
       .replace(/<h1 class="cx-title">[\s\S]*?<\/h1>/, `<h1 class="cx-title">${loc.h1}</h1>`)
       .replace(/<p class="cx-sub">[\s\S]*?<\/p>/, `<p class="cx-sub">${esc(loc.subtitle)}</p>`)
       .replace('<span class="cx-kicker">Todas las embarcaciones</span>', `<span class="cx-kicker">${esc(loc.name)}, República Dominicana</span>`)
-      .replace('<!--SEO_LOCATION-->', `<script>window.__VBR_LOCATION=${JSON.stringify(loc.name)};</script>`)
+      .replace('<!--SEO_LOCATION-->', `<meta name="vbr-location" content="${esc(loc.name)}" />`)
       .replace('<!--SEO_TEXT-->', cityText(req.params.city, loc, boats));
 
     html = withHead(html, {

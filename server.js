@@ -32,7 +32,8 @@ app.use(helmet({
 // las páginas los usan. Además solo NEURALAB (portafolio) y el propio sitio pueden embeber esta web en un iframe.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://accounts.google.com",
+  "script-src 'self' https://accounts.google.com",
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
@@ -125,7 +126,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
 });
-app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth/reset', '/api/auth/google', '/api/auth/me/email', '/api/auth/me/password'], authLimiter);
+app.use(['/api/auth/login', '/api/auth/register', '/api/auth/forgot', '/api/auth/reset', '/api/auth/google', '/api/auth/me/email', '/api/auth/me/password', '/api/auth/verify-email', '/api/auth/resend-verification'], authLimiter);
 
 const { adminRequired } = require('./middleware/auth');
 

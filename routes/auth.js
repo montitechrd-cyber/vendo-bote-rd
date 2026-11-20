@@ -4,14 +4,15 @@ const path = require('path');
 const fs = require('fs');
 const { getDB } = require('../database');
 const { authRequired, adminRequired } = require('../middleware/auth');
-const { setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken } = require('../utils/session');
+const { setSession, clearSession, sessionFromRequest, hashPassword, verifyPassword, newResetToken, hashResetToken } = require('../utils/session');
+const { allValid } = require('../utils/filecheck');
 const DUMMY_HASH = hashPassword('contrasena-de-relleno'); // para que login tarde igual exista o no el correo
-const { sendPasswordReset } = require('../utils/email');
+const { sendPasswordReset, sendEmailVerification } = require('../utils/email');
 
 const router = express.Router();
 
 // Estas rutas solo se usan desde nuestras páginas con JSON: se rechazan formularios de otros sitios (CSRF de login).
-router.use(['/login', '/forgot', '/reset', '/google'], (req, res, next) => {
+router.use(['/login', '/forgot', '/reset', '/google', '/verify-email'], (req, res, next) => {
   if (req.method === 'POST' && !req.is('application/json')) return res.status(415).json({ error: 'Formato no permitido' });
   next();
 });
@@ -31,6 +32,7 @@ const uploadAvatarMw = multer({
 // Convierte errores de multer (archivo muy grande) en una respuesta clara
 const withUpload = (mw, field, msg) => (req, res, next) => mw.single(field)(req, res, err => {
   if (err) return res.status(400).json({ error: msg });
+  if (req.file && !allValid(req.file, path)) return res.status(400).json({ error: 'El archivo no es una imagen o PDF válido.' });
   next();
 });
 const uploadIdDoc = withUpload(uploadId, 'id_document', 'El documento es demasiado grande (máx. 10MB) o no es válido.');
@@ -44,9 +46,23 @@ const uploadRegMw = multer({
 }).fields([{ name: 'avatar', maxCount: 1 }, { name: 'id_document', maxCount: 1 }]);
 const uploadReg = (req, res, next) => uploadRegMw(req, res, err => {
   if (err) return res.status(400).json({ error: 'Un archivo es demasiado grande (máx. 10MB) o no es válido.' });
+  const sent = [].concat((req.files && req.files.avatar) || [], (req.files && req.files.id_document) || []);
+  if (!allValid(sent, path)) return res.status(400).json({ error: 'Un archivo no es una imagen o PDF válido.' });
   next();
 });
 const ID_NUMBER_RE = /^[A-Za-z0-9\-\s]{5,25}$/;
+
+// Marca el correo como pendiente de verificar y manda el enlace. Sin correo configurado (desarrollo) queda verificado.
+async function startEmailVerification(db, user, req) {
+  if (!process.env.EMAIL_USER) {
+    await db.run('UPDATE users SET email_verified = true WHERE id = $1', [user.id]);
+    return;
+  }
+  const { token, hash } = newResetToken();
+  await db.run("UPDATE users SET email_verified = false, email_verify_hash = $1, email_verify_expires = NOW() + INTERVAL '48 hours' WHERE id = $2", [hash, user.id]);
+  const link = `${siteUrl(req)}/auth.html?verify=${encodeURIComponent(token)}`;
+  sendEmailVerification(user, link).catch(e => console.error('[auth] no se pudo enviar la verificación:', e.message));
+}
 
 async function saveAvatar(db, userId, file) {
   const ext = path.extname(file.originalname).toLowerCase();
@@ -115,6 +131,7 @@ router.post('/register', uploadReg, async (req, res) => {
     );
     if (avatarFile) await saveAvatar(db, result.lastInsertRowid, avatarFile);
     if (docFile) await saveIdDoc(db, result.lastInsertRowid, docFile);
+    await startEmailVerification(db, { id: result.lastInsertRowid, name, email }, req);
     setSession(res, result.lastInsertRowid, pwHash);
     res.json({ ok: true });
   } catch (e) {
@@ -150,13 +167,19 @@ router.post('/google', async (req, res) => {
     }
 
     const db = getDB();
-    let user = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
+    let user = await db.queryOne('SELECT id, password_hash, email_verified FROM users WHERE email = $1', [email]);
+    if (user && !user.email_verified) {
+      // Alguien registró este correo sin confirmarlo. Google acaba de demostrar que el correo es de quien entra:
+      // se borra la contraseña de quien lo registró primero y la cuenta pasa a ser de su dueño real.
+      await db.run('UPDATE users SET password_hash = NULL, email_verified = true, email_verify_hash = NULL, email_verify_expires = NULL, reset_token_hash = NULL, reset_expires = NULL WHERE id = $1', [user.id]);
+      user.password_hash = null;
+    }
     if (!user) {
       const name = String(p.given_name || p.name || email.split('@')[0]).trim().slice(0, 80);
       const lastName = String(p.family_name || '').trim().slice(0, 80) || null;
       const role = email === ADMIN_EMAIL ? 'admin' : 'user';
       const r = await db.run(
-        'INSERT INTO users (name, last_name, email, role) VALUES ($1, $2, $3, $4) RETURNING id',
+        'INSERT INTO users (name, last_name, email, role, email_verified) VALUES ($1, $2, $3, $4, true) RETURNING id',
         [name, lastName, email, role]
       );
       user = { id: r.lastInsertRowid, password_hash: null };
@@ -188,9 +211,43 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
+  try {
+    const s = sessionFromRequest(req);
+    if (s && s.th) {
+      const db = getDB();
+      await db.run("INSERT INTO revoked_sessions (token_hash, expires_at) VALUES ($1, NOW() + INTERVAL '31 days') ON CONFLICT DO NOTHING", [s.th]);
+      await db.run('DELETE FROM revoked_sessions WHERE expires_at < NOW()');
+    }
+  } catch (e) { console.error(e); }
   clearSession(res);
   res.json({ ok: true });
+});
+
+// Confirmar el correo con el enlace que llegó por mail (el token es la prueba, no hace falta sesión)
+router.post('/verify-email', async (req, res) => {
+  try {
+    const r = await getDB().run(
+      'UPDATE users SET email_verified = true, email_verify_hash = NULL, email_verify_expires = NULL WHERE email_verify_hash = $1 AND email_verify_expires > NOW()',
+      [hashResetToken(req.body.token)]
+    );
+    if (!r.rowCount) return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo desde tu panel.' });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo confirmar el correo' });
+  }
+});
+
+router.post('/resend-verification', authRequired, async (req, res) => {
+  try {
+    if (req.user.email_verified) return res.json({ ok: true, already: true });
+    await startEmailVerification(getDB(), { id: req.user.id, name: req.user.name, email: req.user.email }, req);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'No se pudo enviar el correo' });
+  }
 });
 
 // Siempre responde igual exista o no la cuenta (no revela qué correos están registrados).
@@ -229,7 +286,7 @@ router.post('/reset', async (req, res) => {
     );
     if (!user) return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo.' });
     const newHash = hashPassword(password);
-    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [newHash, user.id]);
+    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL, email_verified = true WHERE id = $2', [newHash, user.id]);
     setSession(res, user.id, newHash);
     res.json({ ok: true });
   } catch (e) {
@@ -242,6 +299,7 @@ async function getMe(db, userId) {
   return db.queryOne(
     `SELECT u.id, u.name, u.last_name, u.email, u.phone, u.id_number, u.role, u.profile_completed, u.created_at,
             (u.password_hash IS NOT NULL) AS has_password,
+            COALESCE(u.email_verified, false) AS email_verified,
             (f.avatar_data IS NOT NULL) AS has_avatar,
             COALESCE(EXTRACT(EPOCH FROM f.avatar_updated_at)::bigint, 0) AS avatar_v,
             (f.id_data IS NOT NULL OR u.id_document_filename IS NOT NULL) AS has_id_document
@@ -296,6 +354,7 @@ router.post('/me/email', authRequired, async (req, res) => {
     const taken = await db.queryOne('SELECT id FROM users WHERE email = $1 AND id != $2', [email, req.user.id]);
     if (taken) return res.status(409).json({ error: 'Ese correo ya está en uso' });
     await db.run('UPDATE users SET email = $1 WHERE id = $2', [email, req.user.id]);
+    await startEmailVerification(db, { id: req.user.id, name: req.user.name, email }, req);
     res.json(await getMe(db, req.user.id));
   } catch (e) {
     console.error(e);

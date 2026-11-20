@@ -150,80 +150,6 @@
     <i class="glint" style="left:90%;bottom:66%;animation-delay:2.6s"></i>
   </div>
 </section>
-<script>
-(function () {
-  var $ = function (id) { return document.getElementById(id); };
-  var form = $('hx-search'); if (!form) return;
-  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  var pops = { loc: $('hx-loc-pop'), date: $('hx-cal') };
-  var btns = { loc: $('hx-loc-btn'), date: $('hx-date-btn') };
-  function closeAll(except) {
-    Object.keys(pops).forEach(function (k) {
-      if (k === except) return;
-      pops[k].hidden = true; btns[k].setAttribute('aria-expanded', 'false');
-    });
-  }
-  function toggle(k) {
-    var open = pops[k].hidden;
-    closeAll(open ? k : null);
-    pops[k].hidden = !open; btns[k].setAttribute('aria-expanded', String(open));
-    if (open) setTimeout(function () { pops[k].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 30);
-  }
-  btns.loc.addEventListener('click', function () { toggle('loc'); });
-  btns.date.addEventListener('click', function () { toggle('date'); });
-  document.addEventListener('click', function (e) { if (!form.contains(e.target)) closeAll(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
-
-  // Destino
-  pops.loc.addEventListener('click', function (e) {
-    var o = e.target.closest('.hx-opt'); if (!o) return;
-    var v = o.getAttribute('data-v');
-    $('hx-loc-v').value = v;
-    var t = $('hx-loc-t'); t.textContent = v || 'Buscar destinos'; t.classList.toggle('hx-ph', !v);
-    [].forEach.call(pops.loc.querySelectorAll('.hx-opt'), function (x) { x.classList.toggle('on', x === o); });
-    closeAll();
-  });
-
-  // Calendario
-  var today = new Date(); today.setHours(0, 0, 0, 0);
-  var view = new Date(today.getFullYear(), today.getMonth(), 1);
-  var sel = null;
-  function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-  function render() {
-    $('hx-cal-title').textContent = MESES[view.getMonth()] + ' ' + view.getFullYear();
-    $('hx-cal-prev').disabled = view.getFullYear() === today.getFullYear() && view.getMonth() === today.getMonth();
-    var first = (new Date(view.getFullYear(), view.getMonth(), 1).getDay() + 6) % 7;
-    var days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-    var h = '';
-    for (var i = 0; i < first; i++) h += '<span></span>';
-    for (var d = 1; d <= days; d++) {
-      var dt = new Date(view.getFullYear(), view.getMonth(), d);
-      var past = dt < today;
-      var cls = 'hx-day' + (dt.getTime() === today.getTime() ? ' today' : '') + (sel && dt.getTime() === sel.getTime() ? ' sel' : '');
-      h += '<button type="button" class="' + cls + '" data-d="' + iso(dt) + '"' + (past ? ' disabled' : '') + '>' + d + '</button>';
-    }
-    $('hx-cal-grid').innerHTML = h;
-  }
-  function setDate(d) {
-    sel = d;
-    $('hx-date-v').value = d ? iso(d) : '';
-    var t = $('hx-date-t');
-    t.textContent = d ? d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear() : 'Agregar fecha';
-    t.classList.toggle('hx-ph', !d);
-    render();
-  }
-  $('hx-cal-grid').addEventListener('click', function (e) {
-    var b = e.target.closest('.hx-day'); if (!b || b.disabled) return;
-    var p = b.getAttribute('data-d').split('-');
-    setDate(new Date(+p[0], +p[1] - 1, +p[2])); closeAll();
-  });
-  $('hx-cal-prev').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); render(); });
-  $('hx-cal-next').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render(); });
-  $('hx-cal-clear').addEventListener('click', function () { setDate(null); });
-  $('hx-cal-today').addEventListener('click', function () { view = new Date(today.getFullYear(), today.getMonth(), 1); setDate(new Date(today)); closeAll(); });
-  render();
-})();
-</script>
 
 <!-- Featured Boats -->
 <section class="section" id="embarcaciones">
@@ -297,43 +223,43 @@
       <div class="bank-box">
         <div class="bank-box-title">🏦 Datos Bancarios</div>
 <div class="bank-box-tab" style="flex-wrap:wrap;">
-          <button class="bank-box-tab-btn active" onclick="switchBank('popular',this)">Banco Popular</button>
-          <button class="bank-box-tab-btn" onclick="switchBank('zelle',this)">Zelle</button>
-          <button class="bank-box-tab-btn" onclick="switchBank('reservas',this)">Banreservas</button>
-          <button class="bank-box-tab-btn" onclick="switchBank('reservasusd',this)">Banreservas USD</button>
-          <button class="bank-box-tab-btn" onclick="switchBank('bhd',this)">Banco BHD</button>
+          <button class="bank-box-tab-btn active" data-action="switch-bank" data-bank="popular">Banco Popular</button>
+          <button class="bank-box-tab-btn" data-action="switch-bank" data-bank="zelle">Zelle</button>
+          <button class="bank-box-tab-btn" data-action="switch-bank" data-bank="reservas">Banreservas</button>
+          <button class="bank-box-tab-btn" data-action="switch-bank" data-bank="reservasusd">Banreservas USD</button>
+          <button class="bank-box-tab-btn" data-action="switch-bank" data-bank="bhd">Banco BHD</button>
         </div>
         <div class="bank-panel active" id="bank-popular">
           <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco Popular Dominicano</span></div>
           <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta corriente</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" onclick="copyText('0832468474')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" data-action="copy" data-text="Penelope Gonzalez Then">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">0832468474</span><button class="bank-copy" data-action="copy" data-text="0832468474">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
         <div class="bank-panel" id="bank-zelle">
           <div class="bank-row"><span class="bank-key">Método</span><span class="bank-val">Zelle</span></div>
-          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" onclick="copyText('vendobote@icloud.com')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Correo</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">vendobote@icloud.com</span><button class="bank-copy" data-action="copy" data-text="vendobote@icloud.com">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
         <div class="bank-panel" id="bank-reservas">
           <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
           <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en pesos (DOP)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" onclick="copyText('9606655039')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" onclick="copyText('226-0007735-2')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" data-action="copy" data-text="Juan Alberto Romero">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9606655039</span><button class="bank-copy" data-action="copy" data-text="9606655039">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cédula</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">226-0007735-2</span><button class="bank-copy" data-action="copy" data-text="226-0007735-2">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
         <div class="bank-panel" id="bank-reservasusd">
           <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco de Reservas (BanReservas)</span></div>
           <div class="bank-row"><span class="bank-key">Tipo</span><span class="bank-val">Cuenta en dólares (USD)</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" onclick="copyText('Juan Alberto Romero')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" onclick="copyText('9609859038')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Juan Alberto Romero</span><button class="bank-copy" data-action="copy" data-text="Juan Alberto Romero">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">9609859038</span><button class="bank-copy" data-action="copy" data-text="9609859038">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
         <div class="bank-panel" id="bank-bhd">
           <div class="bank-row"><span class="bank-key">Banco</span><span class="bank-val">Banco BHD</span></div>
-          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" onclick="copyText('Penelope Gonzalez Then')">Copiar</button></div></div>
-          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" onclick="copyText('36727140016')">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Titular</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">Penelope Gonzalez Then</span><button class="bank-copy" data-action="copy" data-text="Penelope Gonzalez Then">Copiar</button></div></div>
+          <div class="bank-row"><span class="bank-key">Cuenta</span><div style="display:flex;gap:0.6rem;align-items:center;"><span class="bank-val">36727140016</span><button class="bank-copy" data-action="copy" data-text="36727140016">Copiar</button></div></div>
           <div class="bank-row"><span class="bank-key">Referencia</span><span class="bank-val" style="color:var(--sky-2);">Número de reserva</span></div>
         </div>
       </div>
@@ -447,18 +373,7 @@
 
 <div id="toast-container" role="alert" aria-live="polite"></div>
 
-<script>
-// Bank tab switcher
-// En pantallas grandes los datos bancarios se ven abiertos; en celular quedan plegados.
-var bankFold = document.getElementById('bank-fold');
-if (bankFold && window.innerWidth > 700) bankFold.open = true;
-function switchBank(id, btn) {
-  document.querySelectorAll('.bank-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.bank-box-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('bank-' + id).classList.add('active');
-  btn.classList.add('active');
-}
-</script>
-<script src="/assets/js/main.js?v=20261120m" defer></script>
+<script src="/assets/js/main.js?v=20261120p" defer></script>
+<script src="/assets/js/home.js?v=20261120p" defer></script>
 </body>
 </html>

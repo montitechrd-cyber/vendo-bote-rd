@@ -20,9 +20,11 @@ const upload = multer({
 });
 
 const { isSlotClosed } = require('../utils/booking-time');
+const { allValid } = require('../utils/filecheck');
 
 const uploadReceipt = (req, res, next) => upload.single('receipt')(req, res, err => {
   if (err) return res.status(400).json({ error: 'El comprobante es demasiado grande (máx. 10MB) o no es válido.' });
+  if (req.file && !allValid(req.file, path)) return res.status(400).json({ error: 'El comprobante debe ser una imagen (JPG, PNG, WEBP) o un PDF válido.' });
   next();
 });
 
@@ -42,6 +44,14 @@ async function generateRef(db) {
 router.post('/', authRequired, uploadReceipt, async (req, res) => {
   try {
     const db = getDB();
+    if (!req.user.email_verified) {
+      return res.status(403).json({ error: 'Confirma tu correo para poder reservar. Te enviamos un enlace al registrarte; puedes pedir otro desde tu panel.', code: 'email_unverified' });
+    }
+    // Tope de reservas esperando verificación: evita bloquear turnos con comprobantes falsos
+    const waiting = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE user_id = $1 AND status = 'pending' AND payment_status = 'submitted'", [req.user.id]);
+    if (waiting.n >= 3) {
+      return res.status(429).json({ error: 'Ya tienes 3 reservas esperando verificación de pago. Espera a que las revisemos antes de crear otra.' });
+    }
     // Llega como multipart (comprobante + datos): los valores vienen como texto
     let { boat_id, start_date, schedule, guests, package_hours, extra_hours, meal_addons, birthday_combo } = req.body;
     if (typeof meal_addons === 'string') { try { meal_addons = JSON.parse(meal_addons); } catch { meal_addons = []; } }

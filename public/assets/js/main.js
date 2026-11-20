@@ -418,7 +418,7 @@
       : media;
     const badge = boat.featured ? '<span class="card-badge featured">⭐ Destacado</span>' : '';
     return `
-      <article class="card" onclick="location.href='/embarcacion/${encodeURIComponent(boat.slug)}'" data-reveal>
+      <article class="card" data-href="/embarcacion/${encodeURIComponent(boat.slug)}" data-reveal>
         <div class="card-img">
           ${carousel}
           ${badge}
@@ -441,6 +441,11 @@
       </article>`;
   }
   window.VBR.buildBoatCard = buildBoatCard;
+  // Clic en una tarjeta con data-href: abre la ficha (sustituye al onclick en línea)
+  document.addEventListener('click', e => {
+    const card = e.target.closest && e.target.closest('.card[data-href]');
+    if (card) location.href = card.dataset.href;
+  });
 
   /* ── Featured boats ── */
   function initFeaturedBoats() {

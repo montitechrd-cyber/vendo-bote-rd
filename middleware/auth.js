@@ -8,6 +8,11 @@ async function loadUser(req) {
   if (!user) return null;
   // Las sesiones nuevas llevan la "versión" de la contraseña: si la cambiaron, esta sesión ya no vale.
   if (session.v && session.v !== sessionVersion(user.password_hash)) return null;
+  // Sesión cerrada por el usuario con "Cerrar sesión"
+  if (session.th) {
+    const revoked = await getDB().queryOne('SELECT 1 FROM revoked_sessions WHERE token_hash = $1', [session.th]);
+    if (revoked) return null;
+  }
   return user;
 }
 
