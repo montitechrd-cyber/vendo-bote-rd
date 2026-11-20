@@ -64,6 +64,7 @@
       case 'close-detail': window.closeDetailModal(); break;
       case 'open-detail': window.openDetail(Number(el.dataset.id)); break;
       case 'cancel-booking': window.cancelBooking(Number(el.dataset.id)); break;
+      case 'reschedule-booking': window.rescheduleBooking(Number(el.dataset.id), el); break;
       case 'resend-verification':
         el.disabled = true;
         fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
@@ -119,11 +120,35 @@
       const canCancel = b.status === 'pending' && ['pending', 'rejected'].includes(b.payment_status);
       return window.VBR.bookingCard(b, { actions:
         '<button class="btn btn-ghost btn-sm" data-action="open-detail" data-id="' + esc(b.id) + '">Ver detalle</button>' +
-        (canCancel ? '<button class="btn btn-ghost btn-sm" data-action="cancel-booking" data-id="' + esc(b.id) + '" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>' : '') });
+        (canCancel ? '<button class="btn btn-ghost btn-sm" data-action="cancel-booking" data-id="' + esc(b.id) + '" style="color:#E05A5A;border-color:rgba(224,90,90,0.3);">Cancelar</button>' : '') +
+        rescheduleActions(b) });
     }).join('');
 
     window.VBR.observeReveals();
   }
+
+  // Cambio de fecha: botón si es elegible, aviso si ya cambió o si faltan menos de 24 h (el servidor decide el estado)
+  function rescheduleActions(b) {
+    const esc = window.VBR.esc;
+    const st = b.reschedule && b.reschedule.state;
+    if (st === 'eligible') return '<button class="btn btn-primary btn-sm" data-action="reschedule-booking" data-id="' + esc(b.id) + '">Cambiar fecha</button>';
+    if (st === 'done') return '<span class="resched-note">Fecha cambiada (original: ' + esc(window.VBR_reschedule ? window.VBR_reschedule.fmtDMY(b.original_start_date) : b.original_start_date) + ')</span>';
+    if (st === 'too_late') return '<a class="resched-note resched-note-link" href="https://wa.me/14073614042" target="_blank" rel="noopener">Para cambiar la fecha escríbenos por WhatsApp</a>';
+    return '';
+  }
+
+  window.rescheduleBooking = function (id, opener) {
+    const b = allBookings.find(x => x.id === id);
+    if (!b || !b.reschedule || b.reschedule.state !== 'eligible' || !window.VBR_reschedule) return;
+    const today = window.VBR_reschedule.todayLocal();
+    window.VBR_reschedule.open({
+      mode: 'client', opener,
+      booking: { id: b.id, boat_id: b.boat_id, boat_name: b.boat_name, start_date: b.start_date, schedule: b.schedule },
+      slots: b.reschedule.slots, weekendLocked: b.reschedule.weekend_locked,
+      minDate: today > b.reschedule.min_date ? today : b.reschedule.min_date, maxDate: b.reschedule.max_date,
+      onDone: () => loadBookings(),
+    });
+  };
 
   window.filterBookings = function (filter, btn) {
     document.querySelectorAll('.location-tab').forEach(t => t.classList.remove('active'));

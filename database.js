@@ -140,6 +140,9 @@ async function createTables() {
   await pool.query(`DROP INDEX IF EXISTS bookings_slot_unique_idx`).catch(() => {});
   // Pago con tarjeta (AZUL): 'card_pending' también retiene el turno mientras se paga
   await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'transfer'`).catch(() => {});
+  // Cambio de fecha de la reserva: cuántas veces se movió y cuál era la fecha original
+  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reschedule_count INTEGER DEFAULT 0`).catch(() => {});
+  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS original_start_date TEXT`).catch(() => {});
   await pool.query(`DROP INDEX IF EXISTS bookings_slot_active_idx`).catch(() => {});
   await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_active_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending') AND payment_status IN ('card_pending','submitted','verified')`).catch(() => {});
   await pool.query(`

@@ -304,6 +304,55 @@ async function sendCardDuplicateApproval(orderNumber, bookingRef) {
   });
 }
 
+/* ── Cambio de fecha de una reserva ── */
+const RESCHEDULE_REASONS = { weather: 'Condiciones de mar o clima', authority: 'La autoridad marítima no autorizó la navegación', vendor: 'Causa de Vendo Bote RD', other: 'Otro motivo' };
+
+// booking: la reserva ya con la fecha nueva. before: { start_date, schedule } anteriores.
+// info: { by: 'client' | 'admin', reason? } (reason solo cuando lo cambia el admin)
+function rescheduleRows(booking, before, info = {}) {
+  return `
+    <div class="row"><span class="lbl">Referencia</span><span class="val">${esc(booking.booking_ref)}</span></div>
+    <div class="row"><span class="lbl">Embarcación</span><span class="val">${esc(booking.boat_name) || '—'}${booking.boat_location ? ' · ' + esc(booking.boat_location) : ''}</span></div>
+    <div class="row"><span class="lbl">Antes</span><span class="val">${esc(fmtDate(before.start_date))} · ${esc(slotLabel(before.schedule))}</span></div>
+    <div class="row"><span class="lbl">Ahora</span><span class="val">${esc(fmtDate(booking.start_date))} · ${esc(slotLabel(booking.schedule))}</span></div>
+    <div class="row"><span class="lbl">Cambiado por</span><span class="val">${info.by === 'admin' ? 'Vendo Bote RD' : 'El cliente'}</span></div>
+    ${info.reason ? `<div class="row"><span class="lbl">Motivo</span><span class="val">${esc(RESCHEDULE_REASONS[info.reason] || info.reason)}</span></div>` : ''}`;
+}
+
+// Aviso al admin (cuando el cliente cambia su fecha) y confirmación al cliente (en ambos casos). Sin datos de pago.
+async function sendRescheduleAdmin(booking, user, before, info = {}) {
+  if (!process.env.EMAIL_USER) return;
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: ADMIN_RECIPIENTS,
+    subject: `📅 Cambio de fecha: ${booking.boat_name} · ${booking.start_date} · ${booking.booking_ref}`,
+    html: wrap('Cambio de fecha de una reserva', `
+      <p class="intro">Un cliente cambió la fecha de su reserva desde su panel. El pago se mantiene sin cambios.</p>
+      <div class="box"><div class="box-title">Cambio</div>${rescheduleRows(booking, before, info)}</div>
+      <div class="box"><div class="box-title">Cliente</div>${clientRows(user)}</div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Abrir el panel</a></div>
+    `),
+  });
+}
+
+async function sendRescheduleClient(booking, user, before, info = {}) {
+  if (!process.env.EMAIL_USER || !user || !user.email) return;
+  const why = info.by === 'admin'
+    ? 'Reprogramamos tu reserva y tu pago se mantiene para la nueva fecha.'
+    : 'Cambiaste la fecha de tu reserva. Tu pago se mantiene para la nueva fecha.';
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: `📅 Nueva fecha para tu reserva ${booking.booking_ref} — Vendo Bote RD`,
+    html: wrap('Nueva fecha de tu reserva', `
+      <p class="greeting">Hola ${esc(user.name)},</p>
+      <p class="intro">${why} Recuerda llegar 30 minutos antes del turno.</p>
+      <div class="box"><div class="box-title">Tu reserva</div>${rescheduleRows(booking, before, info)}</div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html">Ver mi reserva</a></div>
+    `),
+  });
+}
+
 /* ── Crear / restablecer contraseña ── */
 async function sendPasswordReset(user, link) {
   if (!process.env.EMAIL_USER) throw new Error('EMAIL_USER no configurado');
@@ -335,4 +384,4 @@ async function sendEmailVerification(user, link) {
   });
 }
 
-module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendCardsExpiredUnconfirmed, sendCardDuplicateApproval, sendPasswordReset, sendEmailVerification };
+module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendCardsExpiredUnconfirmed, sendCardDuplicateApproval, sendRescheduleAdmin, sendRescheduleClient, sendPasswordReset, sendEmailVerification };

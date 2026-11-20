@@ -25,6 +25,8 @@ const { allValid } = require('../utils/filecheck');
 const { computeQuote } = require('../utils/booking-quote');
 const { generateRef } = require('../utils/booking-ref');
 const { SLOT_HOLDING_PAYMENT_STATUSES, expireCardHolds } = require('../utils/card-holds');
+const { validSchedulesFor } = require('../utils/booking-quote');
+const resched = require('../utils/reschedule');
 
 const uploadReceipt = (req, res, next) => upload.single('receipt')(req, res, err => {
   if (err) return res.status(400).json({ error: 'El comprobante es demasiado grande (máx. 10MB) o no es válido.' });
@@ -117,7 +119,7 @@ router.get('/my', authRequired, async (req, res) => {
     const db = getDB();
     const bookings = await db.query(
       `SELECT b.*, bt.name as boat_name, bt.slug as boat_slug, bt.location as boat_location,
-              bt.images as boat_images, bt.price_per_day,
+              bt.images as boat_images, bt.price_per_day, bt.pricing_scheme as boat_pricing_scheme,
               p.status as payment_verified_status, p.receipt_filename, p.reference_number
        FROM bookings b
        JOIN boats bt ON b.boat_id = bt.id
@@ -126,7 +128,17 @@ router.get('/my', authRequired, async (req, res) => {
        ORDER BY b.created_at DESC`,
       [req.user.id]
     );
-    res.json(bookings.map(b => ({ ...b, boat_images: JSON.parse(b.boat_images || '[]') })));
+    res.json(bookings.map(b => {
+      const { boat_pricing_scheme, ...rest } = b;
+      const state = resched.clientRescheduleState(b);
+      // Datos para el modal de "Cambiar fecha": la decisión final siempre la toma el servidor al enviar
+      const reschedule = state === 'eligible' ? {
+        state, slots: validSchedulesFor({ pricing_scheme: boat_pricing_scheme }),
+        min_date: b.start_date, max_date: resched.addDays(b.start_date, resched.CLIENT_WINDOW_DAYS),
+        weekend_locked: resched.priceCategory({ pricing_scheme: boat_pricing_scheme }, b.start_date, b.schedule) === 'weekday',
+      } : { state };
+      return { ...rest, boat_images: JSON.parse(b.boat_images || '[]'), reschedule };
+    }));
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
   }
@@ -313,6 +325,74 @@ router.post('/:id/cancel', authRequired, async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+
+// Cambio de fecha: lo comparten el cliente (POST) y el admin (PATCH). El pago y el precio no se tocan.
+async function applyReschedule(req, res, { admin }) {
+  const db = getDB();
+  if (!/^\d+$/.test(String(req.params.id))) return res.status(404).json({ error: 'Reserva no encontrada' });
+  await expireCardHolds(db);
+  const booking = admin
+    ? await db.queryOne('SELECT * FROM bookings WHERE id = $1', [req.params.id])
+    : await db.queryOne('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+  if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
+  const boat = await db.queryOne('SELECT * FROM boats WHERE id = $1', [booking.boat_id]);
+  const { start_date, schedule } = req.body || {};
+  const reason = admin ? (req.body || {}).reason : null;
+  if (typeof start_date !== 'string' || typeof schedule !== 'string') return res.status(400).json({ error: 'Indica la nueva fecha y el turno', code: 'bad_request' });
+  const check = admin
+    ? resched.checkAdminReschedule(booking, boat, start_date, schedule, reason)
+    : resched.checkClientReschedule(booking, boat, start_date, schedule);
+  if (!check.ok) return res.status(check.status).json({ error: check.error, code: check.code });
+
+  const taken = await db.queryOne(
+    `SELECT id FROM bookings WHERE boat_id = $1 AND start_date = $2 AND schedule = $3 AND id <> $4 AND status IN ('confirmed','pending') AND payment_status = ANY($5)`,
+    [booking.boat_id, start_date, schedule, booking.id, SLOT_HOLDING_PAYMENT_STATUSES]
+  );
+  if (taken) return res.status(409).json({ error: 'Ese turno ya está reservado', code: 'slot_taken' });
+
+  // UPDATE condicionado: si dos peticiones llegan a la vez, solo una cumple la condición y la otra no cambia nada
+  let result;
+  try {
+    result = await db.run(
+      `UPDATE bookings SET original_start_date = COALESCE(original_start_date, start_date), start_date = $1, end_date = $1, schedule = $2,
+              reschedule_count = COALESCE(reschedule_count, 0) + 1
+       WHERE id = $3 AND status = 'confirmed' AND payment_status = 'verified'
+         AND start_date = $4 AND schedule = $5 AND COALESCE(reschedule_count, 0) = $6`,
+      [start_date, schedule, booking.id, booking.start_date, booking.schedule, Number(booking.reschedule_count || 0)]
+    );
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'Ese turno ya está reservado', code: 'slot_taken' });
+    throw e;
+  }
+  if (!result.rowCount) return res.status(409).json({ error: 'La reserva cambió mientras tanto. Recarga la página e inténtalo de nuevo.', code: 'conflict' });
+
+  const before = { start_date: booking.start_date, schedule: booking.schedule };
+  const updated = await db.queryOne(
+    `SELECT b.*, bt.name as boat_name, bt.slug as boat_slug, bt.location as boat_location,
+            bt.images as boat_images, bt.brand, bt.length_ft, bt.capacity,
+            u.name as user_name, u.email as user_email, u.phone as user_phone,
+            p.status as pay_status, p.bank_name, p.account_holder, p.reference_number,
+            p.receipt_filename, p.rejection_reason
+     FROM bookings b
+     JOIN boats bt ON b.boat_id = bt.id
+     JOIN users u ON b.user_id = u.id
+     LEFT JOIN payments p ON p.booking_id = b.id
+     WHERE b.id = $1`,
+    [booking.id]
+  );
+  if (admin) await audit(db, req, 'booking.reschedule', 'booking', booking.id, `ref ${booking.booking_ref}; ${before.start_date} ${before.schedule} -> ${start_date} ${schedule}; motivo ${reason}`);
+  const user = { name: updated.user_name, email: updated.user_email, phone: updated.user_phone };
+  const info = admin ? { by: 'admin', reason } : { by: 'client' };
+  email.sendRescheduleClient(updated, user, before, info).catch(console.error);
+  if (!admin) email.sendRescheduleAdmin(updated, user, before, info).catch(console.error);
+  res.json({ ...updated, boat_images: JSON.parse(updated.boat_images || '[]') });
+}
+const rescheduleHandler = (admin) => (req, res) => applyReschedule(req, res, { admin }).catch(e => {
+  console.error(e);
+  if (!res.headersSent) res.status(500).json({ error: 'Error al cambiar la fecha' });
+});
+router.post('/:id/reschedule', authRequired, rescheduleHandler(false));
+router.patch('/:id/reschedule', adminRequired, rescheduleHandler(true));
 
 router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
   try {

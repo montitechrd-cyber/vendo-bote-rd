@@ -275,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="boat-spec-item"><div class="boat-spec-label">Contacto</div><div class="boat-spec-val" style="font-size:0.78rem;">${esc(b.user_email)}<br>${esc(b.user_phone||'—')}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Fecha</div><div class="boat-spec-val">${fmtDate(b.start_date)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Turno</div><div class="boat-spec-val">${esc(SCHEDULE_LABEL[b.schedule]||b.schedule||'—')}</div></div>
+            ${b.original_start_date ? `<div class="boat-spec-item"><div class="boat-spec-label">Fecha original</div><div class="boat-spec-val">${fmtDate(b.original_start_date)} · ${b.reschedule_count || 1} cambio(s)</div></div>` : ''}
             <div class="boat-spec-item"><div class="boat-spec-label">Personas</div><div class="boat-spec-val">${b.guests} pers.</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Total</div><div class="boat-spec-val" style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--sky-2);">$${Number(b.total_price).toLocaleString()} USD</div></div>
           </div>
@@ -290,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div style="border-top:1px solid var(--line);padding-top:1.25rem;">
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
               ${b.payment_status === 'submitted' && !isCard(b) && b.status !== 'cancelled' ? `<button class="btn btn-success" data-action="approve-close" data-id="${b.id}">✓ Aprobar pago</button>` : ''}
+              ${b.status === 'confirmed' && b.payment_status === 'verified' ? `<button class="btn btn-ghost" data-action="reschedule-booking" data-id="${b.id}">📅 Reprogramar</button>` : ''}
               ${b.status !== 'cancelled' && !isCard(b) ? `<button class="btn btn-danger" data-action="prompt-reject" data-id="${b.id}">✕ Rechazar reserva</button>` : ''}
               <button class="btn btn-ghost" style="color:#E05A5A;" data-action="delete-booking-close" data-id="${b.id}">🗑 Eliminar</button>
             </div>
@@ -311,6 +313,26 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) {
       window.VBR.toast('Error al abrir el comprobante', 'error');
     }
+  };
+  // Reprogramar (admin): cualquier turno válido de la misma embarcación, hasta 6 meses desde la fecha original
+  window.rescheduleBooking = async function (id, opener) {
+    const b = await window.VBR.api('/bookings/' + id);
+    if (!b || b.error) { window.VBR.toast((b && b.error) || 'No se pudo abrir la reserva', 'error'); return; }
+    const boat = await window.VBR.api('/boats/' + encodeURIComponent(b.boat_slug));
+    const scheme = boat && !boat.error ? boat.pricing_scheme : null;
+    const dayBased = !!(scheme && scheme.type === 'day_based');
+    const slots = scheme && scheme.time_slots && scheme.time_slots.length ? scheme.time_slots : ((scheme && !dayBased) ? ['full-day'] : ['9am-3pm', '4pm-10pm']);
+    const wd = new Date(b.start_date + 'T00:00:00Z').getUTCDay();
+    const weekendNow = (wd === 0 || wd === 6) && b.schedule === '4pm-10pm';
+    const R = window.VBR_reschedule;
+    window.closeVerifyModal();
+    R.open({
+      mode: 'admin', opener,
+      booking: { id: b.id, boat_id: b.boat_id, boat_name: b.boat_name, start_date: b.start_date, schedule: b.schedule },
+      slots, weekendLocked: dayBased && !weekendNow,
+      minDate: R.todayLocal(), maxDate: R.addMonths(b.original_start_date || b.start_date, 6),
+      onDone: () => { loadPendingPayments(); loadDashboard(); if (window.loadAllBookings) loadAllBookings(); refreshCalBookings(); },
+    });
   };
   window.closeVerifyModal = function () { document.getElementById('verify-modal').classList.remove('is-open'); document.body.style.overflow = ''; };
   document.getElementById('verify-modal').addEventListener('click', e => { if (e.target.id === 'verify-modal') window.closeVerifyModal(); });
@@ -651,6 +673,7 @@ document.addEventListener('DOMContentLoaded', function () {
     'close-boat-modal': () => window.closeBoatModal(),
     'save-boat': () => window.saveBoat(),
     'open-verify-modal': (el) => window.openVerifyModal(Number(el.dataset.id)),
+    'reschedule-booking': (el) => window.rescheduleBooking(Number(el.dataset.id), el),
     'view-receipt': (el) => window.viewReceipt(Number(el.dataset.id)),
     'verify-payment': (el) => window.verifyPayment(Number(el.dataset.id), el.dataset.verdict),
     'approve-close': (el) => { window.verifyPayment(Number(el.dataset.id), 'approve'); window.closeVerifyModal(); },

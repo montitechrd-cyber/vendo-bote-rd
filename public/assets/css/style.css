@@ -2398,3 +2398,23 @@ ul { list-style: none; }
   .footer .pay-logos img { height: 26px; }
   .legal-badges .pay-logos img { height: 36px; }
 }
+
+/* ── Cambiar fecha de una reserva (cliente y admin) ── */
+.resched-modal { max-width: 460px; }
+.resched-boat { font-family: var(--serif); font-size: 1.05rem; font-style: italic; color: var(--navy); margin: -0.75rem 0 1rem; }
+.resched-summary { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0.85rem 1rem; margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.5; }
+.resched-sum-from { color: var(--text-muted); }
+.resched-sum-to { color: var(--navy); font-weight: 600; }
+.resched-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.resched-reason { margin-bottom: 1rem; }
+.resched-notice { font-size: 0.8rem; line-height: 1.55; color: var(--text-muted); margin-bottom: 1rem; }
+.resched-error { margin: 0 0 1rem; font-size: 0.85rem; }
+.resched-wa { color: var(--sky-2); font-weight: 600; text-decoration: underline; }
+.resched-actions { display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap; }
+.resched-note { font-size: 0.78rem; color: var(--text-muted); align-self: center; }
+.resched-note-link { color: var(--sky-2); text-decoration: underline; }
+@media (max-width: 480px) {
+  .resched-modal { padding: 1.75rem 1.25rem; }
+  .resched-fields { grid-template-columns: 1fr; }
+  .resched-actions .btn { flex: 1 1 auto; }
+}
