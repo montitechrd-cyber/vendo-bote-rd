@@ -1,10 +1,14 @@
 const { getDB } = require('../database');
-const { userIdFromRequest } = require('../utils/session');
+const { sessionFromRequest, sessionVersion } = require('../utils/session');
 
 async function loadUser(req) {
-  const userId = userIdFromRequest(req);
-  if (!userId) return null;
-  return getDB().queryOne('SELECT * FROM users WHERE id = $1', [userId]);
+  const session = sessionFromRequest(req);
+  if (!session) return null;
+  const user = await getDB().queryOne('SELECT * FROM users WHERE id = $1', [session.uid]);
+  if (!user) return null;
+  // Las sesiones nuevas llevan la "versión" de la contraseña: si la cambiaron, esta sesión ya no vale.
+  if (session.v && session.v !== sessionVersion(user.password_hash)) return null;
+  return user;
 }
 
 function authRequired(req, res, next) {

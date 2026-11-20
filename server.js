@@ -27,9 +27,25 @@ app.use(helmet({
   crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
-// Permite que solo NEURALAB (portafolio) y el propio sitio embeban esta web en un iframe
+// Content-Security-Policy: solo se cargan scripts del propio sitio y de Google (inicio de sesión), así que
+// un script inyectado desde otro dominio no se ejecuta. Los scripts/estilos en línea siguen permitidos porque
+// las páginas los usan. Además solo NEURALAB (portafolio) y el propio sitio pueden embeber esta web en un iframe.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://accounts.google.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob:",
+  "connect-src 'self' https://accounts.google.com",
+  "frame-src https://accounts.google.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:* http://127.0.0.1:*",
+].join('; ');
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:* http://127.0.0.1:*");
+  res.setHeader('Content-Security-Policy', CSP);
   next();
 });
 

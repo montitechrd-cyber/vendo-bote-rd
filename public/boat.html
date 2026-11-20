@@ -350,7 +350,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261120g" defer></script>
+<script src="/assets/js/main.js?v=20261120m" defer></script>
 <script defer>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -1160,9 +1160,7 @@
 
   /* ── For-sale mode ── */
   function esc(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+    return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
   function activateSaleMode() {

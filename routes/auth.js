@@ -5,9 +5,16 @@ const fs = require('fs');
 const { getDB } = require('../database');
 const { authRequired, adminRequired } = require('../middleware/auth');
 const { setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken } = require('../utils/session');
+const DUMMY_HASH = hashPassword('contrasena-de-relleno'); // para que login tarde igual exista o no el correo
 const { sendPasswordReset } = require('../utils/email');
 
 const router = express.Router();
+
+// Estas rutas solo se usan desde nuestras páginas con JSON: se rechazan formularios de otros sitios (CSRF de login).
+router.use(['/login', '/forgot', '/reset', '/google'], (req, res, next) => {
+  if (req.method === 'POST' && !req.is('application/json')) return res.status(415).json({ error: 'Formato no permitido' });
+  next();
+});
 
 const DOC_EXT = ['.jpg', '.jpeg', '.png', '.pdf', '.webp'];
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
@@ -64,7 +71,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normEmail = (e) => String(e || '').trim().toLowerCase();
 
 function siteUrl(req) {
-  if (process.env.NODE_ENV === 'production') return process.env.SITE_URL || 'https://vendoboterd.com';
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, ''); // nunca armar el enlace con la cabecera Host
+  if (process.env.NODE_ENV === 'production') return 'https://vendoboterd.com';
   return `${req.protocol}://${req.get('host')}`;
 }
 
@@ -100,13 +108,14 @@ router.post('/register', uploadReg, async (req, res) => {
       return res.status(409).json({ error: msg });
     }
 
+    const pwHash = hashPassword(password);
     const result = await db.run(
       'INSERT INTO users (name, last_name, phone, id_number, email, password_hash, role, profile_completed) VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING id',
-      [name, last_name, phone, id_number, email, hashPassword(password), 'user']
+      [name, last_name, phone, id_number, email, pwHash, 'user']
     );
     if (avatarFile) await saveAvatar(db, result.lastInsertRowid, avatarFile);
     if (docFile) await saveIdDoc(db, result.lastInsertRowid, docFile);
-    setSession(res, result.lastInsertRowid);
+    setSession(res, result.lastInsertRowid, pwHash);
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -141,7 +150,7 @@ router.post('/google', async (req, res) => {
     }
 
     const db = getDB();
-    let user = await db.queryOne('SELECT id FROM users WHERE email = $1', [email]);
+    let user = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
     if (!user) {
       const name = String(p.given_name || p.name || email.split('@')[0]).trim().slice(0, 80);
       const lastName = String(p.family_name || '').trim().slice(0, 80) || null;
@@ -150,9 +159,9 @@ router.post('/google', async (req, res) => {
         'INSERT INTO users (name, last_name, email, role) VALUES ($1, $2, $3, $4) RETURNING id',
         [name, lastName, email, role]
       );
-      user = { id: r.lastInsertRowid };
+      user = { id: r.lastInsertRowid, password_hash: null };
     }
-    setSession(res, user.id);
+    setSession(res, user.id, user.password_hash);
     res.json({ ok: true });
   } catch (e) {
     console.error('[auth] google:', e.message);
@@ -166,13 +175,12 @@ router.post('/login', async (req, res) => {
     const email = normEmail(req.body.email);
     const password = String(req.body.password || '');
     const user = await db.queryOne('SELECT id, password_hash FROM users WHERE email = $1', [email]);
-    if (!user || !user.password_hash) {
-      return res.status(401).json({ error: 'Correo o contraseña incorrectos. Si tu cuenta es anterior, usa "Olvidé mi contraseña" para crear la tuya.' });
+    // Mismo mensaje y mismo tiempo de respuesta exista o no la cuenta (no revela qué correos están registrados).
+    const okPass = verifyPassword(password.slice(0, 200), user && user.password_hash ? user.password_hash : DUMMY_HASH);
+    if (!user || !user.password_hash || !okPass) {
+      return res.status(401).json({ error: 'Correo o contraseña incorrectos. Si tu cuenta es anterior, usa "Olvidé mi contraseña".' });
     }
-    if (!verifyPassword(password, user.password_hash)) {
-      return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
-    }
-    setSession(res, user.id);
+    setSession(res, user.id, user.password_hash);
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -200,7 +208,7 @@ router.post('/forgot', async (req, res) => {
         const { token, hash } = newResetToken();
         await db.run("UPDATE users SET reset_token_hash = $1, reset_expires = NOW() + INTERVAL '1 hour' WHERE id = $2", [hash, user.id]);
         const link = `${siteUrl(req)}/auth.html?reset=${encodeURIComponent(token)}`;
-        await sendPasswordReset(user, link).catch(e => console.error('[auth] no se pudo enviar el correo:', e.message));
+        sendPasswordReset(user, link).catch(e => console.error('[auth] no se pudo enviar el correo:', e.message)); // sin await: el tiempo de respuesta no delata si la cuenta existe
       }
     }
     res.json({ ok: true });
@@ -220,8 +228,9 @@ router.post('/reset', async (req, res) => {
       [hashResetToken(req.body.token)]
     );
     if (!user) return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo.' });
-    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [hashPassword(password), user.id]);
-    setSession(res, user.id);
+    const newHash = hashPassword(password);
+    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [newHash, user.id]);
+    setSession(res, user.id, newHash);
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -303,7 +312,9 @@ router.post('/me/password', authRequired, async (req, res) => {
     if (req.user.password_hash && !verifyPassword(String(req.body.current_password || ''), req.user.password_hash)) {
       return res.status(401).json({ error: 'La contraseña actual no es correcta' });
     }
-    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [hashPassword(next), req.user.id]);
+    const nextHash = hashPassword(next);
+    await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [nextHash, req.user.id]);
+    setSession(res, req.user.id, nextHash); // esta sesión sigue; las demás se cierran
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -420,6 +431,7 @@ router.get('/id-document/:userId', authRequired, async (req, res) => {
     const f = await db.queryOne('SELECT id_data, id_mime FROM user_files WHERE user_id = $1', [targetId]);
     if (f && f.id_data) {
       res.set('Content-Type', f.id_mime || 'application/octet-stream');
+      res.set('Cache-Control', 'private, no-store');
       return res.send(f.id_data);
     }
     const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);

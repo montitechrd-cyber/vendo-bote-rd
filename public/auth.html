@@ -148,6 +148,7 @@
 (function () {
   const params = new URLSearchParams(location.search);
   const resetToken = params.get('reset');
+  if (resetToken) { try { history.replaceState(null, '', location.pathname); } catch (e) {} } // el token no se queda en la barra ni en el historial
   const redirect = sessionStorage.getItem('vbr_redirect') || '/dashboard.html';
   const $ = (id) => document.getElementById(id);
   const msg = $('auth-msg');

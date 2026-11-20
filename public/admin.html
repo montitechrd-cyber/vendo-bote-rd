@@ -438,7 +438,7 @@
 </div>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261120g" defer></script>
+<script src="/assets/js/main.js?v=20261120m" defer></script>
 <script type="module">
 (function () {
   window.logout = () => window.VBR_logout();
@@ -712,7 +712,7 @@
           <td data-label="Estado"><span class="badge badge-${b.available?'confirmed':'cancelled'}">${b.available?'Activa':'Inactiva'}</span></td>
           <td data-label="Acciones" style="display:flex;gap:0.4rem;">
             <button class="btn btn-ghost btn-sm" onclick="openBoatModal(${b.id})">Editar</button>
-            <button class="btn btn-ghost btn-sm" onclick="deactivateBoat(${b.id},'${esc(b.name)}')" ${!b.available?'disabled':''}>Desactivar</button>
+            <button class="btn btn-ghost btn-sm" data-name="${esc(b.name)}" onclick="deactivateBoat(${b.id},this.dataset.name)" ${!b.available?'disabled':''}>Desactivar</button>
             <button class="btn btn-danger btn-sm" onclick="deleteBoat(${b.id})">Eliminar</button>
           </td>
         </tr>`;
@@ -947,9 +947,9 @@
         const cls = b.status === 'confirmed' ? 'confirmed' : 'pending';
         const shortName = boatName.length > 14 ? boatName.slice(0,13)+'…' : boatName;
         eventsHtml += `
-          <div class="cal-event ${cls}" onclick="openVerifyModal(${b.id})" title="${boatName} · ${b.user_name} · ${b.status === 'confirmed' ? 'Aprobada' : 'Pendiente de confirmar'}">
+          <div class="cal-event ${cls}" onclick="openVerifyModal(${b.id})" title="${esc(boatName)} · ${esc(b.user_name)} · ${b.status === 'confirmed' ? 'Aprobada' : 'Pendiente de confirmar'}">
             <div class="cal-event-dot"></div>
-            <span>${shortName}</span>
+            <span>${esc(shortName)}</span>
           </div>`;
       });
       if (extra > 0) eventsHtml += `<div class="cal-more">+${extra} más</div>`;

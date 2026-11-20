@@ -33,7 +33,7 @@ function fmtMoney(n) {
 
 /* ── Diseño base: tablas con estilos en línea (los clientes de correo no soportan flex) ── */
 const C = { navy: '#0F3460', sky: '#0369A1', ink: '#0F2B4A', mute: '#5B84A8', line: '#E2EEF7', soft: '#F0F9FF' };
-const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 // Convierte las filas "etiqueta / valor" de las plantillas en filas de tabla compactas
 function rowsToTable(html) {
@@ -113,7 +113,7 @@ async function sendPaymentApproved(booking, user) {
   if (!process.env.EMAIL_USER) return;
 
   const userHtml = wrap('¡Reserva Confirmada! 🎉', `
-    <p class="greeting">¡Todo listo, ${user.name}!</p>
+    <p class="greeting">¡Todo listo, ${esc(user.name)}!</p>
     <p class="intro">Tu pago fue verificado y tu reserva está <strong>oficialmente confirmada</strong>. ¡Prepárate para disfrutar el mar!</p>
     <div class="box">
       <div class="box-title">Tu Reserva Confirmada</div>
@@ -134,16 +134,16 @@ async function sendPaymentApproved(booking, user) {
 
   const adminHtml = wrap('Reserva Confirmada', `
     <p class="greeting">Reserva aprobada</p>
-    <p class="intro">Has confirmado el pago de <strong>${user.name}</strong>. El cliente fue notificado.</p>
+    <p class="intro">Has confirmado el pago de <strong>${esc(user.name)}</strong>. El cliente fue notificado.</p>
     <div class="box">
       <div class="box-title">Reserva Confirmada</div>
       ${bookingRows(booking)}
     </div>
     <div class="box">
       <div class="box-title">Cliente</div>
-      <div class="row"><span class="lbl">Nombre</span><span class="val">${user.name}</span></div>
-      <div class="row"><span class="lbl">Email</span><span class="val">${user.email}</span></div>
-      <div class="row"><span class="lbl">Teléfono</span><span class="val">${user.phone || '—'}</span></div>
+      <div class="row"><span class="lbl">Nombre</span><span class="val">${esc(user.name)}</span></div>
+      <div class="row"><span class="lbl">Email</span><span class="val">${esc(user.email)}</span></div>
+      <div class="row"><span class="lbl">Teléfono</span><span class="val">${esc(user.phone) || '—'}</span></div>
     </div>
   `);
 
@@ -171,11 +171,11 @@ async function sendPaymentRejected(booking, user, reason) {
     to: user.email,
     subject: `❌ Reserva rechazada — ${booking.booking_ref}`,
     html: wrap('Reserva Rechazada', `
-      <p class="greeting">Hola ${user.name},</p>
+      <p class="greeting">Hola ${esc(user.name)},</p>
       <p class="intro">Tu reserva <strong>${booking.booking_ref}</strong> fue rechazada y cancelada. El turno quedó libre.</p>
       <div class="box">
         <div class="box-title">Motivo</div>
-        <p style="font-size:14px;color:#0F2B4A;margin:0;">${reason || 'No pudimos confirmar tu reserva.'}</p>
+        <p style="font-size:14px;color:#0F2B4A;margin:0;">${esc(reason) || 'No pudimos confirmar tu reserva.'}</p>
       </div>
       <div class="box">
         <div class="box-title">Tu Reserva</div>
@@ -197,7 +197,7 @@ async function sendPasswordReset(user, link) {
     to: user.email,
     subject: '🔑 Crea o restablece tu contraseña — Vendo Bote RD',
     html: wrap('Contraseña', `
-      <p class="greeting">Hola ${user.name || ''},</p>
+      <p class="greeting">Hola ${esc(user.name)},</p>
       <p class="intro">Recibimos una solicitud para crear o restablecer la contraseña de tu cuenta. El enlace es válido por 1 hora.</p>
       <div class="cta"><a class="btn" href="${link}">Elegir mi contraseña</a></div>
       <p style="font-size:12px;color:#5B84A8;line-height:1.7;margin-top:24px;">Si no fuiste tú, ignora este correo: tu cuenta sigue segura.</p>

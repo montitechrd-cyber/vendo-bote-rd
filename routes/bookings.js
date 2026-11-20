@@ -1,7 +1,6 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../database');
 const { authRequired, adminRequired } = require('../middleware/auth');
 const email = require('../utils/email');
@@ -112,7 +111,7 @@ router.post('/', authRequired, uploadReceipt, async (req, res) => {
       total += pkg.price;
       metaParts.push(`Paquete ${pkg.hours}h: $${pkg.price}`);
 
-      const extraH = scheme.extra_hour_price ? Math.max(0, parseInt(extra_hours) || 0) : 0;
+      const extraH = scheme.extra_hour_price ? Math.min(12, Math.max(0, parseInt(extra_hours, 10) || 0)) : 0;
       if (extraH > 0) {
         const amt = extraH * scheme.extra_hour_price;
         total += amt;
@@ -331,8 +330,8 @@ router.post('/:id/payment', authRequired, uploadReceipt, async (req, res) => {
     // El cliente ya no digita estos datos: el titular se toma de su cuenta;
     // el banco de origen y el número de referencia se verifican directo en la foto.
     const requester = await db.queryOne('SELECT name FROM users WHERE id = $1', [req.user.id]);
-    const bank_name = req.body.bank_name || null;
-    const account_holder = req.body.account_holder || requester?.name || null;
+    const bank_name = req.body.bank_name ? String(req.body.bank_name).slice(0, 100) : null;
+    const account_holder = String(req.body.account_holder || requester?.name || '').slice(0, 100) || null;
     const reference_number = req.body.reference_number || null;
 
     const ext = path.extname(req.file.originalname).toLowerCase();

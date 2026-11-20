@@ -7,9 +7,12 @@ const SESSION_DAYS = 30;
 const isProd = process.env.NODE_ENV === 'production';
 
 let SECRET = process.env.SESSION_SECRET;
+if (!SECRET && isProd) {
+  console.error('[auth] FALTA SESSION_SECRET en producción: el servidor no arranca sin una clave de sesión fija.');
+  process.exit(1);
+}
 if (!SECRET) {
-  // Sin SESSION_SECRET las sesiones se invalidan en cada reinicio: sirve en desarrollo, pero en
-  // producción hay que definir la variable.
+  // En desarrollo se usa una clave temporal (las sesiones se pierden al reiniciar).
   SECRET = crypto.randomBytes(32).toString('hex');
   console.warn('[auth] SESSION_SECRET no definido: se usa una clave temporal (las sesiones se pierden al reiniciar).');
 }
@@ -17,8 +20,12 @@ if (!SECRET) {
 const b64 = (buf) => Buffer.from(buf).toString('base64url');
 const sign = (data) => crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
 
-function createToken(userId) {
-  const payload = b64(JSON.stringify({ uid: userId, exp: Date.now() + SESSION_DAYS * 864e5 }));
+// "Versión" de la sesión: cambia cuando cambia la contraseña, así que cambiarla o restablecerla
+// cierra las sesiones abiertas en otros dispositivos (cookies robadas incluidas).
+const sessionVersion = (passwordHash) => crypto.createHash('sha256').update(String(passwordHash || '') + SECRET).digest('base64url').slice(0, 10);
+
+function createToken(userId, passwordHash) {
+  const payload = b64(JSON.stringify({ uid: userId, v: sessionVersion(passwordHash), exp: Date.now() + SESSION_DAYS * 864e5 }));
   return payload + '.' + sign(payload);
 }
 
@@ -31,7 +38,7 @@ function readToken(token) {
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
     const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return data.exp > Date.now() ? data.uid : null;
+    return data.exp > Date.now() ? { uid: data.uid, v: data.v || null } : null;
   } catch { return null; }
 }
 
@@ -44,12 +51,16 @@ function parseCookies(header) {
   return out;
 }
 
-function userIdFromRequest(req) {
+function sessionFromRequest(req) {
   return readToken(parseCookies(req.headers.cookie)[COOKIE]);
 }
+function userIdFromRequest(req) {
+  const s = sessionFromRequest(req);
+  return s ? s.uid : null;
+}
 
-function setSession(res, userId) {
-  const parts = [`${COOKIE}=${createToken(userId)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${SESSION_DAYS * 86400}`];
+function setSession(res, userId, passwordHash) {
+  const parts = [`${COOKIE}=${createToken(userId, passwordHash)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${SESSION_DAYS * 86400}`];
   if (isProd) parts.push('Secure');
   res.append('Set-Cookie', parts.join('; '));
 }
@@ -81,4 +92,4 @@ function newResetToken() {
 }
 const hashResetToken = (token) => crypto.createHash('sha256').update(String(token)).digest('hex');
 
-module.exports = { userIdFromRequest, setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken };
+module.exports = { userIdFromRequest, sessionFromRequest, sessionVersion, setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken };

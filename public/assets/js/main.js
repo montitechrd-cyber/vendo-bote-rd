@@ -13,9 +13,8 @@
   // vía innerHTML. Usar SIEMPRE con cualquier campo que un cliente pudo escribir.
   function esc(str) {
     if (str === null || str === undefined) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
+    // Escapa también comillas: es seguro dentro de atributos (value="...", title="...", alt="...").
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
   window.VBR_esc = esc;
 
@@ -164,7 +163,7 @@
       }
       if (mobileLoginBtn) {
         if (role === 'admin') { mobileLoginBtn.innerHTML = '🛠️ Panel Admin'; mobileLoginBtn.href = '/admin.html'; }
-        else { mobileLoginBtn.innerHTML = '👤 ' + name; mobileLoginBtn.href = '/dashboard.html'; }
+        else { mobileLoginBtn.textContent = '👤 ' + name; mobileLoginBtn.href = '/dashboard.html'; }
       }
     });
   }
