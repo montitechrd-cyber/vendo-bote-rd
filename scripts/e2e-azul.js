@@ -75,6 +75,8 @@ async function mkUser(tag, verified = true, role = 'user') {
     `INSERT INTO users (name, email, password_hash, phone, email_verified, profile_completed, role) VALUES ($1,$2,$3,'8095550000',$4,true,$5) RETURNING *`,
     [`E2E ${tag}`, email, session.hashPassword('Prueba-e2e-1234'), verified, role]
   );
+  // Los administradores exigen 2FA activado (si no, solo pueden usar los endpoints de configuración del 2FA)
+  if (role === 'admin') { await q('UPDATE users SET totp_enabled = TRUE WHERE id = $1', [u.id]); u.totp_enabled = true; }
   return { ...u, cookie: `vbr_session=${makeToken(u)}` };
 }
 // createToken no se exporta: se firma igual que utils/session.js (HMAC-SHA256 con SESSION_SECRET)
@@ -287,7 +289,9 @@ init().then(() => {
   row = await bookingByRef(refExp);
   check('El job expira la reserva sola (sin ninguna petición) → cancelled/expired', ['cancelled', 'expired'], [row.status, row.payment_status], expired);
   check('Expiración → el cobro created pasa a expired_unconfirmed', 'expired_unconfirmed', row.cp_status);
-  check('Expiración → el servidor registró el aviso con la orden y la referencia', true, serverLog.includes(`${refExp}/${ordExp}`));
+  // El log se escribe después de los UPDATE de la expiración: se espera en vez de leerlo al instante.
+  const logged = await until(async () => serverLog.includes(`${refExp}/${ordExp}`), 5000);
+  check('Expiración → el servidor registró el aviso con la orden y la referencia', true, logged);
   const adminReview = await mkUser('adm', true, 'admin');
   r = await api('GET', '/api/payments/azul/admin/review', { cookie: adminReview.cookie });
   const listed = Array.isArray(r.json) ? r.json.find((x) => x.order_number === ordExp) : null;
