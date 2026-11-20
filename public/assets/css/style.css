@@ -2209,8 +2209,7 @@ ul { list-style: none; }
 @keyframes hxFoam{from{stroke-dashoffset:0}to{stroke-dashoffset:-400}}
 /* Stickers decorativos de yates: a los lados del contenido, sobre las olas */
 .hx-sticker{position:absolute;height:auto;max-width:none;display:none;filter:drop-shadow(0 14px 18px rgba(10,61,133,.22));opacity:0;animation:hxStIn 1s cubic-bezier(.2,.8,.2,1) .5s forwards,hxBob 7s ease-in-out 1.5s infinite}
-.hx-st-a{left:max(1.5vw,10px);top:36%;width:clamp(210px,21vw,340px);rotate:-5deg}
-.hx-st-b{right:max(1.5vw,10px);top:25%;width:clamp(250px,26vw,430px);rotate:4deg;animation-delay:.7s,2.4s}
+.hx-st-a{left:max(2vw,10px);top:34%;width:clamp(240px,24vw,400px);rotate:-5deg}
 @keyframes hxStIn{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
 @media (min-width:1080px){.hx-sticker{display:block}}
 @media (max-height:720px){.hx-sub{display:none}.hx-badge{display:none}}

@@ -52,7 +52,7 @@ def put(name,w,pos,ang):
     sh.alpha_composite(blk,(pos[0]*S,pos[1]*S+22*S)); sh=sh.filter(ImageFilter.GaussianBlur(14*S))
     return sh,s
 global_bg=bg
-for name,w,pos,ang in [('sticker-flybridge.webp',400,(700,64),3),('sticker-yate.webp',560,(610,330),-3)]:
+for name,w,pos,ang in [('sticker-flybridge.webp',560,(600,150),-2)]:
     sh,s=put(name,w,pos,ang); global_bg=Image.alpha_composite(global_bg,sh); global_bg.alpha_composite(s,(pos[0]*S,pos[1]*S))
 d=ImageDraw.Draw(global_bg)
 f=font('segoeuib.ttf',22); t='vendoboterd.com'
