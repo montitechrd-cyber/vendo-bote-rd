@@ -712,10 +712,13 @@
   }
 
   // ¿Está habilitado el pago con tarjeta (AZUL)? Si falla la consulta, solo transferencia.
-  let azulEnabled = false;
+  let azulEnabled = false, itbisRate = 0.18;
   function loadAzulConfig() {
     return fetch('/api/payments/azul/config', { credentials: 'same-origin' })
-      .then(r => r.json()).then(d => { azulEnabled = !!(d && d.enabled); })
+      .then(r => r.json()).then(d => {
+        azulEnabled = !!(d && d.enabled);
+        if (d && typeof d.itbisRate === 'number' && d.itbisRate >= 0 && d.itbisRate <= 1) itbisRate = d.itbisRate;
+      })
       .catch(() => { azulEnabled = false; });
   }
 
@@ -781,15 +784,18 @@
       <div id="pay-card" class="pay-card hidden">
         <div class="pay-card-total">
           <div class="pay-card-line"><span>Total a pagar</span><strong>$${Number(calc.total).toLocaleString()} USD</strong></div>
-          <div class="pay-card-line"><span>Equivalente en pesos</span><strong id="pay-card-dop">Calculando…</strong></div>
+          <div class="pay-card-line"><span>Subtotal</span><strong id="pay-card-sub">Calculando…</strong></div>
+          <div class="pay-card-line"><span id="pay-card-itbis-lbl">ITBIS</span><strong id="pay-card-itbis">Calculando…</strong></div>
+          <div class="pay-card-line"><span>Total a pagar con tarjeta</span><strong id="pay-card-dop">Calculando…</strong></div>
           <div class="pay-dop-note" id="pay-card-rate"></div>
+          <div class="pay-dop-note">El pago con tarjeta incluye ITBIS; la transferencia no.</div>
         </div>
         <div class="pay-card-secure">Pagarás en el sitio seguro de AZUL; no guardamos tu tarjeta.</div>
         <div class="pay-logos" aria-label="Tarjetas aceptadas y autenticación segura">
-          <img src="/assets/img/pagos/visa.svg" alt="Visa" height="28" />
-          <img src="/assets/img/pagos/mastercard.svg" alt="MasterCard" height="28" />
-          <img src="/assets/img/pagos/verified-by-visa.svg" alt="Verified by Visa" height="28" />
-          <img src="/assets/img/pagos/mastercard-idcheck.svg" alt="MasterCard ID Check" height="28" />
+          <img src="/assets/img/pagos/visa.png" alt="Visa" height="28" />
+          <img src="/assets/img/pagos/mastercard.png" alt="MasterCard" height="28" />
+          <img src="/assets/img/pagos/verified-by-visa.png" alt="Verified by Visa" height="28" />
+          <img src="/assets/img/pagos/mastercard-idcheck.png" alt="MasterCard ID Check" height="28" />
         </div>
         <label class="pay-terms" for="accept-terms">
           <input type="checkbox" id="accept-terms" />
@@ -842,10 +848,23 @@
       const terms = document.getElementById('accept-terms'), cardBtn = document.getElementById('pay-card-btn');
       const fmtRD = (n) => 'RD$ ' + new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
       const renderCardDop = () => {
-        if (!usdDop) { cardDop.textContent = 'Calculando…'; return; }
-        if (usdDop.error) { cardDop.textContent = 'No disponible'; cardRate.textContent = 'No pudimos cargar la tasa del día. Intenta de nuevo en unos minutos o paga por transferencia.'; return; }
-        cardDop.textContent = fmtRD(calc.total * usdDop.rate);
-        cardRate.textContent = 'Tasa del día: 1 USD = RD$ ' + usdDop.rate.toFixed(2) + '. El cobro final en pesos lo confirma AZUL en su pantalla de pago.';
+        const cardSub = document.getElementById('pay-card-sub'), cardItbis = document.getElementById('pay-card-itbis');
+        const itbisLbl = document.getElementById('pay-card-itbis-lbl');
+        const rateTxt = Number((itbisRate * 100).toFixed(2)).toLocaleString('es-DO');
+        itbisLbl.textContent = 'ITBIS (' + rateTxt + ' %)';
+        if (!usdDop) { cardSub.textContent = cardItbis.textContent = cardDop.textContent = 'Calculando…'; return; }
+        if (usdDop.error) {
+          cardSub.textContent = cardItbis.textContent = cardDop.textContent = 'No disponible';
+          cardRate.textContent = 'No pudimos cargar la tasa del día. Intenta de nuevo en unos minutos o paga por transferencia.';
+          return;
+        }
+        // Vista previa: el servidor es la autoridad y calcula el cobro real (mismo redondeo en centavos).
+        const baseCents = Math.round(calc.total * usdDop.rate * 100);
+        const itbisCents = Math.round(baseCents * itbisRate);
+        cardSub.textContent = fmtRD(baseCents / 100);
+        cardItbis.textContent = fmtRD(itbisCents / 100);
+        cardDop.textContent = fmtRD((baseCents + itbisCents) / 100);
+        cardRate.textContent = 'Subtotal RD$ ' + fmtRD(baseCents / 100).replace('RD$ ', '') + ' · ITBIS (' + rateTxt + ' %) ' + fmtRD(itbisCents / 100) + ' · Total a pagar con tarjeta ' + fmtRD((baseCents + itbisCents) / 100) + '. Tasa del día: 1 USD = RD$ ' + usdDop.rate.toFixed(2) + '. El cobro final lo confirma AZUL en su pantalla de pago.';
       };
       const baseRender = renderDop;
       fetch('/api/rates/usd-dop').then(r => r.json()).then(d => { usdDop = d && d.rate ? d : { error: true }; baseRender(); renderCardDop(); }).catch(() => { usdDop = { error: true }; baseRender(); renderCardDop(); });

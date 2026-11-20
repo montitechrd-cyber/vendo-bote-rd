@@ -141,7 +141,7 @@ Los campos que llegan por la URL de retorno se filtran con una lista blanca (`RE
 |---|---|
 | Qué cumple hoy | Existen las páginas públicas que exige AZUL: `public/seguridad-pagos.html` (política de transmisión de datos de tarjeta), `public/privacidad.html`, `public/terminos.html` y `public/reembolsos.html` (todas con marcadores `[COMPLETAR-DUEÑO]` por resolver). Este documento sirve de base técnica. |
 | Estado | Pendiente (depende del dueño) |
-| Del dueño | Completar y firmar el cuestionario **SAQ A** de AZUL. Escribir una política interna breve (quién accede, qué hacer ante un incidente, a quién avisar). Dirección física del negocio en `BUSINESS_ADDRESS` y en los textos legales. Política de reembolsos real. **Logos oficiales** de AZUL, Visa, Mastercard, Verified by Visa y Mastercard ID Check en la página principal, la política de seguridad y el checkout (el manual los exige). **Confirmar el ITBIS** con el contador o AZUL (por defecto `AZUL_ITBIS_RATE=0`, exento). |
+| Del dueño | Completar y firmar el cuestionario **SAQ A** de AZUL. Escribir una política interna breve (quién accede, qué hacer ante un incidente, a quién avisar). Dirección física del negocio en `BUSINESS_ADDRESS` y en los textos legales. Política de reembolsos real. **Logos oficiales** de AZUL, Visa, Mastercard, Verified by Visa y Mastercard ID Check en la página principal, la política de seguridad y el checkout (el manual los exige). **Confirmar el ITBIS** con el contador o AZUL (por defecto `AZUL_ITBIS_RATE=0.18`, 18 %, ya aplicado a los pagos con tarjeta; la transferencia no lleva ITBIS). |
 
 ---
 
@@ -167,7 +167,7 @@ Se configuran en Railway (nunca en el repositorio); `.env.example` solo document
 | `AZUL_MERCHANT_NAME` | Nombre del comercio que ve el cliente | Por defecto "VENDO BOTE RD" |
 | `AZUL_AUTH_KEY` | Clave secreta para firmar y verificar (HMAC-SHA512) | **Secreta.** Nunca en el repositorio, chat ni logs |
 | `AZUL_ENV` | `test` (pruebas.azul.com.do) o `prod` (pagos.azul.com.do, con respaldo contpagos.azul.com.do) | Empezar en `test` |
-| `AZUL_ITBIS_RATE` | Tasa de ITBIS como fracción (0.18 = 18 %) | Por defecto 0; confirmar con el contador |
+| `AZUL_ITBIS_RATE` | Tasa de ITBIS como fracción (0.18 = 18 %) | Por defecto 0.18 (18 %): se suma al monto del pago con tarjeta y va en el campo `ITBIS` de AZUL; la transferencia no lo lleva |
 | `AZUL_PAYMENT_URL` | Solo desarrollo: URL del simulador local | Se ignora en producción |
 | `BUSINESS_ADDRESS` | Dirección física del negocio (la exige AZUL) | Del dueño |
 | `SITE_URL` | URL pública https; base de las URL de retorno | En producción debe ser `https://`, si no el pago se rechaza |

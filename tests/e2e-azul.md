@@ -16,11 +16,11 @@ escenario usa su propio usuario. El job de expiración corre cada 2 s (`CARD_EXP
 | # | Qué se hace | Esperado |
 |---|---|---|
 | 1 | `/start` sin sesión; sin `accept_terms` (y con `"true"` como texto); correo sin verificar | 401; 400; 403 `email_unverified`; sin reservas creadas |
-| 2 | Simulador recibe monto alterado / campo faltante / AuthHash falso; petición legítima | 400 en los tres; página con 3 botones sin campos de tarjeta. Los campos firmados llevan `ShowTransactionResult=0` |
+| 2 | Simulador recibe monto alterado / campo faltante / AuthHash falso; petición legítima | 400 en los tres; página con 3 botones sin campos de tarjeta. Los campos firmados llevan `ShowTransactionResult=0`. Con tasa 58.5, `Amount` = base + ITBIS 18 % (p. ej. 500 USD → base 29250.00, ITBIS 5265.00, total 34515.00 → `Amount=3451500`, `ITBIS=526500`) y `card_payments` guarda el total en `amount_dop_cents` y el impuesto en `itbis_dop_cents` |
 | 3 | Aprobar → URL de retorno; repetir la URL | `aprobado`; `confirmed/verified/card`, pago `approved`, IsoCode 00; un solo log "pago aprobado"; la repetición no cambia nada |
 | 4 | Otro usuario sobre turno confirmado o con `card_pending` | 409 |
 | 5 | Declinar; cancelar | `declinado` (`cancelled/rejected`, pago `declined`, 05); `cancelado`; turno libre y otro usuario puede reservarlo |
-| 6 | Monto distinto con hash válido; monto cambiado tras firmar | `revision`; no confirma; pago `needs_review` / sin confirmar |
+| 6 | Monto distinto con hash válido; monto cambiado tras firmar | `revision`; no confirma; pago `needs_review` / sin confirmar (también una respuesta con el monto sin ITBIS) |
 | 7 | Hash corrupto, respuesta falsificada a mano, URL sin parámetros | `revision`; sigue `pending/card_pending` |
 | 8 | Adelantar `created_at` 16 min | El turno sale libre en availability al instante (sin depender del job); el job expira la reserva sola (`cancelled/expired`), el cobro pasa a `expired_unconfirmed` y el log registra el aviso (referencia/orden) |
 | 9 | `GET /api/payments/azul/admin/review` | admin 200 con el cobro `expired_unconfirmed` y sin datos sensibles; usuario normal 403; sin sesión 401 |

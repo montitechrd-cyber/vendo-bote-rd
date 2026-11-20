@@ -178,6 +178,11 @@ init().then(() => {
   check('/start devuelve action del simulador y campos firmados', [200, true], [r.status, r.json && r.json.action === env.AZUL_PAYMENT_URL && !!r.json.fields.AuthHash]);
   const f0 = r.json.fields, ref0 = await refOf(f0.OrderNumber);
   check('Los campos firmados incluyen ShowTransactionResult=0', '0', f0.ShowTransactionResult);
+  // ITBIS 18 %: Amount = base + ITBIS (tasa 58.5); card_payments guarda el total y el impuesto aparte
+  const cp0 = (await q('SELECT amount_dop_cents, itbis_dop_cents, usd_total FROM card_payments WHERE order_number=$1', [f0.OrderNumber]))[0];
+  const base0 = Math.round(Number(cp0.usd_total) * 58.5 * 100), itbis0 = Math.round(base0 * 0.18);
+  check('Amount = base + ITBIS 18 % y el campo ITBIS = el impuesto', [String(base0 + itbis0), String(itbis0)], [String(Number(f0.Amount)), String(Number(f0.ITBIS))]);
+  check('card_payments guarda el TOTAL con ITBIS y el impuesto', [base0 + itbis0, itbis0], [Number(cp0.amount_dop_cents), Number(cp0.itbis_dop_cents)]);
   let s = await simPay(r.json.action, { ...f0, Amount: String(Number(f0.Amount) - 100) });
   check('Simulador rechaza petición con monto alterado (hash no coincide) → 400', 400, s.status, s.status === 400 && /AuthHash/.test(s.html));
   const { MerchantId, ...sinCampo } = f0;

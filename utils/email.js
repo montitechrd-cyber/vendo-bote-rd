@@ -203,10 +203,22 @@ function fmtAzulDate(v) {
   return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : (v ? String(v) : '—');
 }
 
+// amount_dop_cents = total cobrado (base + ITBIS); itbis_dop_cents = el impuesto.
+function cardAmountRows(payment) {
+  const total = Number(payment.amount_dop_cents || 0), itbis = Number(payment.itbis_dop_cents || 0);
+  const base = total - itbis;
+  const pct = base > 0 && itbis > 0 ? Math.round((itbis / base) * 10000) / 100 : 0;
+  const pctTxt = pct.toLocaleString('es-DO', { maximumFractionDigits: 2 });
+  return `
+    <div class="row"><span class="lbl">Subtotal (base)</span><span class="val">${esc(fmtDop(base))}</span></div>
+    <div class="row"><span class="lbl">ITBIS (${esc(pctTxt)} %)</span><span class="val">${esc(fmtDop(itbis))}</span></div>
+    <div class="row total"><span class="lbl">Total cobrado</span><span class="val">${esc(fmtDop(total))}</span></div>`;
+}
+
 function cardPaymentRows(payment) {
   return `
-    <div class="row"><span class="lbl">Monto cobrado</span><span class="val">${esc(fmtDop(payment.amount_dop_cents))}</span></div>
-    <div class="row"><span class="lbl">Equivalente en USD</span><span class="val">${esc(fmtMoney(payment.usd_total))}</span></div>
+    ${cardAmountRows(payment)}
+    <div class="row"><span class="lbl">Equivalente en USD (referencia)</span><span class="val">${esc(fmtMoney(payment.usd_total))}</span></div>
     <div class="row"><span class="lbl">Código de autorización</span><span class="val">${esc(payment.authorization_code) || '—'}</span></div>
     <div class="row"><span class="lbl">RRN</span><span class="val">${esc(payment.rrn) || '—'}</span></div>
     <div class="row"><span class="lbl">Fecha del pago</span><span class="val">${esc(fmtAzulDate(payment.azul_datetime))}</span></div>

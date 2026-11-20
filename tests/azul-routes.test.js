@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const azul = require('../utils/azul');
-const { handleReturn, startPayment, generateOrderNumber, resolveActionUrl, cardEnabled } = require('../routes/azul');
+const { handleReturn, startPayment, generateOrderNumber, resolveActionUrl, cardEnabled, itbisRate, computeBreakdown } = require('../routes/azul');
 
 const KEY = 'clave-de-prueba';
 
@@ -285,15 +285,63 @@ test('start: crea reserva card_pending, monto en DOP y campos firmados', async (
   const d = startDeps();
   const r = await startPayment(d, user, body);
   assert.equal(r.status, 200);
-  assert.equal(r.body.fields.Amount, String(Math.round(200 * 58.5 * 100)));
-  assert.equal(r.body.fields.ITBIS, '000');
+  // 200 USD × 58.5 = RD$ 11,700.00 de base; ITBIS 18 % = 2,106.00; total = 13,806.00
+  assert.equal(r.body.fields.Amount, '1380600');
+  assert.equal(r.body.fields.ITBIS, '210600');
+  assert.deepEqual(r.body.breakdown, { baseDop: 11700, itbisDop: 2106, totalDop: 13806, itbisRate: 0.18, usdDopRate: 58.5, usdTotal: 200 });
   assert.match(r.body.fields.OrderNumber, /^\d{12}$/);
   assert.match(r.body.fields.ApprovedUrl, /^http:\/\/localhost:3000\/api\/payments\/azul\/approved\/\d{12}$/);
   assert.match(r.body.fields.CancelUrl, /\/cancelled\/\d{12}$/);
   assert.equal(r.body.fields.MerchantName, 'VENDO BOTE');
   assert.equal(r.body.action, azul.AZUL_URLS.test);
   assert.equal(d.db.inserted.cps.length, 1);
-  assert.ok(d.db.inserted.cps[0].includes(Math.round(200 * 58.5 * 100)));
+  // card_payments guarda el TOTAL con ITBIS y, aparte, el impuesto
+  assert.equal(d.db.inserted.cps[0][2], 1380600);
+  assert.equal(d.db.inserted.cps[0][3], 210600);
+});
+
+test('ITBIS: 58.5 y 500 USD → base 29250.00, ITBIS 5265.00, total 34515.00 (Amount 3451500, ITBIS 526500)', () => {
+  assert.deepEqual(computeBreakdown(500, 58.5, 0.18), { baseCents: 2925000, itbisCents: 526500, totalCents: 3451500 });
+  const f = azul.buildPaymentFields({
+    merchantId: '1', merchantName: 'X', orderNumber: '123456789012', amountDop: 3451500 / 100, itbisDop: 526500 / 100,
+    approvedUrl: 'https://x/a', declinedUrl: 'https://x/d', cancelUrl: 'https://x/c', authKey: KEY, bookingRef: 'VB-1',
+  });
+  assert.equal(f.Amount, '3451500');
+  assert.equal(f.ITBIS, '526500');
+});
+
+test('ITBIS: el redondeo es en centavos (base primero, luego el impuesto) y total = base + ITBIS', () => {
+  // 333.33 × 58.37 = 19456.4721 → base 1945647 c; × 0.18 = 350216.46 → 350216 c
+  assert.deepEqual(computeBreakdown(333.33, 58.37, 0.18), { baseCents: 1945647, itbisCents: 350216, totalCents: 2295863 });
+  // 0.5 de centavo hacia arriba: 10.01 × 1 = 1001 c; × 0.18 = 180.18 → 180
+  assert.deepEqual(computeBreakdown(10.01, 1, 0.18), { baseCents: 1001, itbisCents: 180, totalCents: 1181 });
+});
+
+test('ITBIS: tasa por defecto 0.18; AZUL_ITBIS_RATE la cambia; valores inválidos o fuera de 0..1 vuelven a 0.18', () => {
+  assert.equal(itbisRate({}), 0.18);
+  assert.equal(itbisRate({ AZUL_ITBIS_RATE: '' }), 0.18);
+  assert.equal(itbisRate({ AZUL_ITBIS_RATE: '0.16' }), 0.16);
+  assert.equal(itbisRate({ AZUL_ITBIS_RATE: '0' }), 0);
+  assert.equal(itbisRate({ AZUL_ITBIS_RATE: '1' }), 1);
+  for (const bad of ['abc', '-0.1', '1.5', '18', 'NaN']) assert.equal(itbisRate({ AZUL_ITBIS_RATE: bad }), 0.18, bad);
+});
+
+test('ITBIS: con AZUL_ITBIS_RATE=0.10 el cobro usa esa tasa', async () => {
+  const d = startDeps({ env: { AZUL_ITBIS_RATE: '0.10' } });
+  const r = await startPayment(d, user, body);
+  assert.equal(r.body.fields.Amount, '1287000'); // 11700 + 1170
+  assert.equal(r.body.fields.ITBIS, '117000');
+});
+
+test('ITBIS: respuesta con el monto SIN ITBIS (la base) → needs_review, no confirma', async () => {
+  const db = fakeDb({ cp: { id: 1, booking_id: 10, order_number: '123456789012', amount_dop_cents: '3451500', itbis_dop_cents: '526500', status: 'created', booking_ref: 'VB-1234' } });
+  const email = fakeEmail();
+  const r = await run(db, email, 'approved', resp({ Amount: '2925000' }));
+  assert.equal(r.estado, 'revision');
+  assert.equal(db.st.booking.payment_status, 'card_pending');
+  assert.equal(email.receipts, 0);
+  const ok = await run(fakeDb({ cp: { id: 1, booking_id: 10, order_number: '123456789012', amount_dop_cents: '3451500', itbis_dop_cents: '526500', status: 'created', booking_ref: 'VB-1234' } }), fakeEmail(), 'approved', resp({ Amount: '3451500' }));
+  assert.equal(ok.estado, 'aprobado');
 });
 
 test('start: exige accept_terms y correo verificado', async () => {

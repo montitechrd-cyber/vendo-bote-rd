@@ -48,9 +48,20 @@ async function resolveActionUrl(env, opts = {}) {
   return probeCache.ok ? azul.AZUL_URLS.prod : azul.AZUL_URLS.prodAlt;
 }
 
+const DEFAULT_ITBIS_RATE = 0.18;
+// Tasa de ITBIS (fracción 0..1). Por defecto 18 %; AZUL_ITBIS_RATE la cambia. Valor vacío o inválido → 18 %.
 function itbisRate(env) {
-  const r = Number(env.AZUL_ITBIS_RATE);
-  return Number.isFinite(r) && r >= 0 && r <= 1 ? r : 0;
+  const raw = env.AZUL_ITBIS_RATE;
+  if (raw === undefined || raw === null || String(raw).trim() === '') return DEFAULT_ITBIS_RATE;
+  const r = Number(raw);
+  return Number.isFinite(r) && r >= 0 && r <= 1 ? r : DEFAULT_ITBIS_RATE;
+}
+
+// Desglose en centavos de peso: base (precio publicado × tasa del día), ITBIS y total cobrado (base + ITBIS).
+function computeBreakdown(totalUsd, rate, itbisRateValue) {
+  const baseCents = Math.round(totalUsd * rate * 100);
+  const itbisCents = Math.round(baseCents * itbisRateValue);
+  return { baseCents, itbisCents, totalCents: baseCents + itbisCents };
 }
 
 // ¿Se puede cobrar con tarjeta en este entorno? Sin credenciales no; en producción solo con AZUL_ENV=prod
@@ -112,9 +123,9 @@ async function startPayment(deps, user, body) {
   } catch {
     return fail(503, RATE_ERROR);
   }
-  const amountCents = Math.round(quote.total * rate * 100);
-  if (!(amountCents > 0)) return fail(400, 'Monto inválido');
-  const itbisCents = Math.round(amountCents * itbisRate(env));
+  const itbisRateValue = itbisRate(env);
+  const { baseCents, itbisCents, totalCents: amountCents } = computeBreakdown(quote.total, rate, itbisRateValue);
+  if (!(baseCents > 0)) return fail(400, 'Monto inválido');
 
   const conflict = await db.queryOne(
     `SELECT id FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status = ANY($4) AND start_date = $2 AND schedule = $3`,
@@ -176,7 +187,13 @@ async function startPayment(deps, user, body) {
     bookingRef: ref,
   });
   const action = await resolveActionUrl(env);
-  return { status: 200, body: { action, fields } };
+  return {
+    status: 200,
+    body: {
+      action, fields,
+      breakdown: { baseDop: baseCents / 100, itbisDop: itbisCents / 100, totalDop: amountCents / 100, itbisRate: itbisRateValue, usdDopRate: rate, usdTotal: quote.total },
+    },
+  };
 }
 
 // ---------- retorno de AZUL ----------
@@ -330,7 +347,7 @@ async function handleReturn(deps, input) {
 // ---------- rutas HTTP ----------
 
 router.get('/config', (req, res) => {
-  res.json({ enabled: cardEnabled(process.env) });
+  res.json({ enabled: cardEnabled(process.env), itbisRate: itbisRate(process.env) });
 });
 
 // Cobros con tarjeta que no terminaron en 'approved', 'declined' ni 'cancelled': por revisar y conciliar con AZUL.
@@ -389,3 +406,5 @@ module.exports.startPayment = startPayment;
 module.exports.generateOrderNumber = generateOrderNumber;
 module.exports.resolveActionUrl = resolveActionUrl;
 module.exports.cardEnabled = cardEnabled;
+module.exports.itbisRate = itbisRate;
+module.exports.computeBreakdown = computeBreakdown;
