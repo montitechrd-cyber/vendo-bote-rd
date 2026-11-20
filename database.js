@@ -4,9 +4,18 @@ const { Pool } = require('pg');
 // DB_READONLY=1: conectarse a una base real solo para mirar (el servidor no migra ni siembra, y Postgres rechaza cualquier escritura).
 // DB_SSL=1: fuerza SSL (necesario con la URL pública de Railway desde el computador local).
 const READONLY = process.env.DB_READONLY === '1';
+// SSL a Postgres. Por defecto (producción o DB_SSL=1) cifra sin validar el certificado, como siempre.
+// DB_SSL_CA (PEM del certificado de la CA; si va en una sola línea, con "\n" literales) => valida contra esa CA.
+// DB_SSL_REJECT_UNAUTHORIZED=1 => valida contra las CA del sistema.
+function sslConfig() {
+  const ca = process.env.DB_SSL_CA && process.env.DB_SSL_CA.replace(/\\n/g, '\n');
+  if (ca) return { ca, rejectUnauthorized: true };
+  if (process.env.DB_SSL_REJECT_UNAUTHORIZED === '1') return { rejectUnauthorized: true };
+  return (process.env.NODE_ENV === 'production' || process.env.DB_SSL === '1') ? { rejectUnauthorized: false } : false;
+}
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: (process.env.NODE_ENV === 'production' || process.env.DB_SSL === '1') ? { rejectUnauthorized: false } : false,
+  ssl: sslConfig(),
   ...(READONLY ? { options: '-c default_transaction_read_only=on' } : {}),
 });
 
@@ -186,6 +195,30 @@ async function createTables() {
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verify_expires TIMESTAMPTZ`);
   // Sesiones cerradas con "Cerrar sesión" (la cookie robada deja de servir aunque no haya expirado)
   await pool.query(`CREATE TABLE IF NOT EXISTS revoked_sessions (token_hash TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL)`);
+  // 2FA TOTP de administradores: el secreto va CIFRADO (AES-256-GCM); totp_last_step impide reutilizar un código
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret_enc TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT FALSE`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_last_step INTEGER`).catch(() => {});
+  await pool.query(`CREATE TABLE IF NOT EXISTS totp_recovery_codes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    used_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`).catch(() => {});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_totp_recovery_user ON totp_recovery_codes (user_id, code_hash)`).catch(() => {});
+  // Registro de auditoría de acciones administrativas (sin contraseñas, secretos, códigos ni tarjetas)
+  await pool.query(`CREATE TABLE IF NOT EXISTS audit_log (
+    id SERIAL PRIMARY KEY,
+    at TIMESTAMPTZ DEFAULT NOW(),
+    user_id INTEGER,
+    action TEXT NOT NULL,
+    entity TEXT,
+    entity_id TEXT,
+    ip TEXT,
+    detail TEXT
+  )`).catch(() => {});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_at ON audit_log (at DESC)`).catch(() => {});
 }
 
 let SNAPSHOT_IMPORTED = false;
