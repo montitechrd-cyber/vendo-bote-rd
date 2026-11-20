@@ -9,7 +9,7 @@ const path = require('node:path');
 const { Pool } = require('pg');
 
 const root = path.join(__dirname, '..');
-const DB_URL = 'postgresql://postgres:postgres@localhost:54329/vendobote';
+const DB_URL = process.env.E2E_DB_URL || 'postgresql://postgres:postgres@localhost:54329/vendobote';
 const PORT = 3011;
 const BASE = `http://localhost:${PORT}`;
 const SIM_PORT = 4010;

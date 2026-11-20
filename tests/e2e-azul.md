@@ -39,3 +39,16 @@ y `amountforged`).
 ## Resultados
 
 Sin ejecutar todavía (ver "Estado"). Al correr el guion, pegar aquí la salida (`OK`/`FALLA` por comprobación).
+
+---
+
+## Resultado de la ejecución (2026-11-20)
+
+Comando: `E2E_DB_URL=postgresql://postgres:postgres@localhost:54341/vendobote node scripts/e2e-azul.js`
+(base Postgres local temporal y vacía; la de 54329 había quedado colgada por procesos huérfanos).
+
+**38/38 comprobaciones correctas, 0 fallos.** Cubre: sin sesión 401; sin `accept_terms` 400; correo sin verificar 403;
+aprobada → confirmada y turno ocupado; URL aprobada repetida sin efectos ni segundo correo; segundo usuario 409;
+declinada y cancelada liberan el turno; monto alterado con hash válido → `needs_review`; monto o hash alterado,
+respuesta falsificada a mano y URL sin parámetros → no confirman; retención de 15 min y expiración;
+aprobación tardía tras expirar → `needs_review`; los logs no contienen la AuthKey ni AuthHash completos.
