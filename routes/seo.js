@@ -111,13 +111,13 @@ function withHead(html, { title, description, canonical, image, type = 'website'
     image ? `<meta name="twitter:image" content="${esc(image)}" />` : '',
     ...ld.map(jsonLd),
   ].filter(Boolean).join('\n  ');
-  return html.replace('</head>', `  ${tags}\n</head>`);
+  return html.replace('</head>', () => `  ${tags}\n</head>`);
 }
 
 // Rellena el contenido de un elemento por id (ej. <h1 id="boat-name"></h1>) para que Google
 // lo lea en el HTML inicial, sin depender de que se ejecute el JavaScript de la página.
 function fill(html, tag, id, inner) {
-  return html.replace(new RegExp(`(<${tag} id="${id}"[^>]*>)(</${tag}>)`), `$1${inner}$2`);
+  return html.replace(new RegExp(`(<${tag} id="${id}"[^>]*>)(</${tag}>)`), (m, a, b) => a + inner + b);
 }
 
 const linkStyle = 'color:var(--navy);font-weight:600;';

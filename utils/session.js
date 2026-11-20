@@ -66,10 +66,12 @@ function hashPassword(password) {
 
 function verifyPassword(password, stored) {
   if (!stored || !stored.startsWith('scrypt$')) return false;
-  const [, saltHex, hashHex] = stored.split('$');
-  const expected = Buffer.from(hashHex, 'hex');
-  const actual = crypto.scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length);
-  return crypto.timingSafeEqual(actual, expected);
+  try {
+    const [, saltHex, hashHex] = stored.split('$');
+    const expected = Buffer.from(hashHex, 'hex');
+    const actual = crypto.scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length);
+    return crypto.timingSafeEqual(actual, expected);
+  } catch (e) { return false; }
 }
 
 // Token de restablecimiento: al usuario se le manda el valor, en la base solo el hash.

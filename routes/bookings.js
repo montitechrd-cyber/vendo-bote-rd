@@ -65,7 +65,7 @@ router.post('/', authRequired, uploadReceipt, async (req, res) => {
 
     const maxCapacity = scheme?.max_capacity || boatRow.capacity;
     if (birthday_combo === true && boatRow.location !== 'Boca Chica') return res.status(400).json({ error: 'El combo de cumpleaños solo aplica en Boca Chica' });
-    const guestsNum = parseInt(guests) || 1;
+    const guestsNum = Math.max(1, parseInt(guests, 10) || 1);
     if (guestsNum > maxCapacity) return res.status(400).json({ error: `Máximo ${maxCapacity} personas` });
 
     const start = new Date(start_date + 'T00:00:00');

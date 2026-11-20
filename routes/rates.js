@@ -31,6 +31,7 @@ router.get('/usd-dop', async (req, res) => {
   try {
     if (!cache || Date.now() - cache.at > TTL_MS) cache = { ...(await fetchRate()), at: Date.now() };
   } catch (e) {
+    if (cache) cache.at = Date.now() - TTL_MS + 60000; // reintenta en 1 min, no en cada visita
     if (!cache) return res.status(503).json({ error: 'No se pudo obtener la tasa del día' });
   }
   res.set('Cache-Control', 'public, max-age=600');

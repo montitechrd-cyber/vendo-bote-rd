@@ -84,15 +84,16 @@ router.get('/admin/all', adminRequired, async (req, res) => {
 router.post('/', adminRequired, async (req, res) => {
   try {
     const db = getDB();
-    const { name, slug, description, short_description, location, capacity, length_ft, year, brand, price_per_day, images, features, amenities, rules, available, featured } = req.body;
+    const { name, slug, description, short_description, location, capacity, length_ft, year, brand, price_per_day, images, features, amenities, rules, available, featured, for_sale, sale_price, sale_description, pricing_scheme } = req.body;
     if (!name || !slug || !location || !capacity || !price_per_day) return res.status(400).json({ error: 'Campos requeridos faltantes' });
 
     const result = await db.run(
-      `INSERT INTO boats (name,slug,description,short_description,location,capacity,length_ft,year,brand,price_per_day,images,features,amenities,rules,available,featured)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
+      `INSERT INTO boats (name,slug,description,short_description,location,capacity,length_ft,year,brand,price_per_day,images,features,amenities,rules,available,featured,for_sale,sale_price,sale_description,pricing_scheme)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING id`,
       [name, slug, description, short_description, location, capacity, length_ft || null, year || null, brand,
        price_per_day, JSON.stringify(images||[]), JSON.stringify(features||[]), JSON.stringify(amenities||[]),
-       JSON.stringify(rules||[]), available ?? true, featured ?? false]
+       JSON.stringify(rules||[]), available ?? true, featured ?? false, !!for_sale, sale_price || null, sale_description || null,
+       pricing_scheme ? (typeof pricing_scheme === 'string' ? pricing_scheme : JSON.stringify(pricing_scheme)) : null]
     );
     res.json({ id: result.lastInsertRowid });
   } catch (e) {
@@ -104,13 +105,17 @@ router.post('/', adminRequired, async (req, res) => {
 router.put('/:id', adminRequired, async (req, res) => {
   try {
     const db = getDB();
-    const { name, description, short_description, location, capacity, length_ft, year, brand, price_per_day, images, features, amenities, rules, available, featured } = req.body;
+    const { name, description, short_description, location, capacity, length_ft, year, brand, price_per_day, images, features, amenities, rules, available, featured, for_sale, sale_price, sale_description, pricing_scheme } = req.body;
+    if (!name || !location || !capacity || !price_per_day) return res.status(400).json({ error: 'Campos requeridos faltantes' });
     await db.run(
       `UPDATE boats SET name=$1,description=$2,short_description=$3,location=$4,capacity=$5,length_ft=$6,year=$7,
-       brand=$8,price_per_day=$9,images=$10,features=$11,amenities=$12,rules=$13,available=$14,featured=$15 WHERE id=$16`,
+       brand=$8,price_per_day=$9,images=$10,features=$11,amenities=$12,rules=$13,available=$14,featured=$15,
+       for_sale=COALESCE($17,for_sale),sale_price=COALESCE($18,sale_price),sale_description=COALESCE($19,sale_description),pricing_scheme=COALESCE($20,pricing_scheme) WHERE id=$16`,
       [name, description, short_description, location, capacity, length_ft||null, year||null, brand, price_per_day,
        JSON.stringify(images||[]), JSON.stringify(features||[]), JSON.stringify(amenities||[]),
-       JSON.stringify(rules||[]), available ?? true, featured ?? false, req.params.id]
+       JSON.stringify(rules||[]), available ?? true, featured ?? false, req.params.id,
+       for_sale === undefined ? null : !!for_sale, sale_price || null, sale_description || null,
+       pricing_scheme ? (typeof pricing_scheme === 'string' ? pricing_scheme : JSON.stringify(pricing_scheme)) : null]
     );
     res.json({ success: true });
   } catch (e) {
