@@ -42,7 +42,8 @@ const CSP = [
   "frame-src https://accounts.google.com",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  // El formulario de pago con tarjeta se envía a la Página de Pago de AZUL (el servidor no ve datos de tarjeta)
+  `form-action 'self' https://pagos.azul.com.do https://contpagos.azul.com.do${process.env.AZUL_ENV !== 'prod' ? ' https://pruebas.azul.com.do' : ''}`,
   "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:* http://127.0.0.1:*",
 ].join('; ');
 app.use((req, res, next) => {
@@ -118,6 +119,24 @@ const writeLimiter = rateLimit({
 });
 app.use('/api/bookings', (req, res, next) => (req.method === 'POST' ? writeLimiter(req, res, next) : next()));
 
+// Pago con tarjeta (AZUL): iniciar pago como writeLimiter; rutas de retorno 30 por 15 min por IP
+const azulStartLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.WRITE_LIMIT) || 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos, espera unos minutos antes de volver a intentar' },
+});
+app.use('/api/payments/azul/start', (req, res, next) => (req.method === 'POST' ? azulStartLimiter(req, res, next) : next()));
+const azulReturnLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes, intenta de nuevo en unos minutos' },
+});
+app.use(['/api/payments/azul/approved', '/api/payments/azul/declined', '/api/payments/azul/cancelled'], azulReturnLimiter);
+
 // Login/registro/recuperación: límite estricto contra adivinación de contraseñas y spam de correos
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -161,6 +180,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/boats', require('./routes/boats'));
 app.use('/api/rates', require('./routes/rates'));
 app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/payments/azul', require('./routes/azul'));
 
 // Rutas desconocidas: 404 real (antes devolvía el home con 200, lo que Google
 // interpreta como páginas duplicadas). Se muestra el home pero sin indexar.

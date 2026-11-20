@@ -189,6 +189,74 @@ async function sendPaymentRejected(booking, user, reason) {
   });
 }
 
+/* ── Pago con tarjeta (AZUL): recibo al cliente y aviso al admin ── */
+const BUSINESS_NAME = 'VENDO BOTE RD';
+const BUSINESS_ADDRESS = process.env.BUSINESS_ADDRESS || 'República Dominicana';
+
+function fmtDop(cents) {
+  return 'RD$ ' + (Number(cents || 0) / 100).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// AZUL entrega la fecha como AAAAMMDDHHMMSS
+function fmtAzulDate(v) {
+  const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(String(v || ''));
+  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : (v ? String(v) : '—');
+}
+
+function cardPaymentRows(payment) {
+  return `
+    <div class="row"><span class="lbl">Monto cobrado</span><span class="val">${esc(fmtDop(payment.amount_dop_cents))}</span></div>
+    <div class="row"><span class="lbl">Equivalente en USD</span><span class="val">${esc(fmtMoney(payment.usd_total))}</span></div>
+    <div class="row"><span class="lbl">Código de autorización</span><span class="val">${esc(payment.authorization_code) || '—'}</span></div>
+    <div class="row"><span class="lbl">RRN</span><span class="val">${esc(payment.rrn) || '—'}</span></div>
+    <div class="row"><span class="lbl">Fecha del pago</span><span class="val">${esc(fmtAzulDate(payment.azul_datetime))}</span></div>
+    <div class="row"><span class="lbl">Orden</span><span class="val">${esc(payment.order_number)}</span></div>`;
+}
+
+async function sendCardReceipt(booking, user, payment) {
+  if (!process.env.EMAIL_USER) return;
+  const negocio = `
+    <div class="row"><span class="lbl">Negocio</span><span class="val">${esc(BUSINESS_NAME)}</span></div>
+    <div class="row"><span class="lbl">Dirección</span><span class="val">${esc(BUSINESS_ADDRESS)}</span></div>`;
+  const userHtml = wrap('Recibo de pago con tarjeta', `
+    <p class="greeting">¡Pago recibido, ${esc(user.name)}!</p>
+    <p class="intro">Tu pago con tarjeta fue aprobado y tu reserva está <strong>confirmada</strong>. Este es tu recibo.</p>
+    <div class="box"><div class="box-title">Comercio</div>${negocio}</div>
+    <div class="box"><div class="box-title">Reserva</div>${bookingRows(booking)}</div>
+    <div class="box"><div class="box-title">Pago</div>${cardPaymentRows(payment)}</div>
+    <p style="font-size:12px;color:#5B84A8;line-height:1.7;">Por seguridad no guardamos ni mostramos los datos de tu tarjeta. Conserva este correo como comprobante.</p>
+    <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html">Ver mi reserva</a></div>
+  `);
+  const adminHtml = wrap('Pago con tarjeta aprobado', `
+    <p class="greeting">Reserva pagada con tarjeta</p>
+    <p class="intro">El pago de <strong>${esc(user.name)}</strong> fue aprobado por AZUL y la reserva quedó confirmada.</p>
+    <div class="box"><div class="box-title">Reserva</div>${bookingRows(booking)}</div>
+    <div class="box"><div class="box-title">Cliente</div>${clientRows(user)}</div>
+    <div class="box"><div class="box-title">Pago</div>${cardPaymentRows(payment)}</div>
+  `);
+  await Promise.all([
+    transporter.sendMail({ from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`, to: user.email, subject: `🧾 Recibo de pago · reserva ${booking.booking_ref} — Vendo Bote RD`, html: userHtml }),
+    transporter.sendMail({ from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`, to: ADMIN_RECIPIENTS, subject: `💳 Pago con tarjeta aprobado: ${booking.booking_ref}`, html: adminHtml }),
+  ]);
+}
+
+async function sendCardNeedsReview(booking, user, payment) {
+  if (!process.env.EMAIL_USER) return;
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: ADMIN_RECIPIENTS,
+    subject: `🚨 URGENTE: pago con tarjeta por revisar · ${booking.booking_ref}`,
+    html: wrap('Pago con tarjeta por revisar', `
+      <p class="greeting">Acción necesaria</p>
+      <p class="intro">AZUL aprobó un pago con tarjeta pero <strong>no se pudo confirmar la reserva automáticamente</strong> (el turno venció, lo tomó otra persona o el monto no coincide). Revisa en el portal de AZUL y contacta al cliente: confirma el turno a mano o devuelve el dinero.</p>
+      <div class="box"><div class="box-title">Reserva</div>${bookingRows(booking)}</div>
+      <div class="box"><div class="box-title">Cliente</div>${clientRows(user)}</div>
+      <div class="box"><div class="box-title">Pago</div>${cardPaymentRows(payment)}</div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Abrir el panel</a></div>
+    `),
+  });
+}
+
 /* ── Crear / restablecer contraseña ── */
 async function sendPasswordReset(user, link) {
   if (!process.env.EMAIL_USER) throw new Error('EMAIL_USER no configurado');
@@ -220,4 +288,4 @@ async function sendEmailVerification(user, link) {
   });
 }
 
-module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendPasswordReset, sendEmailVerification };
+module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendPasswordReset, sendEmailVerification };
