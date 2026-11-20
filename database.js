@@ -146,6 +146,27 @@ async function createTables() {
   await pool.query(`CREATE TABLE IF NOT EXISTS revoked_sessions (token_hash TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL)`);
 }
 
+let SNAPSHOT_IMPORTED = false;
+async function importSnapshot() {
+  const file = require('path').join(__dirname, 'scripts', 'boats-snapshot.json');
+  let data;
+  try { data = JSON.parse(require('fs').readFileSync(file, 'utf8')); } catch { return false; }
+  if (!data.boats || !data.boats.length) return false;
+  const j = (v) => JSON.stringify(v == null ? [] : v);
+  for (const b of data.boats) {
+    await pool.query(
+      `INSERT INTO boats (name,slug,description,short_description,location,capacity,length_ft,year,brand,price_per_day,images,features,amenities,rules,available,featured,for_sale,sale_price,sale_description,pricing_scheme)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) ON CONFLICT (slug) DO NOTHING`,
+      [b.name, b.slug, b.description, b.short_description, b.location, b.capacity, b.length_ft, b.year, b.brand, b.price_per_day,
+       j(b.images), j(b.features), j(b.amenities), j(b.rules), !!b.available, !!b.featured, !!b.for_sale, b.sale_price, b.sale_description,
+       b.pricing_scheme ? JSON.stringify(b.pricing_scheme) : null]
+    );
+  }
+  SNAPSHOT_IMPORTED = true; // el catálogo ya viene con todos los ajustes: las migraciones de datos no se vuelven a aplicar encima
+  console.log('  Catálogo local cargado:', data.boats.length, 'embarcaciones (copia de producción del', data.generado + ')');
+  return true;
+}
+
 async function seedData() {
   // La autenticación es propia (ver middleware/auth.js y routes/auth.js). El administrador
   // es el usuario cuyo correo coincide con ADMIN_EMAIL: se marca aquí en cada arranque y
@@ -155,6 +176,10 @@ async function seedData() {
 
   const count = await db.queryOne('SELECT COUNT(*) as c FROM boats');
   if (parseInt(count.c) > 0) return;
+
+  // Desarrollo local: base vacía -> se carga el catálogo real (copia del catálogo público de vendoboterd.com,
+  // scripts/boats-snapshot.json) para que el local se vea y funcione igual que producción.
+  if (process.env.NODE_ENV !== 'production' && await importSnapshot()) return;
 
   await db.run(
     `INSERT INTO boats (name,slug,description,short_description,location,capacity,length_ft,year,brand,price_per_day,images,features,amenities,rules,available,featured)
@@ -196,6 +221,7 @@ async function runDataMigrationOnce(name, fn) {
   await pool.query(`CREATE TABLE IF NOT EXISTS migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT NOW())`);
   const already = await pool.query('SELECT 1 FROM migrations WHERE name = $1', [name]);
   if (already.rowCount) return;
+  if (SNAPSHOT_IMPORTED) { await pool.query('INSERT INTO migrations (name) VALUES ($1)', [name]); return; }
   await fn();
   await pool.query('INSERT INTO migrations (name) VALUES ($1)', [name]);
   console.log('Migración de datos aplicada:', name);

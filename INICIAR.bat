@@ -24,6 +24,6 @@ call npm install
 echo.
 echo  Iniciando servidor en http://localhost:3001
 echo.
-start http://localhost:3001
-node server.js
+start "" cmd /c "timeout /t 15 >nul & start http://localhost:3001"
+call npm run dev
 pause

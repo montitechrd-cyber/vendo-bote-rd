@@ -1,0 +1,1109 @@
+{
+ "generado": "2026-11-20",
+ "fuente": "catalogo publico de vendoboterd.com",
+ "boats": [
+  {
+   "name": "Coral de Hielo",
+   "slug": "coral-de-hielo",
+   "description": "Renta de Coral de Hielo en Boca Chica, con capacidad para 30 personas. Yate con salón interior, camarotes y baños. El servicio normal incluye 1 hora de jetski, agua, hielo, gasolina y tripulación. Con el combo completo se agrega decoración, bizcocho y BBQ en vivo; el precio del combo varía según el día de la semana. También puedes rentarlo con BBQ en vivo y 1 hora de jetski por $1,000 USD: escríbenos por WhatsApp para coordinarlo.",
+   "short_description": "Yate Coral de Hielo en Boca Chica para hasta 30 personas.",
+   "location": "Boca Chica",
+   "capacity": 30,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 800,
+   "images": [
+    "/assets/img/RENTAS/CORAL DE HIELO/portada.jpg",
+    "/assets/img/RENTAS/CORAL DE HIELO/portada.mp4",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-1.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-2.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-3.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-4.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-5.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-6.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-7.jpeg",
+    "/assets/img/RENTAS/CORAL DE HIELO/foto-8.jpeg"
+   ],
+   "features": [],
+   "amenities": [
+    "1 hora de jetski",
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 30 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 800,
+     "weekday_birthday": 1000,
+     "weekend": 800,
+     "weekend_birthday": 1200
+    },
+    "birthday_combo": [
+     "Decoración",
+     "Bizcocho",
+     "BBQ en vivo"
+    ],
+    "included": [
+     "1 hora de jetski",
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "Andrea del Mar",
+   "slug": "andrea-del-mar",
+   "description": "Renta de Andrea del Mar en Boca Chica, con capacidad para 30 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco. Los domingos el combo no incluye el jetski.",
+   "short_description": "Yate Andrea del Mar en Boca Chica para hasta 30 personas.",
+   "location": "Boca Chica",
+   "capacity": 30,
+   "length_ft": null,
+   "year": null,
+   "brand": "",
+   "price_per_day": 900,
+   "images": [
+    "/assets/img/RENTAS/yate 3/portada.jpg",
+    "/assets/img/RENTAS/yate 3/foto-1.jpeg",
+    "/assets/img/RENTAS/yate 3/foto-2.jpeg",
+    "/assets/img/RENTAS/yate 3/foto-4.jpeg"
+   ],
+   "features": [],
+   "amenities": [
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 30 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 900,
+     "weekday_birthday": 1500,
+     "weekend": 1000,
+     "weekend_birthday": 1500
+    },
+    "birthday_combo": [
+     "1 hora de jetski",
+     "Decoración",
+     "Bizcocho",
+     "Parrillada",
+     "Cocinero",
+     "Refresco"
+    ],
+    "included": [
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "Perla Negra",
+   "slug": "perla-negra",
+   "description": "Renta de Perla Negra en Boca Chica, con capacidad para 12 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco. Los domingos el combo no incluye el jetski.",
+   "short_description": "Yate Perla Negra en Boca Chica para hasta 12 personas.",
+   "location": "Boca Chica",
+   "capacity": 12,
+   "length_ft": null,
+   "year": null,
+   "brand": "",
+   "price_per_day": 700,
+   "images": [
+    "/assets/img/RENTAS/perla negra/portada perla negra.jpeg",
+    "/assets/img/RENTAS/perla negra/foto-3.jpeg",
+    "/assets/img/RENTAS/perla negra/foto-1.jpeg",
+    "/assets/img/RENTAS/perla negra/foto-2.jpeg",
+    "/assets/img/RENTAS/perla negra/foto-5.jpeg",
+    "/assets/img/RENTAS/perla negra/foto-6.jpeg"
+   ],
+   "features": [],
+   "amenities": [
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 12 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 700,
+     "weekday_birthday": 1000,
+     "weekend": 750,
+     "weekend_birthday": 1100
+    },
+    "birthday_combo": [
+     "1 hora de jetski",
+     "Decoración",
+     "Bizcocho",
+     "Parrillada",
+     "Cocinero",
+     "Refresco"
+    ],
+    "included": [
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "Refugio Marino",
+   "slug": "refugio-marino",
+   "description": "Renta de Refugio Marino en Boca Chica, con capacidad para 25 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco. Los domingos el combo no incluye el jetski.",
+   "short_description": "Bote Refugio Marino en Boca Chica para hasta 25 personas.",
+   "location": "Boca Chica",
+   "capacity": 25,
+   "length_ft": null,
+   "year": null,
+   "brand": "",
+   "price_per_day": 700,
+   "images": [
+    "/assets/img/RENTAS/REFUGIO MARINO/portada.mp4",
+    "/assets/img/RENTAS/REFUGIO MARINO/REFUGIO MARINO (2).mp4"
+   ],
+   "features": [],
+   "amenities": [
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 25 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 700,
+     "weekday_birthday": 1000,
+     "weekend": 800,
+     "weekend_birthday": 1200
+    },
+    "birthday_combo": [
+     "1 hora de jetski",
+     "Decoración",
+     "Bizcocho",
+     "Parrillada",
+     "Cocinero",
+     "Refresco"
+    ],
+    "included": [
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "Lupita",
+   "slug": "lupita",
+   "description": "Renta de Lupita en Boca Chica, con capacidad para 15 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco. Los domingos el combo no incluye el jetski.",
+   "short_description": "Lancha Lupita en Boca Chica para hasta 15 personas.",
+   "location": "Boca Chica",
+   "capacity": 15,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 500,
+   "images": [
+    "/assets/img/RENTAS/LUPITA/portada.mp4",
+    "/assets/img/RENTAS/LUPITA/LUPITA (1).mp4"
+   ],
+   "features": [],
+   "amenities": [
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 15 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 500,
+     "weekday_birthday": 650,
+     "weekend": 550,
+     "weekend_birthday": 750
+    },
+    "birthday_combo": [
+     "1 hora de jetski",
+     "Decoración",
+     "Bizcocho",
+     "Parrillada",
+     "Cocinero",
+     "Refresco"
+    ],
+    "included": [
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "Elite",
+   "slug": "elite",
+   "description": "Renta de Elite en Boca Chica, con capacidad para 20 personas. El servicio normal incluye agua, hielo, gasolina y tripulación. El precio varía según el día de la semana. Con el combo de cumpleaños se agrega 1 hora de jetski, decoración, bizcocho, parrillada, cocinero y refresco. Los domingos el combo no incluye el jetski.",
+   "short_description": "Yate Elite en Boca Chica para hasta 20 personas.",
+   "location": "Boca Chica",
+   "capacity": 20,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 800,
+   "images": [
+    "/assets/img/RENTAS/ELITE/portada.mp4"
+   ],
+   "features": [],
+   "amenities": [
+    "Agua",
+    "Hielo",
+    "Gasolina",
+    "Tripulación"
+   ],
+   "rules": [
+    "Máximo 20 personas"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "day_based",
+    "prices": {
+     "weekday": 800,
+     "weekday_birthday": 1000,
+     "weekend": 900,
+     "weekend_birthday": 1200
+    },
+    "birthday_combo": [
+     "1 hora de jetski",
+     "Decoración",
+     "Bizcocho",
+     "Parrillada",
+     "Cocinero",
+     "Refresco"
+    ],
+    "included": [
+     "Agua",
+     "Hielo",
+     "Gasolina",
+     "Tripulación"
+    ]
+   }
+  },
+  {
+   "name": "La Santa",
+   "slug": "la-santa",
+   "description": "La Santa es un yate privado con salida desde La Romana, ideal para pasar un día en el mar con tu grupo. Tiene capacidad para hasta 12 personas y es perfecto para celebraciones, paseos en familia o encuentros con amigos. Precio desde $1,600 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.",
+   "short_description": "Yate privado La Santa para hasta 12 personas, con salida desde La Romana.",
+   "location": "La Romana",
+   "capacity": 12,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 1600,
+   "images": [
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/portada.jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.08 PM.jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.08 PM (1).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.08 PM (2).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.08 PM (3).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.09 PM.jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.09 PM (1).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.09 PM (2).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.09 PM (3).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.09 PM (4).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.10 PM.jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.10 PM (1).jpeg",
+    "/assets/img/RENTAS/LA SANTA - 1600US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.51.11 PM.jpeg"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [
+    "Precio: $1,600 usd",
+    "Capacidad estimada: 12 personas (pendiente de confirmar)"
+   ],
+   "available": true,
+   "featured": true,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 7,
+      "price": 1600
+     }
+    ],
+    "time_slots": [
+     "10:30 AM – 5:30 PM"
+    ]
+   }
+  },
+  {
+   "name": "Yate 2",
+   "slug": "yate-2-la-romana",
+   "description": "Yate privado con salida desde La Romana, pensado para disfrutar el mar con comodidad y privacidad. Tiene capacidad para hasta 15 personas, ideal para celebraciones y paseos en grupo. Precio desde $2,500 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.",
+   "short_description": "Yate privado para hasta 15 personas, con salida desde La Romana.",
+   "location": "La Romana",
+   "capacity": 15,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 2500,
+   "images": [
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/portada.jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.05 PM (1).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM.jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM (3).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM (5).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM (6).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM (7).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.06 PM (8).jpeg",
+    "/assets/img/RENTAS/YATE 2 - 2500 US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.07 PM.jpeg"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [
+    "Precio: $2,500 usd",
+    "Capacidad estimada: 15 personas (pendiente de confirmar)"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 7,
+      "price": 2500
+     }
+    ],
+    "time_slots": [
+     "10:30 AM – 5:30 PM"
+    ]
+   }
+  },
+  {
+   "name": "Azimut Nona",
+   "slug": "azimut-nona",
+   "description": "El Azimut Nona es un yate de lujo con salida desde La Romana, para quienes buscan una experiencia exclusiva en el mar. Tiene capacidad para hasta 15 personas y es ideal para celebraciones especiales y paseos privados. Precio: $5,000 USD por día. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.",
+   "short_description": "Yate de lujo Azimut Nona para hasta 15 personas, con salida desde La Romana.",
+   "location": "La Romana",
+   "capacity": 15,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 5000,
+   "images": [
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/portada.jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.07 PM (1).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.07 PM (3).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.07 PM (4).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM.jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM (1).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM (2).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM (3).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM (4).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.08 PM (5).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.09 PM.jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.09 PM (1).jpeg",
+    "/assets/img/RENTAS/YATE 1 - 2500US - LA ROMANA/WhatsApp Image 2026-06-30 at 3.52.09 PM (2).jpeg"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [
+    "Precio: $5,000 usd por día",
+    "Capacidad estimada: 15 personas (pendiente de confirmar)"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 7,
+      "price": 5000
+     }
+    ],
+    "time_slots": [
+     "10:30 AM – 5:30 PM"
+    ]
+   }
+  },
+  {
+   "name": "Nicole",
+   "slug": "nicole",
+   "description": "Nicole es una lancha privada con salida desde La Romana, perfecta para un paseo cómodo y relajado con tu familia o amigos. Tiene capacidad para hasta 12 personas. Precio: $1,800 USD. Escríbenos para coordinar tu fecha y conocer los detalles de tu salida.",
+   "short_description": "Lancha privada Nicole para hasta 12 personas, con salida desde La Romana.",
+   "location": "La Romana",
+   "capacity": 12,
+   "length_ft": null,
+   "year": null,
+   "brand": null,
+   "price_per_day": 1800,
+   "images": [
+    "/assets/img/RENTAS/NICOLE - 1800US/portada.jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.30 PM (1).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.30 PM (2).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.30 PM (3).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.31 PM.jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.31 PM (1).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.32 PM.jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.32 PM (1).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.32 PM (2).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.33 PM.jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.33 PM (1).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.33 PM (2).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.33 PM (3).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.34 PM.jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.34 PM (1).jpeg",
+    "/assets/img/RENTAS/NICOLE - 1800US/WhatsApp Image 2026-06-30 at 3.51.34 PM (2).jpeg"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [
+    "Precio: $1,800 usd",
+    "Capacidad estimada: 12 personas (pendiente de confirmar)"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 7,
+      "price": 1800
+     }
+    ],
+    "time_slots": [
+     "10:30 AM – 5:30 PM"
+    ]
+   }
+  },
+  {
+   "name": "Sea Ray 45",
+   "slug": "sea-ray-45",
+   "description": "Lancha Sea Ray 45 con capacidad para 12 personas, con salida desde Punta Cana. Incluye combustible, capitán y marino, equipos de esnórquel, transporte privado de ida y vuelta desde tu hotel o villa, nachos con salsa, hielo, aguas, refrescos y 2 litros de cerveza. Visita las piscinas naturales de Punta Cana y la zona de esnórquel. El cliente puede traer su propia bebida a bordo. Precio: $1,250 usd por 3 horas o $1,450 usd por 4 horas.",
+   "short_description": "Lancha premium Sea Ray 45 para 12 personas con snorkel y open bar en Punta Cana.",
+   "location": "Punta Cana",
+   "capacity": 12,
+   "length_ft": 45,
+   "year": null,
+   "brand": "Sea Ray",
+   "price_per_day": 1250,
+   "images": [
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 PORTADA.jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (1).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (2).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (3).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (4).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (5).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (6).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (7).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (8).jpeg",
+    "/assets/img/RENTAS/SEARAY 45/SEA RAY 45 (10).jpeg"
+   ],
+   "features": [
+    "Yate y gasolina incluidos",
+    "Capitán y marino",
+    "Equipos de esnórquel",
+    "Transporte privado de ida y vuelta desde tu hotel o villa"
+   ],
+   "amenities": [
+    "Nachos con salsa",
+    "Hielo, aguas, refrescos y 2 litros de cerveza"
+   ],
+   "rules": [
+    "Máximo 12 personas",
+    "3 horas $1,250 usd / 4 horas $1,450 usd",
+    "El cliente puede traer su propia bebida a bordo"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 3,
+      "price": 1250
+     },
+     {
+      "hours": 4,
+      "price": 1450
+     }
+    ]
+   }
+  },
+  {
+   "name": "Rinker 26",
+   "slug": "rinker-26",
+   "description": "Lancha Rinker 26 con capacidad para 6 personas, con salida desde Punta Cana. Incluye combustible, capitán, transporte privado de ida y vuelta desde tu hotel o villa, equipo de snorkel, nachos con salsa, hielo, 12 aguas, 12 refrescos y 12 cervezas. Visita el delfinario para ver a los delfines desde el exterior, además de las piscinas naturales y la zona de snorkel. El cliente puede traer su propia bebida a bordo. Precio: $800 usd por 3 horas o $900 usd por 4 horas.",
+   "short_description": "Lancha íntima Rinker 26 para 6 personas, ideal para grupos pequeños en Punta Cana.",
+   "location": "Punta Cana",
+   "capacity": 6,
+   "length_ft": 26,
+   "year": null,
+   "brand": "Rinker",
+   "price_per_day": 800,
+   "images": [
+    "/assets/img/RENTAS/RINKER 26/RINKER 26 PORTADA.jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.30 PM.jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.31 PM.jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.31 PM (1).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.31 PM (2).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.31 PM (3).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.32 PM (1).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.32 PM (2).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.32 PM (3).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.32 PM (4).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.33 PM.jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.33 PM (1).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.33 PM (2).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.33 PM (3).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.34 PM (1).jpeg",
+    "/assets/img/RENTAS/RINKER 26/WhatsApp Image 2026-07-25 at 10.26.34 PM (2).jpeg"
+   ],
+   "features": [
+    "Yate y gasolina incluidos",
+    "Capitán",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipo de snorkel"
+   ],
+   "amenities": [
+    "Nachos con salsa",
+    "Hielo, 12 aguas, 12 refrescos y 12 cervezas"
+   ],
+   "rules": [
+    "Máximo 6 personas",
+    "3 horas $800 usd / 4 horas $900 usd",
+    "El cliente puede traer su propia bebida a bordo"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 3,
+      "price": 800
+     },
+     {
+      "hours": 4,
+      "price": 900
+     }
+    ]
+   }
+  },
+  {
+   "name": "Princess 50",
+   "slug": "princess-50",
+   "description": "Yate Princess 50 en Punta Cana. El precio incluye hasta 10 personas (cada persona extra +$80, capacidad máxima 20). Incluye yate y gasolina, capitán y marino, transporte privado de ida y vuelta desde tu hotel o villa, equipos de snorkel, nachos con salsa, frutas tropicales y open bar. Visita las piscinas naturales de Punta Cana y la zona de snorkel. Puedes traer tu propia bebida al yate.",
+   "short_description": "Yate Princess 50 con open bar, snorkel y transporte privado. Desde 3 horas, hasta 20 personas.",
+   "location": "Punta Cana",
+   "capacity": 10,
+   "length_ft": 50,
+   "year": null,
+   "brand": "Princess",
+   "price_per_day": 1250,
+   "images": [
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 PORTADA.jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (1).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (2).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (3).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (4).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (5).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (6).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (7).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (8).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (9).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (10).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (11).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (12).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (13).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (14).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (15).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (17).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (18).jpeg",
+    "/assets/img/RENTAS/PRINCESS 50/PRINCESS 50 (19).jpeg"
+   ],
+   "features": [
+    "Yate y gasolina incluidos",
+    "Capitán y marino",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipos de snorkel"
+   ],
+   "amenities": [
+    "Yate y gasolina",
+    "Capitán y marino",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipos de snorkel",
+    "Nachos con salsa",
+    "Frutas tropicales",
+    "Open bar: cerveza, hielo, agua, refrescos, mamajuana, ron y jugos"
+   ],
+   "rules": [
+    "Precio para hasta 10 personas; cada persona extra +$80",
+    "Capacidad máxima: 20 personas",
+    "Puedes traer tu propia bebida al yate"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 3,
+      "price": 1250
+     },
+     {
+      "hours": 4,
+      "price": 1450
+     }
+    ],
+    "extra_hour_price": 265,
+    "overage_threshold": 10,
+    "overage_price_per_person": 80,
+    "max_capacity": 20
+   }
+  },
+  {
+   "name": "Catamarán con Tobogán",
+   "slug": "catamaran-con-tobogan",
+   "description": "Catamarán privado con tobogán para hasta 20 personas. Recorrido de 3 horas con zona de snorkel, bancos de arena (piscinas naturales) y visita al delfinario para ver a los delfines desde afuera. Incluye catamarán y combustible, transporte privado de ida y vuelta desde tu hotel o villa, equipo de snorkel, paddle board, open bar y snacks. Puedes traer tus propias bebidas y comida si lo deseas, o añadir almuerzo y horas extra.",
+   "short_description": "Catamarán privado con tobogán, open bar y snacks. 3 horas, hasta 20 personas.",
+   "location": "Punta Cana",
+   "capacity": 20,
+   "length_ft": null,
+   "year": null,
+   "brand": "Catamarán",
+   "price_per_day": 1350,
+   "images": [
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN PORTADA.jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (1).jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (2).jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (3).jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (5).jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (6).jpeg",
+    "/assets/img/RENTAS/CATAMARAN CON TOBOGAN/CATAMARÁN CON TOBOGAN (7).jpeg"
+   ],
+   "features": [
+    "Catamarán y combustible incluidos",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipo de snorkel",
+    "Paddle board",
+    "Tobogán acuático"
+   ],
+   "amenities": [
+    "Catamarán y combustible",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipo de snorkel",
+    "Paddle board",
+    "Open bar: ron, cerveza Presidente, mamajuana, mojito, ponche de frutas, refrescos, agua y hielo",
+    "Snacks: sándwiches, frutas tropicales y nachos con salsa"
+   ],
+   "rules": [
+    "Duración: 3 horas",
+    "Máximo 20 personas",
+    "Puedes traer tus propias bebidas y comida si lo deseas"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 3,
+      "price": 1350
+     }
+    ],
+    "extra_hour_price": 180,
+    "time_slots": [
+     "8:30 am – 11:30 am",
+     "11:30 am – 2:30 pm",
+     "2:30 pm – 5:30 pm"
+    ],
+    "meal_addons": [
+     {
+      "key": "almuerzo",
+      "name": "Almuerzo dominicano (buffet)",
+      "price": 15,
+      "per_person": true
+     },
+     {
+      "key": "hamburguesas",
+      "name": "Hamburguesas",
+      "price": 15,
+      "per_person": true
+     },
+     {
+      "key": "hamburguesas_pollo",
+      "name": "Hamburguesas y pollo",
+      "price": 20,
+      "per_person": true
+     },
+     {
+      "key": "langostas",
+      "name": "Langostas",
+      "price": 35,
+      "per_person": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "Catamarán 36",
+   "slug": "catamaran-36",
+   "description": "Catamarán 36 con salida desde Cap Cana, para hasta 18 personas. Recorrido de 4 horas que incluye catamarán y gasolina, capitán y marino, transporte privado de ida y vuelta desde tu hotel o villa, equipo de snorkel, hielo, agua y refrescos. Visita las piscinas naturales de Punta Cana y la zona de snorkel. Puedes traer tu propia bebida al catamarán.",
+   "short_description": "Catamarán 36 desde Cap Cana: 4 horas, snorkel y piscinas naturales. Hasta 18 personas.",
+   "location": "Punta Cana",
+   "capacity": 18,
+   "length_ft": 36,
+   "year": null,
+   "brand": "Catamarán",
+   "price_per_day": 1950,
+   "images": [
+    "/assets/img/RENTAS/CATAMARAN 36/CATAMARAN 36.jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.34 PM.jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.35 PM.jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.35 PM (1).jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.36 PM.jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.36 PM (1).jpeg",
+    "/assets/img/RENTAS/CATAMARAN 36/WhatsApp Image 2026-07-25 at 10.26.37 PM.jpeg"
+   ],
+   "features": [
+    "Catamarán y gasolina incluidos",
+    "Capitán y marino",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipo de snorkel"
+   ],
+   "amenities": [
+    "Catamarán y gasolina",
+    "Capitán y marino",
+    "Transporte privado de ida y vuelta desde tu hotel o villa",
+    "Equipo de snorkel",
+    "Hielo, agua y refrescos"
+   ],
+   "rules": [
+    "Duración: 4 horas",
+    "Máximo 18 personas",
+    "Puedes traer tu propia bebida al catamarán"
+   ],
+   "available": true,
+   "featured": false,
+   "for_sale": false,
+   "sale_price": null,
+   "sale_description": null,
+   "pricing_scheme": {
+    "type": "hourly",
+    "packages": [
+     {
+      "hours": 4,
+      "price": 1950
+     }
+    ]
+   }
+  },
+  {
+   "name": "Intrepid 38",
+   "slug": "intrepid-38",
+   "description": "Intrepid 38 (2005) en venta. 3 motores Suzuki 300 HP con 986 horas de uso. Generador Phasor 4.5 kilos, thruster en la proa. Cuenta con camarote, cocina, baño, aire acondicionado, sistema GPS Garmin, sistema de música JL Audio y todos sus covers. Precio: $190,000 USD.",
+   "short_description": "Intrepid 38 (2005) en venta — $190,000 USD.",
+   "location": "Punta Cana",
+   "capacity": 12,
+   "length_ft": 38,
+   "year": 2005,
+   "brand": "Intrepid",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/INTREPID 38/INTREPID 38 PIES.mp4"
+   ],
+   "features": [
+    "3 motores Suzuki 300 HP (986 horas)",
+    "Generador Phasor 4.5 kilos",
+    "Thruster en la proa",
+    "Camarote",
+    "Cocina",
+    "Baño",
+    "Aire acondicionado",
+    "Sistema GPS Garmin",
+    "Sistema de música JL Audio",
+    "Incluye todos sus covers"
+   ],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": 190000,
+   "sale_description": "Precio: $190,000 USD. Contáctanos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Sea Ray Sundancer 24",
+   "slug": "sea-ray-sundancer-24",
+   "description": "Sea Ray Sundancer 24 en venta. Lancha deportiva compacta, ideal para salidas rápidas en el mar. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Sea Ray Sundancer 24 en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 8,
+   "length_ft": 24,
+   "year": null,
+   "brand": "Sea Ray",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/SEARAY SUNDANCER 24/VIDEO PORTADA SIN AUDIO.mp4",
+    "/assets/img/VENTAS/SEARAY SUNDANCER 24/VIDEO EXPLICATIVO.mp4"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Sea Ray Sundancer 36",
+   "slug": "sea-ray-sundancer-36",
+   "description": "Sea Ray Sundancer 36 en venta. Crucero deportivo de mediano porte, cómodo para grupos familiares. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Sea Ray Sundancer 36 en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 10,
+   "length_ft": 36,
+   "year": null,
+   "brand": "Sea Ray",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/SEARAY SUNDANCER 36/VIDEO PORTADA  SIN AUDIO.mp4",
+    "/assets/img/VENTAS/SEARAY SUNDANCER 36/VIDEO EXPLICATIVO.mp4"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Maxum 2700SE",
+   "slug": "maxum-2700se-28",
+   "description": "Maxum 2700SE de 28 pies (2008) en venta. Motor Mercruiser 350 Mag MPI. Cuenta con salón, baño y habitación. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Maxum 2700SE de 28 pies (2008) en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 8,
+   "length_ft": 28,
+   "year": 2008,
+   "brand": "Maxum",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/MAXUM 28 PIES 2008/MAXUM 28 PIES 2008.mp4"
+   ],
+   "features": [
+    "Motor Mercruiser 350 Mag MPI",
+    "Salón",
+    "Baño",
+    "Habitación"
+   ],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Sea Ray Sundancer 40 pies",
+   "slug": "sea-ray-sundancer-40",
+   "description": "Sea Ray Sundancer de 40 pies (2007) en venta. Planta eléctrica Onan 9 KVA (overhauled, 200 horas). Motores Cummins QSB 5.9-425 nuevos (overhauled, 150 horas), transmisión electrónica ZF y aire acondicionado nuevo. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Sea Ray Sundancer de 40 pies (2007) en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 12,
+   "length_ft": 40,
+   "year": 2007,
+   "brand": "Sea Ray",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/SEA RAY SUNDANCER 40 PIES/SEA RAY SUNDANCER 40 PIES.mp4"
+   ],
+   "features": [
+    "Planta Onan 9 KVA (overhauled, 200h)",
+    "Motores Cummins QSB 5.9-425 nuevos (overhauled, 150h)",
+    "Transmisión electrónica ZF",
+    "Aire acondicionado nuevo"
+   ],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Tiara 43 pies",
+   "slug": "tiara-43-2000",
+   "description": "Tiara de 43 pies (2000) en venta. Motores Caterpillar de 670 HP con 2,800 horas de uso. Planta eléctrica (cooler) de 9 kilos casi nueva con 400 horas de uso. Cuenta con sala, cocina, habitación, baño, aire acondicionado y sistema de GPS. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Tiara de 43 pies (2000) en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 14,
+   "length_ft": 43,
+   "year": 2000,
+   "brand": "Tiara",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/TIARA 43 PIES 2000/TIARA 43 PIES 2000.mp4"
+   ],
+   "features": [
+    "Motores Caterpillar 670 HP (2,800 h de uso)",
+    "Planta/cooler 9 kg (400 h de uso)",
+    "Sala",
+    "Cocina",
+    "Habitación",
+    "Baño",
+    "Aire acondicionado",
+    "Sistema de GPS"
+   ],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Prestige 50",
+   "slug": "prestige-50",
+   "description": "Prestige 50 en venta. Yate flybridge de 50 pies, ideal para paseos familiares y de grupo. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Prestige 50 en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 12,
+   "length_ft": 50,
+   "year": null,
+   "brand": "Prestige",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/PRESTIGE 50/VIDEO PORTADA SIN AUDIO.mp4",
+    "/assets/img/VENTAS/PRESTIGE 50/VIDEO EXPLICTIVO.mp4"
+   ],
+   "features": [],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  },
+  {
+   "name": "Sea Ray Sedan Bridge 51",
+   "slug": "sea-ray-sedan-bridge-51",
+   "description": "Sea Ray Sedan Bridge de 51 pies (2002) en venta. Motores Caterpillar (nuevos) y planta Onan de 20 kilos (nueva). Cuenta con salón, cocina, 3 habitaciones, sistema GPS Garmin y aire acondicionado con mantenimiento reciente. Precio a consultar: escríbenos por WhatsApp para recibir más información, fotos adicionales y agendar una visita.",
+   "short_description": "Sea Ray Sedan Bridge de 51 pies (2002) en venta — consultar precio y disponibilidad.",
+   "location": "Punta Cana",
+   "capacity": 14,
+   "length_ft": 51,
+   "year": 2002,
+   "brand": "Sea Ray",
+   "price_per_day": 0,
+   "images": [
+    "/assets/img/VENTAS/Sea Ray Sedan Bridge 2001 51 PIES/Sea Ray Sedan BridgE 51 2002.mp4"
+   ],
+   "features": [
+    "Motores Caterpillar (nuevos)",
+    "Planta Onan 20 kilos (nueva)",
+    "Salón",
+    "Cocina",
+    "3 habitaciones",
+    "Sistema GPS Garmin",
+    "Aire acondicionado (mantenimiento reciente)"
+   ],
+   "amenities": [],
+   "rules": [],
+   "available": false,
+   "featured": false,
+   "for_sale": true,
+   "sale_price": null,
+   "sale_description": "Precio a consultar. Escríbenos por WhatsApp para más información y agendar una visita.",
+   "pricing_scheme": null
+  }
+ ]
+}
