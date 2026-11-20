@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (user.role !== 'admin') { location.href = '/dashboard.html'; return; }
     // PCI DSS 8: sin 2FA activado el panel solo deja configurar el 2FA (el servidor responde 403 totp_setup_required al resto)
     fetch('/api/auth/2fa/status', { credentials: 'same-origin' }).then(r => r.json()).then(st => {
+      if (st.code === 'mfa_required') { location.href = '/auth.html'; return; }
       if (!st.enabled) { enterSetupMode(); return; }
       loadDashboard();
       loadAllBookings();
@@ -34,17 +35,27 @@ document.addEventListener('DOMContentLoaded', function () {
       show('tfa-on', true);
       return;
     }
-    show('tfa-off', true);
-    $id('tfa-secret').textContent = 'Generando...';
-    const d = await tfaApi('setup', {});
-    if (d.error) { $id('tfa-secret').textContent = d.error; return; }
+    // Inscribir el 2FA pide la contraseña actual (salvo cuentas solo-Google, que no tienen): paso 0, y solo entonces se genera la clave
+    show('tfa-off', true); show('tfa-step0', true); show('tfa-step1', false);
+    show('tfa-pass0-wrap', st.has_password !== false);
+    $id('tfa-pass0').value = '';
+  }
+  window.tfaStart = async function () {
+    const password = $id('tfa-pass0').value;
+    const d = await tfaApi('setup', { password });
+    if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+    tfaPassword = password;
+    $id('tfa-pass0').value = '';
     $id('tfa-secret').textContent = d.secret;
     $id('tfa-link').href = d.otpauth;
     $id('tfa-code').value = '';
-  }
+    show('tfa-step0', false); show('tfa-step1', true);
+  };
+  let tfaPassword = '';
   window.tfaEnable = async function () {
-    const d = await tfaApi('enable', { code: $id('tfa-code').value });
+    const d = await tfaApi('enable', { code: $id('tfa-code').value, password: tfaPassword });
     if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+    tfaPassword = '';
     $id('tfa-codes-list').textContent = d.recovery_codes.join('\n');
     show('tfa-off', false); show('tfa-codes', true);
   };
@@ -628,6 +639,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const ACTIONS = {
     'show-section': (el) => window.showSection(el.dataset.section, el),
     'logout': () => window.logout(),
+    'tfa-start': () => window.tfaStart(),
     'tfa-enable': () => window.tfaEnable(),
     'tfa-done': () => location.reload(),
     'tfa-regen': () => window.tfaReauth('recovery-codes', 'Códigos nuevos generados'),

@@ -76,13 +76,14 @@ async function mkUser(tag, verified = true, role = 'user') {
     [`E2E ${tag}`, email, session.hashPassword('Prueba-e2e-1234'), verified, role]
   );
   // Los administradores exigen 2FA activado (si no, solo pueden usar los endpoints de configuración del 2FA)
-  if (role === 'admin') { await q('UPDATE users SET totp_enabled = TRUE WHERE id = $1', [u.id]); u.totp_enabled = true; }
+  // (y la sesión lleva la marca de que presentó el 2FA, ligada al secreto: aquí uno de mentira, el e2e no pasa por el login)
+  if (role === 'admin') { await q("UPDATE users SET totp_enabled = TRUE, totp_secret_enc = 'e2e-secreto-falso' WHERE id = $1", [u.id]); u.totp_enabled = true; u.totp_secret_enc = 'e2e-secreto-falso'; }
   return { ...u, cookie: `vbr_session=${makeToken(u)}` };
 }
 // createToken no se exporta: se firma igual que utils/session.js (HMAC-SHA256 con SESSION_SECRET)
 function makeToken(u) {
   const b64 = (s) => Buffer.from(s).toString('base64url');
-  const payload = b64(JSON.stringify({ uid: u.id, v: session.sessionVersion(u.password_hash), exp: Date.now() + 864e5 }));
+  const payload = b64(JSON.stringify({ uid: u.id, v: session.sessionVersion(u.password_hash), exp: Date.now() + 864e5, ...(u.role === 'admin' && u.totp_secret_enc ? { mfa: session.mfaBinding(u.totp_secret_enc) } : {}) }));
   return payload + '.' + crypto.createHmac('sha256', SECRET).update(payload).digest('base64url');
 }
 

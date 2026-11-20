@@ -19,3 +19,12 @@ test('audit: un fallo de la base no rompe la acción', async () => {
   const orig = console.error; console.error = () => {};
   try { await audit(db, {}, 'x'); } finally { console.error = orig; }
 });
+
+test('allowEvent: deja pasar hasta N eventos por ventana y clave, y luego los frena', () => {
+  const { allowEvent } = require('../utils/audit');
+  const t0 = 1_000_000;
+  const r = [1, 2, 3, 4].map((i) => allowEvent('k1', 3, 60000, t0 + i));
+  assert.deepEqual(r, [true, true, true, false]);
+  assert.equal(allowEvent('k2', 3, 60000, t0), true);          // otra clave no se ve afectada
+  assert.equal(allowEvent('k1', 3, 60000, t0 + 60001), true);  // pasada la ventana vuelve a registrar
+});

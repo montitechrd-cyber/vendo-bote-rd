@@ -51,3 +51,13 @@ test('otpauth', () => {
   const u = t.otpauthUrl('ABC', 'a@b.com');
   assert.match(u, /^otpauth:\/\/totp\/Vendo%20Bote%20RD:a%40b\.com\?secret=ABC&issuer=Vendo%20Bote%20RD/);
 });
+
+test('subclaves HKDF distintas por uso (cifrado, reto, recuperación)', () => {
+  const k = ['enc', 'chal', 'rec'].map((u) => t.masterKey('clave-de-prueba', u).toString('hex'));
+  assert.equal(new Set(k).size, 3);
+  // el reto no se valida con la clave de recuperación ni al revés
+  const ch = t.signChallenge(5, 'v', 'clave-de-prueba');
+  assert.deepEqual(t.readChallenge(ch, 'clave-de-prueba'), { uid: 5, v: 'v' });
+  assert.equal(t.readChallenge(ch, 'otra-clave'), null);
+  assert.notEqual(t.hashRecovery('ABCDE-FGHIJ', 'clave-de-prueba'), t.hashRecovery('ABCDE-FGHIJ', 'otra-clave'));
+});

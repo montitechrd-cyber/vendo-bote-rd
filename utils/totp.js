@@ -1,5 +1,5 @@
 // 2FA TOTP (RFC 6238) con node:crypto, sin dependencias: HMAC-SHA1, 6 dígitos, paso de 30 s, ventana ±1.
-// El secreto se guarda CIFRADO (AES-256-GCM, clave derivada de SESSION_SECRET con HKDF); nunca en claro.
+// El secreto se guarda CIFRADO (AES-256-GCM, subclaves derivadas de SESSION_SECRET con HKDF, una por uso); nunca en claro.
 const crypto = require('crypto');
 
 const STEP = 30;
@@ -71,22 +71,25 @@ const otpauthUrl = (secretBase32, account, issuer = 'Vendo Bote RD') =>
   `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secretBase32}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${DIGITS}&period=${STEP}`;
 
 // ── Cifrado del secreto en reposo ──
-function masterKey(secret) {
+// Una subclave distinta por uso (HKDF con 'info' propio): cifrado del secreto ('enc'), reto del paso 2 ('chal') y códigos de recuperación ('rec').
+// 'enc' conserva la etiqueta original, así los secretos ya guardados siguen legibles.
+const INFO = { enc: 'vbr-totp-enc-v1', chal: 'vbr-totp-challenge-v2', rec: 'vbr-totp-recovery-v2' };
+function masterKey(secret, use = 'enc') {
   // En producción SESSION_SECRET es obligatoria (session.js no arranca sin ella); solo en desarrollo hay una clave fija de pruebas.
   const s = secret || process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? null : 'vbr-solo-desarrollo');
   if (!s) throw new Error('Falta SESSION_SECRET para cifrar el secreto 2FA');
-  return Buffer.from(crypto.hkdfSync('sha256', s, 'vbr-totp-salt-v1', 'vbr-totp-enc-v1', 32));
+  return Buffer.from(crypto.hkdfSync('sha256', s, 'vbr-totp-salt-v1', INFO[use], 32));
 }
 function encryptSecret(plain, secret) {
   const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv('aes-256-gcm', masterKey(secret), iv);
+  const c = crypto.createCipheriv('aes-256-gcm', masterKey(secret, 'enc'), iv);
   const ct = Buffer.concat([c.update(String(plain), 'utf8'), c.final()]);
   return ['v1', iv.toString('base64url'), c.getAuthTag().toString('base64url'), ct.toString('base64url')].join('.');
 }
 function decryptSecret(enc, secret) {
   const [v, iv, tag, ct] = String(enc || '').split('.');
   if (v !== 'v1' || !iv || !tag || !ct) throw new Error('secreto 2FA con formato inválido');
-  const d = crypto.createDecipheriv('aes-256-gcm', masterKey(secret), Buffer.from(iv, 'base64url'));
+  const d = crypto.createDecipheriv('aes-256-gcm', masterKey(secret, 'enc'), Buffer.from(iv, 'base64url'));
   d.setAuthTag(Buffer.from(tag, 'base64url'));
   return Buffer.concat([d.update(Buffer.from(ct, 'base64url')), d.final()]).toString('utf8');
 }
@@ -96,21 +99,21 @@ function newRecoveryCodes(n = 10) {
   return Array.from({ length: n }, () => { const r = base32Encode(crypto.randomBytes(7)).slice(0, 10); return r.slice(0, 5) + '-' + r.slice(5); });
 }
 const normRecovery = (c) => String(c || '').toUpperCase().replace(/[^A-Z2-7]/g, '');
-const hashRecovery = (code, secret) => crypto.createHmac('sha256', masterKey(secret)).update('rec:' + normRecovery(code)).digest('hex');
+const hashRecovery = (code, secret) => crypto.createHmac('sha256', masterKey(secret, 'rec')).update('rec:' + normRecovery(code)).digest('hex');
 const looksLikeRecovery = (c) => normRecovery(c).length === 10;
 
 // ── Reto del paso 2 del login (sin estado): firmado, vale 5 minutos, ligado a la versión de la contraseña ──
 function signChallenge(uid, ver, secret, ttlMs = 5 * 60 * 1000) {
   const p = Buffer.from(JSON.stringify({ u: uid, v: ver, e: Date.now() + ttlMs })).toString('base64url');
-  return p + '.' + crypto.createHmac('sha256', masterKey(secret)).update('ch:' + p).digest('base64url');
+  return p + '.' + crypto.createHmac('sha256', masterKey(secret, 'chal')).update('ch:' + p).digest('base64url');
 }
 function readChallenge(tok, secret) {
   const [p, sig] = String(tok || '').split('.');
   if (!p || !sig) return null;
-  const exp = crypto.createHmac('sha256', masterKey(secret)).update('ch:' + p).digest('base64url');
+  const exp = crypto.createHmac('sha256', masterKey(secret, 'chal')).update('ch:' + p).digest('base64url');
   if (!safeEqual(sig, exp)) return null;
   try { const d = JSON.parse(Buffer.from(p, 'base64url').toString('utf8')); return d.e > Date.now() ? { uid: d.u, v: d.v } : null; } catch { return null; }
 }
 
 module.exports = { STEP, base32Encode, base32Decode, generateSecret, groupSecret, hotp, totpAt, stepAt, verifyTotp, otpauthUrl,
-  encryptSecret, decryptSecret, newRecoveryCodes, hashRecovery, looksLikeRecovery, signChallenge, readChallenge };
+  encryptSecret, decryptSecret, newRecoveryCodes, hashRecovery, looksLikeRecovery, signChallenge, readChallenge, masterKey };

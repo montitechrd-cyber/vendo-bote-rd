@@ -16,4 +16,19 @@ async function audit(db, req, action, entity = null, entityId = null, detail = n
     );
   } catch (e) { console.error('[audit]', e.message); }
 }
-module.exports = { audit };
+
+// Tope de filas por clave y ventana (contador en memoria): evita inundar audit_log (p. ej. con contraseñas falladas
+// desde una IP, o con muchas miniaturas vistas seguidas). Devuelve true si este evento SÍ se debe registrar.
+const buckets = new Map();
+function allowEvent(key, max, windowMs, now = Date.now()) {
+  const b = buckets.get(key);
+  if (!b || now >= b.until) {
+    buckets.set(key, { n: 1, until: now + windowMs });
+    if (buckets.size > 2000) for (const [k, v] of buckets) if (now >= v.until) buckets.delete(k);
+    return true;
+  }
+  if (b.n >= max) return false;
+  b.n++;
+  return true;
+}
+module.exports = { audit, allowEvent };

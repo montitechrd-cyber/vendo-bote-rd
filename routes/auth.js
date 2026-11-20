@@ -3,20 +3,20 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { getDB } = require('../database');
-const { authRequired, adminRequired } = require('../middleware/auth');
+const { authRequired, adminRequired, denyUnlessAdmin } = require('../middleware/auth');
 const { setSession, clearSession, sessionFromRequest, hashPassword, verifyPassword, newResetToken, hashResetToken } = require('../utils/session');
 const { allValid } = require('../utils/filecheck');
 const DUMMY_HASH = hashPassword('contrasena-de-relleno'); // para que login tarde igual exista o no el correo
 const { sendPasswordReset, sendEmailVerification } = require('../utils/email');
-const { sessionVersion } = require('../utils/session');
+const { sessionVersion, mfaBinding } = require('../utils/session');
 const totp = require('../utils/totp');
-const { audit } = require('../utils/audit');
+const { audit, allowEvent } = require('../utils/audit');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
 // Estas rutas solo se usan desde nuestras páginas con JSON: se rechazan formularios de otros sitios (CSRF de login).
-router.use(['/login', '/forgot', '/reset', '/google', '/verify-email'], (req, res, next) => {
+router.use(['/login', '/forgot', '/reset', '/google', '/verify-email', '/2fa'], (req, res, next) => {
   if (req.method === 'POST' && !req.is('application/json')) return res.status(415).json({ error: 'Formato no permitido' });
   next();
 });
@@ -244,7 +244,8 @@ async function finishLogin(req, res, user) {
   if (user.role === 'admin' && user.totp_enabled) {
     return res.json({ ok: true, totp_required: true, challenge: totp.signChallenge(user.id, sessionVersion(user.password_hash)) });
   }
-  setSession(res, user.id, user.password_hash);
+  // Admin sin 2FA: sesión de 12 h sin marca de 2FA (solo sirve para configurar el 2FA)
+  setSession(res, user.id, user.password_hash, user.role === 'admin' ? { admin: true } : {});
   if (user.role === 'admin') await audit(getDB(), { user: { id: user.id }, ip: req.ip }, 'admin.login', 'user', user.id, 'sin 2FA activado');
   res.json({ ok: true });
 }
@@ -266,7 +267,8 @@ router.post('/login/2fa', async (req, res) => {
     }
     const how = await checkSecondFactor(db, user, req.body.code);
     if (!how) { await audit(db, who, 'admin.login_fail', 'user', user.id, 'paso 2FA'); return bad(); }
-    setSession(res, user.id, user.password_hash);
+    // Única vía que emite sesión completa a un admin con 2FA: lleva la marca firmada de que presentó el código, y dura 12 h
+    setSession(res, user.id, user.password_hash, { admin: true, mfa: mfaBinding(user.totp_secret_enc) });
     await audit(db, who, 'admin.login', 'user', user.id, how === 'recovery' ? 'con código de recuperación' : 'con 2FA');
     res.json({ ok: true });
   } catch (e) {
@@ -291,14 +293,26 @@ router.get('/2fa/status', authRequired, adminOnly, async (req, res) => {
   try {
     const left = req.user.totp_enabled
       ? (await getDB().queryOne('SELECT COUNT(*)::int AS n FROM totp_recovery_codes WHERE user_id = $1 AND used_at IS NULL', [req.user.id])).n : 0;
-    res.json({ enabled: !!req.user.totp_enabled, recovery_left: left });
+    res.json({ enabled: !!req.user.totp_enabled, recovery_left: left, has_password: !!req.user.password_hash });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
 });
+
+// Inscribir, activar, regenerar o quitar el 2FA exige la contraseña actual si la cuenta tiene (una sesión robada no basta
+// para quitar al dueño). Los admin que entran solo con Google no tienen contraseña: para ellos no se pide.
+async function checkPassword(req, res) {
+  const u = req.user;
+  if (!u.password_hash) return true;
+  if (verifyPassword(String((req.body && req.body.password) || '').slice(0, 200), u.password_hash)) return true;
+  await audit(getDB(), req, 'admin.2fa_reauth_fail', 'user', u.id, 'contraseña');
+  res.status(401).json({ error: 'La contraseña no es correcta', code: 'password_required' });
+  return false;
+}
 
 // Paso 1: genera un secreto nuevo (cifrado en la base, aún sin activar) y lo muestra una sola vez para escanearlo o teclearlo
 router.post('/2fa/setup', authRequired, adminOnly, async (req, res) => {
   try {
     if (req.user.totp_enabled) return res.status(409).json({ error: 'El 2FA ya está activado. Desactívalo primero para configurarlo de nuevo.' });
+    if (!(await checkPassword(req, res))) return;
     const secret = totp.generateSecret();
     await getDB().run('UPDATE users SET totp_secret_enc = $1, totp_enabled = FALSE, totp_last_step = NULL WHERE id = $2', [totp.encryptSecret(secret), req.user.id]);
     res.set('Cache-Control', 'no-store');
@@ -312,6 +326,7 @@ router.post('/2fa/enable', authRequired, adminOnly, async (req, res) => {
     const db = getDB();
     const u = req.user;
     if (u.totp_enabled) return res.status(409).json({ error: 'El 2FA ya está activado.' });
+    if (!(await checkPassword(req, res))) return;
     if (!u.totp_secret_enc) return res.status(400).json({ error: 'Primero genera el secreto.' });
     let secret;
     try { secret = totp.decryptSecret(u.totp_secret_enc); } catch { return res.status(400).json({ error: 'Genera el secreto de nuevo.' }); }
@@ -320,6 +335,9 @@ router.post('/2fa/enable', authRequired, adminOnly, async (req, res) => {
     await db.run('UPDATE users SET totp_enabled = TRUE, totp_last_step = $1 WHERE id = $2', [step, u.id]);
     const codes = await replaceRecoveryCodes(db, u.id);
     await audit(db, req, 'admin.2fa_enable', 'user', u.id);
+    // Sesión NUEVA con marca de 2FA para quien acaba de activarlo. Las demás sesiones anteriores de este usuario
+    // (sin esa marca) dejan de valer solas: loadUser exige la marca ligada al secreto vigente.
+    setSession(res, u.id, u.password_hash, { admin: true, mfa: mfaBinding(u.totp_secret_enc) });
     res.set('Cache-Control', 'no-store');
     res.json({ ok: true, recovery_codes: codes });
   } catch (e) { console.error(e); res.status(500).json({ error: 'No se pudo activar el 2FA' }); }
@@ -370,7 +388,7 @@ router.post('/login', async (req, res) => {
     // Mismo mensaje y mismo tiempo de respuesta exista o no la cuenta (no revela qué correos están registrados).
     const okPass = verifyPassword(password.slice(0, 200), user && user.password_hash ? user.password_hash : DUMMY_HASH);
     if (!user || !user.password_hash || !okPass) {
-      if (user && user.role === 'admin') await audit(db, { user: { id: user.id }, ip: req.ip }, 'admin.login_fail', 'user', user.id, 'contraseña');
+      if (user && user.role === 'admin' && allowEvent('loginfail:' + req.ip, 5, 60000)) await audit(db, { user: { id: user.id }, ip: req.ip }, 'admin.login_fail', 'user', user.id, 'contraseña');
       return res.status(401).json({ error: 'Correo o contraseña incorrectos. Si tu cuenta es anterior, usa "Olvidé mi contraseña".' });
     }
     await finishLogin(req, res, user);
@@ -541,7 +559,8 @@ router.post('/me/password', authRequired, async (req, res) => {
     }
     const nextHash = hashPassword(next);
     await db.run('UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_expires = NULL WHERE id = $2', [nextHash, req.user.id]);
-    setSession(res, req.user.id, nextHash); // esta sesión sigue; las demás se cierran
+    // esta sesión sigue (conserva la marca de 2FA y el tope de 12 h si es admin); las demás se cierran
+    setSession(res, req.user.id, nextHash, req.user.role === 'admin' ? { admin: true, mfa: req.user.mfaOk ? mfaBinding(req.user.totp_secret_enc) : undefined } : {});
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -578,9 +597,12 @@ router.get('/avatar/:userId', authRequired, async (req, res) => {
   try {
     const targetId = parseInt(req.params.userId, 10);
     if (!Number.isInteger(targetId)) return res.status(400).json({ error: 'Usuario inválido' });
-    if (targetId !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    const foreign = targetId !== req.user.id;
+    if (foreign && denyUnlessAdmin(req, res)) return;
     const f = await getDB().queryOne('SELECT avatar_data, avatar_mime FROM user_files WHERE user_id = $1', [targetId]);
     if (!f || !f.avatar_data) return res.status(404).json({ error: 'Sin foto' });
+    // El panel pide muchas fotos seguidas: se registra como máximo una vez cada 10 min por admin y usuario
+    if (foreign && allowEvent('avatar:' + req.user.id + ':' + targetId, 1, 10 * 60000)) await audit(getDB(), req, 'avatar.view', 'user', targetId);
     res.set('Content-Type', f.avatar_mime || 'image/jpeg');
     res.set('Cache-Control', 'private, max-age=0, must-revalidate');
     res.send(f.avatar_data);
@@ -652,17 +674,18 @@ router.get('/id-document/:userId', authRequired, async (req, res) => {
     const db = getDB();
     const targetId = parseInt(req.params.userId, 10);
     if (!Number.isInteger(targetId)) return res.status(400).json({ error: 'Usuario inválido' });
-    if (targetId !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acceso denegado' });
-    }
+    const foreign = targetId !== req.user.id;
+    if (foreign && denyUnlessAdmin(req, res)) return;
     const f = await db.queryOne('SELECT id_data, id_mime FROM user_files WHERE user_id = $1', [targetId]);
     if (f && f.id_data) {
+      if (foreign) await audit(db, req, 'id_document.view', 'user', targetId);
       res.set('Content-Type', f.id_mime || 'application/octet-stream');
       res.set('Cache-Control', 'private, no-store');
       return res.send(f.id_data);
     }
     const user = await db.queryOne('SELECT id_document_filename FROM users WHERE id = $1', [targetId]);
     if (!user?.id_document_filename) return res.status(404).json({ error: 'Sin documento' });
+    if (foreign) await audit(db, req, 'id_document.view', 'user', targetId);
     res.sendFile(path.join(__dirname, '../uploads/ids', user.id_document_filename), err => { if (err && !res.headersSent) res.status(404).json({ error: 'Sin documento' }); });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
@@ -682,6 +705,7 @@ router.delete('/id-document/:userId', adminRequired, async (req, res) => {
     fs.unlink(path.join(__dirname, '../uploads/ids', user.id_document_filename), () => {});
     await db.run('UPDATE user_files SET id_data = NULL, id_mime = NULL WHERE user_id = $1', [targetId]);
     await db.run('UPDATE users SET id_document_filename = NULL WHERE id = $1', [targetId]);
+    await audit(db, req, 'id_document.delete', 'user', targetId);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });

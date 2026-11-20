@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const COOKIE = 'vbr_session';
 const SESSION_DAYS = 30;
+const ADMIN_SESSION_HOURS = 12; // PCI DSS 8: las sesiones de administrador duran como máximo 12 h
 const isProd = process.env.NODE_ENV === 'production';
 
 let SECRET = process.env.SESSION_SECRET;
@@ -24,8 +25,17 @@ const sign = (data) => crypto.createHmac('sha256', SECRET).update(data).digest('
 // cierra las sesiones abiertas en otros dispositivos (cookies robadas incluidas).
 const sessionVersion = (passwordHash) => crypto.createHash('sha256').update(String(passwordHash || '') + SECRET).digest('base64url').slice(0, 10);
 
-function createToken(userId, passwordHash) {
-  const payload = b64(JSON.stringify({ uid: userId, v: sessionVersion(passwordHash), exp: Date.now() + SESSION_DAYS * 864e5 }));
+// Marca de "pasó el 2FA", ligada al secreto 2FA vigente: si el admin desactiva y vuelve a activar el 2FA (secreto nuevo),
+// las sesiones anteriores dejan de valer aunque tuvieran marca.
+const mfaBinding = (secretEnc) => secretEnc ? crypto.createHash('sha256').update('mfa:' + secretEnc + SECRET).digest('base64url').slice(0, 12) : null;
+
+const ttlMs = (opts) => (opts && opts.admin ? ADMIN_SESSION_HOURS * 36e5 : SESSION_DAYS * 864e5);
+
+// opts: { admin: true } => 12 h; { mfa: mfaBinding(...) } => sesión que presentó el segundo factor
+function createToken(userId, passwordHash, opts = {}) {
+  const body = { uid: userId, v: sessionVersion(passwordHash), exp: Date.now() + ttlMs(opts) };
+  if (opts.mfa) body.mfa = opts.mfa;
+  const payload = b64(JSON.stringify(body));
   return payload + '.' + sign(payload);
 }
 
@@ -38,7 +48,7 @@ function readToken(token) {
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
     const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return data.exp > Date.now() ? { uid: data.uid, v: data.v || null } : null;
+    return data.exp > Date.now() ? { uid: data.uid, v: data.v || null, mfa: data.mfa || null } : null;
   } catch { return null; }
 }
 
@@ -62,8 +72,8 @@ function userIdFromRequest(req) {
   return s ? s.uid : null;
 }
 
-function setSession(res, userId, passwordHash) {
-  const parts = [`${COOKIE}=${createToken(userId, passwordHash)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${SESSION_DAYS * 86400}`];
+function setSession(res, userId, passwordHash, opts = {}) {
+  const parts = [`${COOKIE}=${createToken(userId, passwordHash, opts)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${Math.floor(ttlMs(opts) / 1000)}`];
   if (isProd) parts.push('Secure');
   res.append('Set-Cookie', parts.join('; '));
 }
@@ -95,4 +105,4 @@ function newResetToken() {
 }
 const hashResetToken = (token) => crypto.createHash('sha256').update(String(token)).digest('hex');
 
-module.exports = { userIdFromRequest, sessionFromRequest, sessionVersion, setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken };
+module.exports = { createToken, readToken, mfaBinding, userIdFromRequest, sessionFromRequest, sessionVersion, setSession, clearSession, hashPassword, verifyPassword, newResetToken, hashResetToken };

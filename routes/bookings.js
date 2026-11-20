@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { getDB } = require('../database');
-const { authRequired, adminRequired } = require('../middleware/auth');
+const { authRequired, adminRequired, denyUnlessAdmin } = require('../middleware/auth');
 const { audit } = require('../utils/audit');
 const email = require('../utils/email');
 
@@ -205,7 +205,7 @@ router.get('/:id', authRequired, async (req, res) => {
       [req.params.id]
     );
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
-    if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    if (booking.user_id !== req.user.id && denyUnlessAdmin(req, res)) return;
     res.json({ ...booking, boat_images: JSON.parse(booking.boat_images || '[]') });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });
@@ -219,8 +219,7 @@ router.get('/:id/receipt', authRequired, async (req, res) => {
     const db = getDB();
     const booking = await db.queryOne('SELECT user_id FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
-    if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
-    if (booking.user_id !== req.user.id && !req.user.totp_enabled) return res.status(403).json({ error: 'Activa la verificación en dos pasos para ver comprobantes.', code: 'totp_setup_required' });
+    if (booking.user_id !== req.user.id && denyUnlessAdmin(req, res)) return;
 
     const payment = await db.queryOne('SELECT receipt_filename, receipt_data, receipt_mime FROM payments WHERE booking_id = $1', [req.params.id]);
     if (!payment?.receipt_data) return res.status(404).json({ error: 'Sin comprobante' });
@@ -300,13 +299,15 @@ router.post('/:id/cancel', authRequired, async (req, res) => {
     const db = getDB();
     const booking = await db.queryOne('SELECT * FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
-    if (booking.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    const byAdmin = booking.user_id !== req.user.id;
+    if (byAdmin && denyUnlessAdmin(req, res)) return;
     if (booking.status === 'cancelled') return res.status(400).json({ error: 'Ya cancelada' });
     // Con comprobante enviado o pago verificado ya hay dinero de por medio: el cliente debe contactar al equipo; la admin sí puede cancelar.
-    if (req.user.role !== 'admin' && ['submitted', 'verified'].includes(booking.payment_status)) {
+    if (!byAdmin && ['submitted', 'verified'].includes(booking.payment_status)) {
       return res.status(400).json({ error: 'Ya enviaste tu comprobante de pago. Para cancelar o cambiar la reserva, contacta al equipo.' });
     }
     await db.run('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', booking.id]);
+    if (byAdmin) await audit(db, req, 'booking.cancel', 'booking', booking.id, 'ref ' + booking.booking_ref);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Error del servidor' });

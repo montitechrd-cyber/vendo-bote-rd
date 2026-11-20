@@ -308,6 +308,12 @@
         <strong>Antes de usar el panel debes activar el 2FA.</strong> Es un paso de un par de minutos y solo se hace una vez.
       </div>
       <div id="tfa-off" class="hidden tfa-box">
+        <div id="tfa-step0" class="tfa-box">
+          <p style="margin:0;">Para empezar, confirma que eres tú con tu contraseña actual.</p>
+          <div class="form-group" id="tfa-pass0-wrap"><label class="form-label" for="tfa-pass0">Contraseña actual</label><input class="form-input" type="password" id="tfa-pass0" autocomplete="current-password" /></div>
+          <button class="btn btn-primary" data-action="tfa-start" style="justify-content:center;">Continuar</button>
+        </div>
+        <div id="tfa-step1" class="hidden tfa-box">
         <ol style="margin:0;padding-left:1.2rem;line-height:1.6;">
           <li>Instala <strong>Google Authenticator</strong>, <strong>Authy</strong> o <strong>1Password</strong> en tu teléfono.</li>
           <li>Agrega una cuenta nueva con la clave de abajo (o abre el enlace en el teléfono) y confirma con el código que muestra.</li>
@@ -319,6 +325,7 @@
         </div>
         <div class="form-group"><label class="form-label" for="tfa-code">Código de 6 dígitos</label><input class="form-input" id="tfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" /></div>
         <button class="btn btn-primary" id="tfa-enable" data-action="tfa-enable" style="justify-content:center;">Activar 2FA</button>
+        </div>
       </div>
       <div id="tfa-codes" class="hidden tfa-box">
         <p style="margin:0;"><strong>Guarda estos códigos de recuperación.</strong> Cada uno sirve una sola vez si pierdes el teléfono. No se volverán a mostrar.</p>
