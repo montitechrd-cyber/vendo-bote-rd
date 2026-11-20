@@ -2389,3 +2389,12 @@ ul { list-style: none; }
 .btn:disabled, .btn:disabled:hover { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 #detail-modal-body .boat-spec-val { white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
 #detail-modal-body .boat-spec-val .badge { margin: 2px; }
+
+/* ── Logos de pago (PNG con fondo blanco): píldora blanca, sin deformar ── */
+.pay-logos img { width: auto; max-width: none; object-fit: contain; padding: 4px 8px; box-sizing: content-box; border-radius: 8px; background: #fff; }
+.footer .pay-logos img { height: 30px; }
+.pay-card .pay-logos img { height: 26px; border: 1px solid var(--line-2); }
+@media (max-width: 480px) {
+  .footer .pay-logos img { height: 26px; }
+  .legal-badges .pay-logos img { height: 36px; }
+}
