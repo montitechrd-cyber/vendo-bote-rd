@@ -129,7 +129,29 @@ async function createTables() {
   // es check-then-insert y por sí sola no cierra la carrera entre dos solicitudes simultáneas).
   // Un turno solo queda ocupado (y aparece en el calendario) cuando la reserva ya tiene comprobante enviado o pago verificado.
   await pool.query(`DROP INDEX IF EXISTS bookings_slot_unique_idx`).catch(() => {});
-  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_active_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`).catch(() => {});
+  // Pago con tarjeta (AZUL): 'card_pending' también retiene el turno mientras se paga
+  await pool.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'transfer'`).catch(() => {});
+  await pool.query(`DROP INDEX IF EXISTS bookings_slot_active_idx`).catch(() => {});
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_active_idx ON bookings(boat_id, start_date, schedule) WHERE status IN ('confirmed','pending') AND payment_status IN ('card_pending','submitted','verified')`).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS card_payments (
+      id SERIAL PRIMARY KEY,
+      booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      order_number TEXT UNIQUE NOT NULL,
+      amount_dop_cents BIGINT NOT NULL,
+      itbis_dop_cents BIGINT NOT NULL,
+      usd_total REAL NOT NULL,
+      usd_dop_rate REAL NOT NULL,
+      status TEXT DEFAULT 'created',
+      iso_code TEXT,
+      response_message TEXT,
+      authorization_code TEXT,
+      rrn TEXT,
+      azul_datetime TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      completed_at TIMESTAMPTZ
+    )`).catch(() => {});
+  await pool.query(`CREATE INDEX IF NOT EXISTS card_payments_booking_idx ON card_payments(booking_id)`).catch(() => {});
   // Datos de perfil que la plataforma pide aparte de Clerk (nombre/apellido reales,
   // teléfono, foto de cédula/pasaporte opcional) — ver routes/auth.js complete-profile.
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT`).catch(() => {});

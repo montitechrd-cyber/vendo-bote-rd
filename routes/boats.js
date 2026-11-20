@@ -2,6 +2,8 @@ const express = require('express');
 const { getDB } = require('../database');
 const { adminRequired } = require('../middleware/auth');
 
+const { SLOT_HOLDING_PAYMENT_STATUSES, expireCardHolds } = require('../utils/card-holds');
+
 const router = express.Router();
 
 function parseBoat(boat) {
@@ -171,6 +173,7 @@ router.get('/:slug', async (req, res) => {
 router.get('/:id/availability', async (req, res) => {
   try {
     const db = getDB();
+    await expireCardHolds(db);
     const idNum = parseInt(req.params.id);
     const boat = !isNaN(idNum)
       ? await db.queryOne('SELECT id FROM boats WHERE id = $1', [idNum])
@@ -178,11 +181,11 @@ router.get('/:id/availability', async (req, res) => {
     if (!boat) return res.status(404).json({ error: 'No encontrado' });
 
     const { year, month } = req.query;
-    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status IN ('submitted','verified')`;
-    const params = [boat.id];
+    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status = ANY($2)`;
+    const params = [boat.id, SLOT_HOLDING_PAYMENT_STATUSES];
 
     if (year && month && Number.isInteger(parseInt(year, 10)) && Number.isInteger(parseInt(month, 10))) {
-      sql += ` AND EXTRACT(YEAR FROM start_date::date) = $2 AND EXTRACT(MONTH FROM start_date::date) = $3`;
+      sql += ` AND EXTRACT(YEAR FROM start_date::date) = $3 AND EXTRACT(MONTH FROM start_date::date) = $4`;
       params.push(parseInt(year), parseInt(month));
     }
     sql += ' ORDER BY start_date ASC';
