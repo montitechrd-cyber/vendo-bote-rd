@@ -133,7 +133,20 @@ ${btn('approve', 'ok', 'Aprobar')}${btn('decline', 'no', 'Declinar')}${btn('canc
   }
 });
 
+// Escucha solo en 127.0.0.1 y se niega a arrancar si el host configurado no es local o si la base de datos es remota
+// (firma con el AZUL_AUTH_KEY del .env: con una base de producción aprobaría reservas reales sin pago).
+function assertLocalOnly(env = process.env) {
+  const host = env.AZUL_SIM_HOST || 'localhost';
+  if (!LOCAL_HOSTS.includes(host)) throw new Error(`el simulador solo puede escuchar en localhost (AZUL_SIM_HOST=${host})`);
+  if (env.DATABASE_URL) {
+    let h = '';
+    try { h = new URL(env.DATABASE_URL).hostname; } catch { throw new Error('DATABASE_URL no es válida'); }
+    if (!LOCAL_HOSTS.includes(h)) throw new Error('el simulador no se inicia con una base de datos remota');
+  }
+}
+
 if (require.main === module) {
+  try { assertLocalOnly(); } catch (e) { console.error('[azul-sim] ' + e.message); process.exit(1); }
   server.listen(PORT, '127.0.0.1', () => console.log(`[azul-sim] Simulador AZUL en http://localhost:${PORT}${BASE}`));
 }
-module.exports = { server, validateRequest };
+module.exports = { server, validateRequest, assertLocalOnly };
