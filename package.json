@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node scripts/dev.js",
     "dev:db": "node scripts/dev-db.js",
-    "db:sync": "node scripts/sync-catalog.js"
+    "db:sync": "node scripts/sync-catalog.js",
+    "test": "node --test \"tests/*.test.js\""
   },
   "dependencies": {
     "compression": "^1.8.2",
