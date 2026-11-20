@@ -108,7 +108,11 @@ app.use('/assets/img', (req, res, next) => {
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
   maxAge: '1d',
   // imagenes, video y fuentes casi nunca cambian de nombre: cache larga; css/js se versionan con ?v=
-  setHeaders(res, file) { if (/\.(jpe?g|png|webp|avif|gif|svg|mp4|woff2?)$/i.test(file)) res.setHeader('Cache-Control', 'public, max-age=2592000'); }
+  setHeaders(res, file) {
+    if (/\.(jpe?g|png|webp|avif|gif|svg|mp4|woff2?)$/i.test(file)) res.setHeader('Cache-Control', 'public, max-age=2592000');
+    // El logo de los correos lo cargan los clientes de correo desde otro origen: helmet manda CORP same-origin y los navegadores lo bloquean.
+    if (/[\/]email-logo\.png$/i.test(file)) res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 // Los comprobantes de pago NO se sirven como archivos estáticos públicos (pueden
