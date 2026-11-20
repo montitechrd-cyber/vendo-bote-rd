@@ -4,6 +4,13 @@ const { isSlotClosed } = require('./booking-time');
 
 const fail = (status, error) => ({ ok: false, status, error });
 
+// Turnos válidos de una embarcación según su esquema de precios (los usan la reserva y el cambio de fecha)
+function validSchedulesFor(boatRow) {
+  const scheme = boatRow && boatRow.pricing_scheme ? JSON.parse(boatRow.pricing_scheme) : null;
+  const dayBased = scheme?.type === 'day_based';
+  return scheme?.time_slots?.length ? scheme.time_slots : ((scheme && !dayBased) ? ['full-day'] : ['9am-3pm', '4pm-10pm']);
+}
+
 // boatRow: fila de `boats`. body: { start_date, schedule, guests, package_hours, extra_hours, meal_addons, birthday_combo }
 // (los valores pueden venir como texto, de un multipart). now: solo para pruebas.
 function computeQuote(boatRow, body, now = new Date()) {
@@ -15,7 +22,7 @@ function computeQuote(boatRow, body, now = new Date()) {
 
   // El turno válido depende del esquema de la embarcación
   const dayBased = scheme?.type === 'day_based';
-  const validSchedules = scheme?.time_slots?.length ? scheme.time_slots : ((scheme && !dayBased) ? ['full-day'] : ['9am-3pm', '4pm-10pm']);
+  const validSchedules = validSchedulesFor(boatRow);
   if (!validSchedules.includes(schedule)) return fail(400, 'Turno inválido');
 
   const maxCapacity = scheme?.max_capacity || boatRow.capacity;
@@ -96,4 +103,4 @@ function computeQuote(boatRow, body, now = new Date()) {
   return { ok: true, total, additionals, additionalsPrice, meta: metaParts.length ? metaParts.join(' · ') : null, guests: guestsNum };
 }
 
-module.exports = { computeQuote };
+module.exports = { computeQuote, validSchedulesFor };
