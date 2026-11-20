@@ -30,6 +30,15 @@ app.use(helmet({
 // Content-Security-Policy: solo se cargan scripts del propio sitio y de Google (inicio de sesión), así que
 // un script inyectado desde otro dominio no se ejecuta. Los scripts/estilos en línea siguen permitidos porque
 // las páginas los usan. Además solo NEURALAB (portafolio) y el propio sitio pueden embeber esta web en un iframe.
+// Solo desarrollo: el simulador local de AZUL (AZUL_PAYMENT_URL) debe poder recibir el formulario. Con
+// NODE_ENV=production esta variable se ignora, igual que en routes/azul.js.
+let devSimulatorOrigin = '';
+if (isDev && process.env.AZUL_PAYMENT_URL) {
+  try {
+    const u = new URL(process.env.AZUL_PAYMENT_URL);
+    if (['localhost', '127.0.0.1'].includes(u.hostname)) devSimulatorOrigin = u.origin;
+  } catch {}
+}
 const CSP = [
   "default-src 'self'",
   "script-src 'self' https://accounts.google.com",
@@ -43,7 +52,7 @@ const CSP = [
   "object-src 'none'",
   "base-uri 'self'",
   // El formulario de pago con tarjeta se envía a la Página de Pago de AZUL (el servidor no ve datos de tarjeta)
-  `form-action 'self' https://pagos.azul.com.do https://contpagos.azul.com.do${process.env.AZUL_ENV !== 'prod' ? ' https://pruebas.azul.com.do' : ''}`,
+  `form-action 'self' https://pagos.azul.com.do https://contpagos.azul.com.do${process.env.AZUL_ENV !== 'prod' ? ' https://pruebas.azul.com.do' : ''}${devSimulatorOrigin ? ' ' + devSimulatorOrigin : ''}`,
   "frame-ancestors 'self' https://neuralabrd.com https://www.neuralabrd.com http://localhost:* http://127.0.0.1:*",
 ].join('; ');
 app.use((req, res, next) => {
