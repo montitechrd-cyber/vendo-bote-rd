@@ -1,9 +1,13 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
+// DB_READONLY=1: conectarse a una base real solo para mirar (el servidor no migra ni siembra, y Postgres rechaza cualquier escritura).
+// DB_SSL=1: fuerza SSL (necesario con la URL pública de Railway desde el computador local).
+const READONLY = process.env.DB_READONLY === '1';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: (process.env.NODE_ENV === 'production' || process.env.DB_SSL === '1') ? { rejectUnauthorized: false } : false,
+  ...(READONLY ? { options: '-c default_transaction_read_only=on' } : {}),
 });
 
 const db = {
@@ -658,6 +662,7 @@ async function migrateCatamaran36() {
 }
 
 async function init() {
+  if (READONLY) { console.log('  Modo solo lectura (DB_READONLY=1): sin migraciones ni datos base.'); return; }
   await createTables();
   await seedData();
   await runDataMigrationOnce('2026-09-28-boca-chica-pricing', migrateBocaChicaPricing);
