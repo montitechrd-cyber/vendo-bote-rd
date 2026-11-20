@@ -147,6 +147,7 @@
     // Active link
     const path = location.pathname;
     $$('.nav-link').forEach(a => { if (a.getAttribute('href') === path) a.classList.add('active'); });
+    $$('.ab-tab[data-match]').forEach(a => { if (new RegExp(a.dataset.match).test(path)) a.classList.add('active'); });
 
     // Estado de sesión
     const loginBtn = $('#nav-login-btn');
@@ -156,7 +157,7 @@
       if (!u) return;
       const name = (u.name || '').split(' ')[0] || (u.email || '').split('@')[0] || 'Usuario';
       const role = u.role || 'user';
-      if (loginBtn) { loginBtn.textContent = name; loginBtn.href = '/dashboard.html'; }
+      if (loginBtn) { loginBtn.href = '/dashboard.html'; loginBtn.setAttribute('aria-label', 'Mi cuenta: ' + name); if (loginBtn.classList.contains('ab-circle')) { loginBtn.textContent = name.charAt(0).toUpperCase(); loginBtn.classList.add('has-user'); } else { loginBtn.textContent = name; } }
       if (registerBtn) {
         if (role === 'admin') { registerBtn.textContent = 'Admin Panel'; registerBtn.href = '/admin.html'; }
         else { registerBtn.textContent = 'Mis Reservas'; registerBtn.href = '/dashboard.html'; }
@@ -168,23 +169,20 @@
     });
   }
 
-  /* ── Hamburger ── */
+  /* ── Menú desplegable (hamburguesa) ── */
   function initHamburger() {
     const btn = $('#hamburger');
-    const mobile = $('#nav-mobile');
-    if (!btn || !mobile) return;
-    btn.addEventListener('click', () => {
-      const open = btn.classList.toggle('is-open');
-      mobile.classList.toggle('is-open', open);
-      mobile.setAttribute('aria-hidden', String(!open));
-      document.body.style.overflow = open ? 'hidden' : '';
+    const menu = $('#nav-menu');
+    if (!btn || !menu) return;
+    const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.classList.remove('is-open'); };
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = menu.hidden;
+      menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.classList.toggle('is-open', open);
     });
-    $$('.nav-mobile-link', mobile).forEach(a => a.addEventListener('click', () => {
-      btn.classList.remove('is-open');
-      mobile.classList.remove('is-open');
-      mobile.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }));
+    document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    $$('a', menu).forEach(a => a.addEventListener('click', close));
   }
 
   /* ── Scroll progress ── */
@@ -451,7 +449,7 @@
     if (!grid) return;
     api('/boats/featured').then(boats => {
       if (!Array.isArray(boats) || !boats.length) { grid.innerHTML = '<p class="text-muted">No hay embarcaciones disponibles.</p>'; return; }
-      grid.innerHTML = boats.map(buildBoatCard).join('');
+      grid.innerHTML = boats.slice(0, 6).map(buildBoatCard).join('');
       generateCardVideoPosters(grid);
       initReveals();
     }).catch(() => { grid.innerHTML = '<p class="text-muted">Error cargando embarcaciones.</p>'; });

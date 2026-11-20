@@ -7,108 +7,112 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/FAVICON.png?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261021a" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261120d" />
   <!--SEO_LOCATION-->
 </head>
 <body>
 
 <div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
 
-<nav class="nav is-scrolled" id="nav" aria-label="Principal">
-  <a href="/"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="nav-logo-img" /></a>
-  <div class="nav-links">
-    <div class="nav-dropdown">
-      <a href="/embarcaciones.html" class="nav-link active">Rentar</a>
-      <div class="nav-dropdown-menu">
-        <a href="/renta-de-botes-en-boca-chica" class="nav-dropdown-item">📍 Boca Chica</a>
-        <a href="/renta-de-botes-en-punta-cana" class="nav-dropdown-item">📍 Punta Cana</a>
-        <a href="/renta-de-botes-en-la-romana" class="nav-dropdown-item">📍 La Romana</a>
+<nav class="nav ab-nav is-scrolled" id="nav" aria-label="Principal">
+  <a href="/" class="ab-logo" aria-label="Vendo Bote RD, inicio"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="ab-logo-img" /></a>
+  <div class="ab-tabs">
+    <a class="ab-tab" data-match="^/(index\.html)?$" href="/"><span class="ab-ico" aria-hidden="true">🏝️</span><span>Todo</span></a>
+    <div class="ab-tabwrap">
+      <a class="ab-tab" data-match="^/(embarcaciones|renta-de-botes|boat)" href="/embarcaciones.html"><span class="ab-ico" aria-hidden="true">⛵</span><span>Rentar</span></a>
+      <div class="ab-drop">
+        <a href="/renta-de-botes-en-boca-chica">📍 Boca Chica</a>
+        <a href="/renta-de-botes-en-punta-cana">📍 Punta Cana</a>
+        <a href="/renta-de-botes-en-la-romana">📍 La Romana</a>
       </div>
     </div>
-    <a href="/ventas.html" class="nav-link">Comprar</a>
+    <a class="ab-tab" data-match="^/ventas" href="/ventas.html"><span class="ab-ico" aria-hidden="true">🛥️</span><span>Comprar</span></a>
+    <a class="ab-tab" href="/#como-funciona"><span class="ab-ico" aria-hidden="true">⚓</span><span>Cómo funciona</span></a>
   </div>
-  <div class="nav-actions">
-    <a href="/auth.html" class="nav-btn nav-btn-ghost" id="nav-login-btn">Ingresar</a>
-    <a href="/auth.html" class="nav-btn nav-btn-primary" id="nav-register-btn">Reservar</a>
+  <div class="ab-right">
+    <a href="/auth.html" class="ab-circle" id="nav-login-btn" aria-label="Iniciar sesión">
+      <svg viewBox="0 0 32 32" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="16" cy="16" r="13"/><circle cx="16" cy="13" r="4.5"/><path d="M6.5 25.5c2.2-4 5.6-5.5 9.5-5.5s7.300 1.500 9.500 5.500"/></svg>
+    </a>
+    <button type="button" class="ab-circle" id="hamburger" aria-label="Menú" aria-expanded="false" aria-haspopup="true" aria-controls="nav-menu">
+      <svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 9h22M5 16h22M5 23h22"/></svg>
+    </button>
+    <div class="ab-menu" id="nav-menu" hidden>
+      <a href="/auth.html" class="ab-mi ab-mi-b" id="nav-mobile-login-btn">Iniciar sesión o registrarte</a>
+      <a href="/auth.html" class="ab-mi" id="nav-register-btn">Reservar</a>
+      <div class="ab-sep"></div>
+      <a href="/embarcaciones.html" class="ab-mi">⛵ Rentar</a>
+      <a href="/ventas.html" class="ab-mi">🛥️ Comprar</a>
+      <a href="/#como-funciona" class="ab-mi">⚓ Cómo funciona</a>
+      <div class="ab-sep"></div>
+      <a href="/renta-de-botes-en-boca-chica" class="ab-mi ab-mi-s">📍 Boca Chica</a>
+      <a href="/renta-de-botes-en-punta-cana" class="ab-mi ab-mi-s">📍 Punta Cana</a>
+      <a href="/renta-de-botes-en-la-romana" class="ab-mi ab-mi-s">📍 La Romana</a>
+    </div>
   </div>
-  <button class="nav-hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
 </nav>
-<div class="nav-mobile" id="nav-mobile">
-  <div class="nav-mobile-links">
-    <a href="/embarcaciones.html" class="nav-mobile-link nav-mobile-link-primary">⛵ Rentar</a>
-    <a href="/ventas.html" class="nav-mobile-link nav-mobile-link-primary">🛥️ Comprar</a>
-    <div class="nav-mobile-divider"></div>
-    <a href="/renta-de-botes-en-boca-chica" class="nav-mobile-link nav-mobile-link-loc">📍 Boca Chica</a>
-    <a href="/renta-de-botes-en-punta-cana" class="nav-mobile-link nav-mobile-link-loc">📍 Punta Cana</a>
-    <a href="/renta-de-botes-en-la-romana" class="nav-mobile-link nav-mobile-link-loc">📍 La Romana</a>
-    <div class="nav-mobile-divider"></div>
-    <a href="/auth.html" class="nav-mobile-link nav-mobile-cta" id="nav-mobile-login-btn">🔑 Ingresar</a>
-  </div>
-</div>
 
 <main id="contenido">
 <div class="page">
-  <div class="page-hero">
-    <div class="page-hero-inner">
-      <div class="section-kicker">Todas las Embarcaciones</div>
-      <h1 class="page-title">Catálogo de <em>Embarcaciones</em></h1>
-      <p class="page-subtitle">Selecciona la embarcación perfecta para tu día de playa en República Dominicana.</p>
-    </div>
-  </div>
+  <header class="cx">
+    <div class="cx-fx" aria-hidden="true"><div class="cx-rays"></div><div class="cx-sun"></div></div>
+    <div class="cx-inner">
+      <span class="cx-kicker">Todas las embarcaciones</span>
+      <h1 class="cx-title">Encuentra tu <span class="cx-grad">bote ideal</span></h1>
+      <p class="cx-sub">Elige destino, capacidad y presupuesto, nosotros te mostramos lo que encaja</p>
 
-  <!-- Barra de filtros: ubicación + búsqueda + filtros + orden -->
-  <div class="cat-toolbar">
-    <div class="cat-toolbar-inner">
-      <div class="cat-chips" id="location-tabs" role="tablist" aria-label="Ubicación">
-        <button class="cat-chip active" data-location="" role="tab">Todas <span class="cat-chip-n"></span></button>
-        <button class="cat-chip" data-location="Boca Chica" role="tab">Boca Chica <span class="cat-chip-n"></span></button>
-        <button class="cat-chip" data-location="Punta Cana" role="tab">Punta Cana <span class="cat-chip-n"></span></button>
-        <button class="cat-chip" data-location="La Romana" role="tab">La Romana <span class="cat-chip-n"></span></button>
-        <button class="cat-chip" data-location="Miami" role="tab">Miami <span class="cat-chip-n"></span></button>
-      </div>
-
-      <div class="cat-row">
-        <div class="cat-search">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-          <input type="search" id="filter-search" placeholder="Buscar" autocomplete="off" aria-label="Buscar embarcación" />
+      <div class="cx-card">
+        <div class="cx-top">
+          <div class="cx-search">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="filter-search" placeholder="Busca por nombre o tipo de embarcación" autocomplete="off" aria-label="Buscar embarcación" />
+          </div>
+          <label class="cx-sort"><span>Ordenar</span>
+            <select id="filter-sort" aria-label="Ordenar">
+              <option value="featured">Destacadas</option>
+              <option value="price-asc">Precio: menor</option>
+              <option value="price-desc">Precio: mayor</option>
+              <option value="capacity-desc">Más capacidad</option>
+            </select>
+          </label>
         </div>
-        <button type="button" class="cat-btn" id="btn-toggle-filters" aria-expanded="false" aria-controls="filters-panel">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-          <span>Filtros</span><span class="cat-badge" id="filter-badge" hidden>0</span>
-        </button>
-        <select id="filter-sort" class="cat-btn cat-sort" aria-label="Ordenar">
-          <option value="featured">Destacadas</option>
-          <option value="price-asc">Precio: menor</option>
-          <option value="price-desc">Precio: mayor</option>
-          <option value="capacity-desc">Más capacidad</option>
-        </select>
-      </div>
 
-      <div class="cat-panel" id="filters-panel" hidden>
-        <div class="cat-group">
-          <div class="cat-group-label">Personas</div>
-          <div class="cat-opts" data-filter="capacity">
-            <button type="button" class="cat-opt active" data-value="">Todas</button>
-            <button type="button" class="cat-opt" data-value="6">6+</button>
-            <button type="button" class="cat-opt" data-value="10">10+</button>
-            <button type="button" class="cat-opt" data-value="15">15+</button>
-            <button type="button" class="cat-opt" data-value="20">20+</button>
+        <div class="cx-group">
+          <div class="cx-gl">Destino</div>
+          <div class="cat-chips cx-chips" id="location-tabs" role="tablist" aria-label="Ubicación">
+            <button class="cat-chip active" data-location="" role="tab"><span class="cx-ci" aria-hidden="true">🌊</span>Todas <span class="cat-chip-n"></span></button>
+            <button class="cat-chip" data-location="Boca Chica" role="tab"><span class="cx-ci" aria-hidden="true">🏖️</span>Boca Chica <span class="cat-chip-n"></span></button>
+            <button class="cat-chip" data-location="Punta Cana" role="tab"><span class="cx-ci" aria-hidden="true">🌴</span>Punta Cana <span class="cat-chip-n"></span></button>
+            <button class="cat-chip" data-location="La Romana" role="tab"><span class="cx-ci" aria-hidden="true">⚓</span>La Romana <span class="cat-chip-n"></span></button>
+            <button class="cat-chip" data-location="Miami" role="tab"><span class="cx-ci" aria-hidden="true">🌆</span>Miami <span class="cat-chip-n"></span></button>
           </div>
         </div>
-        <div class="cat-group">
-          <div class="cat-group-label">Precio máximo por día</div>
-          <div class="cat-opts" data-filter="price">
-            <button type="button" class="cat-opt active" data-value="">Cualquiera</button>
-            <button type="button" class="cat-opt" data-value="1200">$1,200</button>
-            <button type="button" class="cat-opt" data-value="2000">$2,000</button>
-            <button type="button" class="cat-opt" data-value="3000">$3,000</button>
-            <button type="button" class="cat-opt" data-value="5000">$5,000</button>
+
+        <div class="cx-row2">
+          <div class="cx-group">
+            <div class="cx-gl">Pasajeros</div>
+            <div class="cat-opts cx-opts" data-filter="capacity">
+              <button type="button" class="cat-opt active" data-value="">Todas</button>
+              <button type="button" class="cat-opt" data-value="6">6+</button>
+              <button type="button" class="cat-opt" data-value="10">10+</button>
+              <button type="button" class="cat-opt" data-value="15">15+</button>
+              <button type="button" class="cat-opt" data-value="20">20+</button>
+            </div>
+          </div>
+          <div class="cx-group">
+            <div class="cx-gl">Precio máximo por día</div>
+            <div class="cat-opts cx-opts" data-filter="price">
+              <button type="button" class="cat-opt active" data-value="">Cualquiera</button>
+              <button type="button" class="cat-opt" data-value="1200">$1,200</button>
+              <button type="button" class="cat-opt" data-value="2000">$2,000</button>
+              <button type="button" class="cat-opt" data-value="3000">$3,000</button>
+              <button type="button" class="cat-opt" data-value="5000">$5,000</button>
+            </div>
           </div>
         </div>
-        <button type="button" class="cat-clear" id="btn-clear">Limpiar filtros</button>
+        <div class="cx-foot"><button type="button" class="cx-clear" id="btn-clear" hidden>✕ Limpiar filtros</button></div>
       </div>
     </div>
-  </div>
+  </header>
 
   <section class="section">
     <div class="section-inner">
@@ -162,7 +166,7 @@
 </footer>
 
 <div id="toast-container"></div>
-<script src="/assets/js/main.js?v=20261015b" defer></script>
+<script src="/assets/js/main.js?v=20261120d" defer></script>
 <script defer>
 (function () {
   let allBoats = [];
@@ -217,9 +221,7 @@
     const filtered = sortBoats(allBoats.filter(b => matches(b)));
     $('results-count').textContent = filtered.length + ' ' + (filtered.length !== 1 ? 'embarcaciones' : 'embarcación');
 
-    const badge = $('filter-badge');
     const n = activeFilterCount();
-    badge.hidden = !n; badge.textContent = n;
     $('btn-clear').hidden = !(n || state.search || state.location);
 
     document.querySelectorAll('.cat-opts').forEach(g => {
@@ -258,14 +260,6 @@
     $('filter-search').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { state.search = e.target.value; render(); }, 180); });
     $('filter-sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
     $('btn-clear').addEventListener('click', window.resetFilters);
-
-    const panel = $('filters-panel'), toggle = $('btn-toggle-filters');
-    toggle.addEventListener('click', () => {
-      const open = panel.hidden;
-      panel.hidden = !open;
-      toggle.setAttribute('aria-expanded', String(open));
-      toggle.classList.toggle('is-open', open);
-    });
 
     fetch('/api/boats').then(r => r.json()).then(boats => {
       allBoats = boats;
