@@ -54,6 +54,24 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // SEO (robots.txt, sitemap.xml, metadatos por página): debe ir ANTES del static
 // para que las páginas HTML salgan con su title/description/JSON-LD propios.
 app.use(require('./routes/seo'));
+// Fotos de embarcaciones: si el navegador acepta WebP y existe la versión .webp junto al
+// original (foo.jpeg -> foo.jpeg.webp), se sirve esa; las rutas guardadas no cambian.
+const IMG_ROOT = path.join(__dirname, 'public', 'assets', 'img');
+app.use('/assets/img', (req, res, next) => {
+  if (req.method !== 'GET' || !/^\/(RENTAS|VENTAS)\//.test(req.path) || !/\.(jpe?g|png)$/i.test(req.path)) return next();
+  res.setHeader('Vary', 'Accept');
+  if (!(req.headers.accept || '').includes('image/webp')) return next();
+  let rel;
+  try { rel = decodeURIComponent(req.path); } catch (e) { return next(); }
+  const file = path.join(IMG_ROOT, rel + '.webp');
+  if (!file.startsWith(IMG_ROOT + path.sep)) return next();
+  fs.access(file, fs.constants.R_OK, (err) => {
+    if (err) return next();
+    res.type('image/webp');
+    res.setHeader('Cache-Control', 'public, max-age=2592000');
+    res.sendFile(file);
+  });
+});
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
   maxAge: '1d',
   // imagenes, video y fuentes casi nunca cambian de nombre: cache larga; css/js se versionan con ?v=
