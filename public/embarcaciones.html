@@ -172,6 +172,7 @@
   if (window.__VBR_LOCATION) state.location = window.__VBR_LOCATION;
   else if (params.get('location')) state.location = params.get('location');
   if (params.get('search')) state.search = params.get('search');
+  if (parseInt(params.get('capacity')) > 0) state.capacity = String(parseInt(params.get('capacity')));
 
   const $ = (id) => document.getElementById(id);
 
