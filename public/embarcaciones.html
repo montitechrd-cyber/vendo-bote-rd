@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261120h" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261120j" />
   <!--SEO_LOCATION-->
 </head>
 <body>
@@ -60,11 +60,11 @@
     <div class="cx-fx" aria-hidden="true"><div class="cx-rays"></div><div class="cx-sun"></div></div>
     <div class="cx-inner">
       <span class="cx-kicker">Todas las embarcaciones</span>
-      <h1 class="cx-title">Encuentra tu <span class="cx-grad">bote ideal</span></h1>
       <p class="cx-sub">Elige destino, capacidad y presupuesto, nosotros te mostramos lo que encaja</p>
 
       <div class="cx-card">
         <div class="cx-top">
+          <h1 class="cx-title">Encuentra tu <span class="cx-grad">bote ideal</span></h1>
           <div class="cx-search">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
             <input type="search" id="filter-search" placeholder="Busca por nombre o tipo de embarcación" autocomplete="off" aria-label="Buscar embarcación" />
@@ -77,8 +77,10 @@
               <option value="capacity-desc">Más capacidad</option>
             </select>
           </label>
+          <button type="button" class="cx-clear" id="btn-clear" hidden>✕ Limpiar</button>
         </div>
 
+        <div class="cx-filters">
         <div class="cx-group">
           <div class="cx-gl">Destino</div>
           <div class="cat-chips cx-chips" id="location-tabs" role="tablist" aria-label="Ubicación">
@@ -90,7 +92,6 @@
           </div>
         </div>
 
-        <div class="cx-row2">
           <div class="cx-group">
             <div class="cx-gl">Pasajeros</div>
             <div class="cat-opts cx-opts" data-filter="capacity">
@@ -112,7 +113,6 @@
             </div>
           </div>
         </div>
-        <div class="cx-foot"><button type="button" class="cx-clear" id="btn-clear" hidden>✕ Limpiar filtros</button></div>
       </div>
     </div>
   </header>
