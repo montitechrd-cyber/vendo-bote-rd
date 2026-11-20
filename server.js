@@ -121,6 +121,8 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiadas solicitudes, intenta de nuevo en unos minutos' },
+  // Las rutas de retorno de AZUL tienen su propio límite (con redirección en vez de JSON): un 429 aquí dejaría sin procesar un pago aprobado
+  skip: (req) => /^\/payments\/azul\/(approved|declined|cancelled)\//.test(req.path),
 });
 app.use('/api', apiLimiter);
 
@@ -222,7 +224,7 @@ fs.mkdirSync(path.join(__dirname, 'uploads', 'ids'), { recursive: true });
 
 init().then(() => {
   // Expiración de retenciones con tarjeta cada 60 s (en lugar de escribir en cada GET público) + aviso al admin
-  require('./utils/card-expiry-job').startCardExpiryJob(getDB(), require('./utils/email'));
+  require('./utils/card-expiry-job').startCardExpiryJob(getDB(), require('./utils/email'), Number(process.env.CARD_EXPIRY_INTERVAL_MS) || undefined);
   if (process.env.NODE_ENV === 'production' && process.env.AZUL_ENV !== 'prod' && process.env.AZUL_ALLOW_TEST_IN_PROD === '1') {
     console.warn('AVISO: AZUL_ALLOW_TEST_IN_PROD=1 con AZUL_ENV distinto de "prod": el pago con tarjeta usa el entorno de PRUEBAS de AZUL en producción. Quítalo al terminar.');
   }
