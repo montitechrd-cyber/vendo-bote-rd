@@ -63,7 +63,8 @@ function buildPaymentFields(o) {
     UseCustomField2: '0',
     CustomField2Label: '',
     CustomField2Value: '',
-    // Sin ShowTransactionResult: AZUL muestra su propia pantalla de resultado (valor por defecto del manual).
+    // ShowTransactionResult '0' (fuera del hash): AZUL redirige directo al retorno, sin pantalla propia; reduce el abandono.
+    ShowTransactionResult: '0',
     Locale: o.locale === 'EN' ? 'EN' : 'ES'
   };
   if (o.altMerchantName !== undefined && o.altMerchantName !== null && o.altMerchantName !== '') {

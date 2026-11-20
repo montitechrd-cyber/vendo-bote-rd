@@ -2,7 +2,7 @@ const express = require('express');
 const { getDB } = require('../database');
 const { adminRequired } = require('../middleware/auth');
 
-const { SLOT_HOLDING_PAYMENT_STATUSES, expireCardHolds } = require('../utils/card-holds');
+const { SLOT_HOLDING_PAYMENT_STATUSES, HOLD_MINUTES } = require('../utils/card-holds');
 
 const router = express.Router();
 
@@ -146,6 +146,10 @@ router.delete('/:id/permanent', adminRequired, async (req, res) => {
     if (!boat) return res.status(404).json({ error: 'Embarcación no encontrada' });
     const live = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [boat.id]);
     if (live.n > 0) return res.status(409).json({ error: 'Esta embarcación tiene ' + live.n + ' reserva(s) pendientes o confirmadas. Recházalas o cancélalas primero, o usa Desactivar para conservar el historial.' });
+    // El registro de cobros con tarjeta con dinero de por medio no se borra (trazabilidad): usa Desactivar.
+    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1) AND status IN ('approved','needs_review','expired_unconfirmed')", [boat.id]);
+    if (evidence.n > 0) return res.status(409).json({ error: 'Esta embarcación tiene pagos con tarjeta que deben conservarse como registro. Usa Desactivar para conservar el historial.' });
+    await db.run('DELETE FROM card_payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [boat.id]);
     await db.run('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [boat.id]);
     await db.run('DELETE FROM reviews WHERE boat_id = $1', [boat.id]);
     await db.run('DELETE FROM bookings WHERE boat_id = $1', [boat.id]);
@@ -173,7 +177,7 @@ router.get('/:slug', async (req, res) => {
 router.get('/:id/availability', async (req, res) => {
   try {
     const db = getDB();
-    await expireCardHolds(db);
+    // Sin escritura en el GET público (B5): la expiración la hace un job; aquí las card_pending vencidas no cuentan.
     const idNum = parseInt(req.params.id);
     const boat = !isNaN(idNum)
       ? await db.queryOne('SELECT id FROM boats WHERE id = $1', [idNum])
@@ -181,7 +185,7 @@ router.get('/:id/availability', async (req, res) => {
     if (!boat) return res.status(404).json({ error: 'No encontrado' });
 
     const { year, month } = req.query;
-    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status = ANY($2)`;
+    let sql = `SELECT start_date, schedule FROM bookings WHERE boat_id = $1 AND status IN ('confirmed','pending') AND payment_status = ANY($2) AND (payment_status <> 'card_pending' OR created_at > NOW() - INTERVAL '${HOLD_MINUTES} minutes')`;
     const params = [boat.id, SLOT_HOLDING_PAYMENT_STATUSES];
 
     if (year && month && Number.isInteger(parseInt(year, 10)) && Number.isInteger(parseInt(month, 10))) {

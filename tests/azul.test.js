@@ -73,6 +73,10 @@ test('buildPaymentFields', () => {
   assert.equal(f.UseCustomField2, '0');
   assert.equal(f.AuthHash, azul.buildRequestHash(f, 'k'));
   assert.equal(f.AuthKey, undefined);
+  assert.equal(f.ShowTransactionResult, '0');
+  // ShowTransactionResult no entra en el hash
+  const g = { ...f }; delete g.ShowTransactionResult;
+  assert.equal(azul.buildRequestHash(g, 'k'), f.AuthHash);
 });
 
 test('buildPaymentFields: AltMerchantName valido y limites', () => {

@@ -257,6 +257,41 @@ async function sendCardNeedsReview(booking, user, payment) {
   });
 }
 
+// Aviso al admin: cobros con tarjeta cuya reserva expiró sin que llegara el retorno de AZUL. Sin datos
+// sensibles: solo orden, referencia y monto. Hay que conciliarlos con el portal de AZUL.
+async function sendCardsExpiredUnconfirmed(items) {
+  if (!process.env.EMAIL_USER || !items || !items.length) return;
+  const rows = items.map((i) => `<div class="row"><span class="lbl">${esc(i.booking_ref)}</span><span class="val">Orden ${esc(i.order_number)} · ${esc(fmtDop(i.amount_dop_cents))}</span></div>`).join('');
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: ADMIN_RECIPIENTS,
+    subject: `⚠️ ${items.length} pago(s) con tarjeta por conciliar con AZUL`,
+    html: wrap('Pagos con tarjeta por conciliar', `
+      <p class="greeting">Reservas con tarjeta vencidas sin respuesta de AZUL</p>
+      <p class="intro">Estas reservas expiraron (15 minutos) sin que el navegador del cliente volviera de AZUL. Puede que el cliente <strong>sí haya pagado</strong>. Compruébalas en el portal de AZUL: si hay cobro aprobado, confirma el turno a mano o devuelve el dinero.</p>
+      <div class="box"><div class="box-title">Órdenes</div>${rows}</div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Abrir el panel</a></div>
+    `),
+  });
+}
+
+// Aviso al admin: llegó una segunda respuesta aprobada, con hash válido, de una orden ya aprobada pero con
+// otro código de autorización o RRN (posible doble cobro). Solo orden y referencia.
+async function sendCardDuplicateApproval(orderNumber, bookingRef) {
+  if (!process.env.EMAIL_USER) return;
+  await transporter.sendMail({
+    from: `"Vendo Bote RD" <${process.env.EMAIL_USER}>`,
+    to: ADMIN_RECIPIENTS,
+    subject: `🚨 Posible doble cobro con tarjeta · ${bookingRef}`,
+    html: wrap('Posible doble cobro', `
+      <p class="greeting">Acción necesaria</p>
+      <p class="intro">AZUL envió una segunda aprobación para una orden que ya estaba aprobada, con distinto código de autorización o RRN. Revisa en el portal de AZUL si hubo dos cargos y devuelve el duplicado.</p>
+      <div class="box"><div class="box-title">Orden</div><div class="row"><span class="lbl">Reserva</span><span class="val">${esc(bookingRef)}</span></div><div class="row"><span class="lbl">Orden</span><span class="val">${esc(orderNumber)}</span></div></div>
+      <div class="cta"><a class="btn" href="${SITE_URL}/admin.html">Abrir el panel</a></div>
+    `),
+  });
+}
+
 /* ── Crear / restablecer contraseña ── */
 async function sendPasswordReset(user, link) {
   if (!process.env.EMAIL_USER) throw new Error('EMAIL_USER no configurado');
@@ -288,4 +323,4 @@ async function sendEmailVerification(user, link) {
   });
 }
 
-module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendPasswordReset, sendEmailVerification };
+module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendCardsExpiredUnconfirmed, sendCardDuplicateApproval, sendPasswordReset, sendEmailVerification };
