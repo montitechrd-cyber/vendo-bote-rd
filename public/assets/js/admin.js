@@ -136,8 +136,35 @@ document.addEventListener('DOMContentLoaded', function () {
     renderAllBookings();
   });
 
+  /* ── Pagos con tarjeta por revisar (AZUL) ── */
+  const CARD_STATUS = { created: 'Iniciado (sin respuesta)', needs_review: 'Aprobado por AZUL: por revisar', expired_unconfirmed: 'Reserva expirada sin confirmar' };
+  function loadCardReview() {
+    const box = document.getElementById('card-review-list');
+    if (!box) return;
+    window.VBR.api('/payments/azul/admin/review').then(rows => {
+      box.textContent = '';
+      if (!rows || !rows.length) return; // vacío si no hay nada por revisar
+      const table = document.createElement('table');
+      table.className = 'data-table';
+      const head = document.createElement('thead'), hr = document.createElement('tr');
+      ['Reserva', 'Orden', 'Estado', 'Monto', 'USD', 'Creado', 'Completado'].forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); });
+      head.appendChild(hr); table.appendChild(head);
+      const body = document.createElement('tbody');
+      const fmt = (d) => d ? new Date(d).toLocaleString('es-DO') : '—';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        [r.booking_ref, r.order_number, CARD_STATUS[r.status] || r.status + (r.iso_code ? ' (' + r.iso_code + ')' : ''),
+         'RD$ ' + Number(r.amount_dop).toLocaleString('es-DO', { minimumFractionDigits: 2 }), '$' + Number(r.usd_total).toLocaleString(),
+         fmt(r.created_at), fmt(r.completed_at)].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+        body.appendChild(tr);
+      });
+      table.appendChild(body); box.appendChild(table);
+    }).catch(() => { if (box) box.textContent = ''; });
+  }
+
   /* ── Pending payments ── */
   function loadPendingPayments() {
+    loadCardReview();
     window.VBR.api('/bookings?payment_status=submitted').then(data => {
       const wrap = document.getElementById('payments-pending-list');
       if (!data.length) {

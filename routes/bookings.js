@@ -317,8 +317,14 @@ router.patch('/:id/verify-payment', adminRequired, async (req, res) => {
     const booking = await db.queryOne('SELECT * FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
 
+    // Las reservas pagadas con tarjeta las gestiona AZUL: aprobar o rechazar a mano no aplica
+    if (booking.payment_method === 'card') {
+      return res.status(400).json({ error: 'Esta reserva es de pago con tarjeta: se gestiona desde AZUL, no se aprueba ni se rechaza aquí.' });
+    }
+
     if (action === 'approve') {
       if (booking.status === 'cancelled') return res.status(400).json({ error: 'La reserva está cancelada' });
+      if (booking.payment_status !== 'submitted') return res.status(400).json({ error: 'Solo se puede aprobar una reserva con comprobante enviado' });
       try {
         await db.run('UPDATE bookings SET status=$1, payment_status=$2 WHERE id=$3', ['confirmed','verified', booking.id]);
       } catch (e) {
@@ -359,6 +365,10 @@ router.delete('/:id', adminRequired, async (req, res) => {
     const db = getDB();
     const booking = await db.queryOne('SELECT id FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
+    // El registro de un cobro con tarjeta con dinero de por medio no se borra (trazabilidad / conciliación)
+    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id = $1 AND status IN ('approved','needs_review','expired_unconfirmed')", [booking.id]);
+    if (evidence.n > 0) return res.status(409).json({ error: 'Esta reserva tiene un pago con tarjeta que debe conservarse como registro (aprobado, por revisar o sin confirmar). No se puede eliminar.' });
+    await db.run('DELETE FROM card_payments WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM reviews WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM payments WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM bookings WHERE id = $1', [booking.id]);
