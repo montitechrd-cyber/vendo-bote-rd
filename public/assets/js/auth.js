@@ -27,6 +27,15 @@
     } catch { return { error: 'Error de conexión, intenta de nuevo.' }; }
   }
 
+  // Administrador con 2FA: el servidor no emite sesión hasta validar el código; aquí se guarda el reto firmado (5 min)
+  let totpChallenge = null;
+  // Devuelve true si la respuesta pide el código y ya se mostró el paso 2
+  function needsTotp(d) {
+    if (!d || !d.totp_required) return false;
+    totpChallenge = d.challenge; $('totp-code').value = ''; go('totp');
+    return true;
+  }
+
   async function afterSignIn() {
     let me = null;
     try { const r = await fetch('/api/auth/me', { credentials: 'same-origin' }); me = r.ok ? await r.json() : null; } catch {}
@@ -59,6 +68,16 @@
   $('view-login').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
     const d = await post('login', { email: $('login-email').value, password: $('login-pass').value });
     if (d.error) return show('error', d.error);
+    if (needsTotp(d)) return;
+    afterSignIn();
+  }); });
+
+  $('view-totp').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
+    const d = await post('login/2fa', { challenge: totpChallenge, code: $('totp-code').value });
+    if (d.error) {
+      if (d.expired) { totpChallenge = null; go('login'); }
+      return show('error', d.error);
+    }
     afterSignIn();
   }); });
 
@@ -108,6 +127,7 @@
   $('view-reset').addEventListener('submit', e => { e.preventDefault(); submit(e.target, async () => {
     const d = await post('reset', { token: resetToken, password: $('reset-pass').value });
     if (d.error) return show('error', d.error);
+    if (needsTotp(d)) return;
     afterSignIn();
   }); });
 
@@ -125,6 +145,7 @@
           clearMsg();
           const d = await post('google', { credential: resp.credential });
           if (d.error) return show('error', d.error);
+          if (needsTotp(d)) return;
           afterSignIn();
         },
       });

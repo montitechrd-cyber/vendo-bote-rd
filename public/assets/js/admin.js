@@ -6,10 +6,64 @@ document.addEventListener('DOMContentLoaded', function () {
   window.VBR_getUser().then(user => {
     if (!user) { location.href = '/auth.html'; return; }
     if (user.role !== 'admin') { location.href = '/dashboard.html'; return; }
-    loadDashboard();
-    loadAllBookings();
-    loadBoatsAdmin();
+    // PCI DSS 8: sin 2FA activado el panel solo deja configurar el 2FA (el servidor responde 403 totp_setup_required al resto)
+    fetch('/api/auth/2fa/status', { credentials: 'same-origin' }).then(r => r.json()).then(st => {
+      if (!st.enabled) { enterSetupMode(); return; }
+      loadDashboard();
+      loadAllBookings();
+      loadBoatsAdmin();
+    }).catch(() => { loadDashboard(); loadAllBookings(); loadBoatsAdmin(); });
   });
+
+  /* ── 2FA: configuración obligatoria, gestión y registro de actividad ── */
+  const $id = (i) => document.getElementById(i);
+  const show = (i, on) => $id(i).classList.toggle('hidden', !on);
+  function tfaApi(path, body) {
+    return window.VBR.api('/auth/2fa/' + path, body ? { method: 'POST', body } : {});
+  }
+  function enterSetupMode() {
+    document.querySelectorAll('.admin-nav-item[data-section]').forEach(n => { if (n.dataset.section !== 'security') n.classList.add('hidden'); });
+    window.showSection('security', document.querySelector('.admin-nav-item[data-section="security"]'));
+    show('tfa-required', true);
+  }
+  async function loadSecurity() {
+    show('tfa-off', false); show('tfa-on', false); show('tfa-codes', false);
+    const st = await tfaApi('status');
+    if (st.enabled) {
+      $id('tfa-left').textContent = 'Te quedan ' + st.recovery_left + ' códigos de recuperación sin usar.';
+      show('tfa-on', true);
+      return;
+    }
+    show('tfa-off', true);
+    $id('tfa-secret').textContent = 'Generando...';
+    const d = await tfaApi('setup', {});
+    if (d.error) { $id('tfa-secret').textContent = d.error; return; }
+    $id('tfa-secret').textContent = d.secret;
+    $id('tfa-link').href = d.otpauth;
+    $id('tfa-code').value = '';
+  }
+  window.tfaEnable = async function () {
+    const d = await tfaApi('enable', { code: $id('tfa-code').value });
+    if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+    $id('tfa-codes-list').textContent = d.recovery_codes.join('\n');
+    show('tfa-off', false); show('tfa-codes', true);
+  };
+  window.tfaReauth = async function (path, okMsg) {
+    const d = await tfaApi(path, { password: $id('tfa-pass').value, code: $id('tfa-code2').value });
+    if (d.error) { window.VBR.toast(d.error, 'error'); return; }
+    $id('tfa-pass').value = ''; $id('tfa-code2').value = '';
+    window.VBR.toast(okMsg, 'success');
+    if (d.recovery_codes) { $id('tfa-codes-list').textContent = d.recovery_codes.join('\n'); show('tfa-on', false); show('tfa-codes', true); }
+    else location.reload();
+  };
+  async function loadAudit() {
+    const rows = await window.VBR.api('/admin/audit');
+    const body = $id('audit-body');
+    if (!Array.isArray(rows)) { body.innerHTML = '<tr><td colspan="6">' + esc(rows.error || 'No se pudo cargar') + '</td></tr>'; return; }
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="6">Sin actividad registrada.</td></tr>'; return; }
+    body.innerHTML = rows.map(r => '<tr><td style="white-space:nowrap;">' + esc(new Date(r.at).toLocaleString('es-DO')) + '</td><td>' + esc(r.user_email || '—') +
+      '</td><td>' + esc(r.action) + '</td><td>' + esc(r.entity ? r.entity + (r.entity_id ? ' #' + r.entity_id : '') : '—') + '</td><td>' + esc(r.ip || '—') + '</td><td>' + esc(r.detail || '') + '</td></tr>').join('');
+  }
 
   const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const SCHEDULE_LABEL = { '9am-3pm': 'Mañana 9AM–3PM', '4pm-10pm': 'Tarde 4PM–10PM', 'full-day': 'Día completo' };
@@ -46,6 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (id === 'payments')   loadPendingPayments();
     if (id === 'boats')      loadBoatsAdmin();
     if (id === 'calendar')   initCalendarSection();
+    if (id === 'audit')      loadAudit();
+    if (id === 'security')   loadSecurity();
   };
 
   /* ── Dashboard ── */
@@ -572,6 +628,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const ACTIONS = {
     'show-section': (el) => window.showSection(el.dataset.section, el),
     'logout': () => window.logout(),
+    'tfa-enable': () => window.tfaEnable(),
+    'tfa-done': () => location.reload(),
+    'tfa-regen': () => window.tfaReauth('recovery-codes', 'Códigos nuevos generados'),
+    'tfa-disable': () => window.tfaReauth('disable', '2FA desactivado'),
     'open-boat-modal': (el) => window.openBoatModal(el.dataset.id ? Number(el.dataset.id) : null),
     'switch-boats-tab': (el) => window.switchBoatsTab(el.dataset.tab, el),
     'set-cal-filter': (el) => window.setCalFilter(el.dataset.filter, el),

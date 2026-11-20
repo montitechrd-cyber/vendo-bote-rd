@@ -84,6 +84,15 @@
         </div>
       </form>
 
+      <!-- Segundo paso del acceso de administrador (2FA) -->
+      <form class="auth-view" id="view-totp" novalidate>
+        <h1>Verificación en dos pasos</h1>
+        <p class="auth-sub">Escribe el código de 6 dígitos de tu app de autenticación (Google Authenticator, Authy o 1Password). Si perdiste el teléfono, usa un código de recuperación.</p>
+        <div class="auth-field"><label for="totp-code">Código</label><input type="text" id="totp-code" inputmode="text" autocomplete="one-time-code" maxlength="14" autocapitalize="characters" spellcheck="false" required /></div>
+        <button type="submit" class="btn btn-primary auth-submit">Verificar</button>
+        <div class="auth-links"><button type="button" data-go="login">Volver</button></div>
+      </form>
+
       <!-- Crear cuenta -->
       <form class="auth-view" id="view-register" novalidate>
         <h1>Crear cuenta</h1>

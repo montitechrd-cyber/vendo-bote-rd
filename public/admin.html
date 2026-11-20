@@ -173,6 +173,11 @@
     .boats-tab.active .boats-tab-count {
       background: var(--sky); color: #fff;
     }
+    .tfa-box { max-width: 560px; display: flex; flex-direction: column; gap: 1rem; }
+    .tfa-box.hidden { display: none; }
+    .tfa-mono { font-family: var(--mono); word-break: break-word; padding: 0.75rem 1rem; border: 1.5px solid var(--line-2); border-radius: 12px; background: var(--bg-2); user-select: all; }
+    .admin-nav-item.hidden { display: none; }
+    #audit-table td { font-size: 0.78rem; }
   </style>
 </head>
 <body>
@@ -191,6 +196,8 @@
       <div class="admin-nav-item" data-action="show-section" data-section="payments"><span class="admin-nav-icon">💳</span>Verificar Pagos</div>
       <div class="admin-nav-item" data-action="show-section" data-section="boats"><span class="admin-nav-icon">⛵</span>Embarcaciones</div>
       <div class="admin-nav-item" data-action="show-section" data-section="calendar"><span class="admin-nav-icon">📅</span>Calendario</div>
+      <div class="admin-nav-item" data-action="show-section" data-section="audit"><span class="admin-nav-icon">🧾</span>Registro de actividad</div>
+      <div class="admin-nav-item" data-action="show-section" data-section="security"><span class="admin-nav-icon">🔐</span>Seguridad (2FA)</div>
     </div>
     <div class="admin-sidebar-footer">
       <div class="admin-nav-item" data-action="logout"><span class="admin-nav-icon">🚪</span>Salir</div>
@@ -274,6 +281,58 @@
           <p class="admin-subtitle">Cobros de AZUL que no terminaron como aprobados: concílialos con el portal de AZUL (confirma el turno o devuelve el dinero).</p>
         </div>
         <div id="card-review-list"></div>
+      </div>
+    </section>
+
+    <!-- ── Registro de actividad ── -->
+    <section id="sec-audit" class="hidden">
+      <div class="admin-header">
+        <h1 class="admin-title">Registro de actividad</h1>
+        <p class="admin-subtitle">Últimas 200 acciones del panel: quién, qué y desde qué IP. Nunca incluye contraseñas, códigos ni datos de tarjeta.</p>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="audit-table">
+          <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>IP</th><th>Detalle</th></tr></thead>
+          <tbody id="audit-body"><tr><td colspan="6">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Seguridad: 2FA ── -->
+    <section id="sec-security" class="hidden">
+      <div class="admin-header">
+        <h1 class="admin-title">Verificación en dos pasos (2FA)</h1>
+        <p class="admin-subtitle" id="tfa-sub">Protege el panel con un código de tu teléfono además de la contraseña.</p>
+      </div>
+      <div id="tfa-required" class="hidden" style="background:var(--sky-lighter);border:1.5px solid var(--sky-2);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;max-width:560px;">
+        <strong>Antes de usar el panel debes activar el 2FA.</strong> Es un paso de un par de minutos y solo se hace una vez.
+      </div>
+      <div id="tfa-off" class="hidden tfa-box">
+        <ol style="margin:0;padding-left:1.2rem;line-height:1.6;">
+          <li>Instala <strong>Google Authenticator</strong>, <strong>Authy</strong> o <strong>1Password</strong> en tu teléfono.</li>
+          <li>Agrega una cuenta nueva con la clave de abajo (o abre el enlace en el teléfono) y confirma con el código que muestra.</li>
+        </ol>
+        <div>
+          <div class="form-label">Clave secreta (escríbela en la app)</div>
+          <div id="tfa-secret" class="tfa-mono" style="font-size:1.15rem;letter-spacing:0.08em;">Generando...</div>
+          <p style="margin:0.5rem 0 0;font-size:0.8rem;">Tipo: basado en tiempo (TOTP), 6 dígitos. <a id="tfa-link" href="#" rel="noopener">Abrir en mi app de autenticación</a></p>
+        </div>
+        <div class="form-group"><label class="form-label" for="tfa-code">Código de 6 dígitos</label><input class="form-input" id="tfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" /></div>
+        <button class="btn btn-primary" id="tfa-enable" data-action="tfa-enable" style="justify-content:center;">Activar 2FA</button>
+      </div>
+      <div id="tfa-codes" class="hidden tfa-box">
+        <p style="margin:0;"><strong>Guarda estos códigos de recuperación.</strong> Cada uno sirve una sola vez si pierdes el teléfono. No se volverán a mostrar.</p>
+        <pre id="tfa-codes-list" class="tfa-mono" style="margin:0;font-size:1rem;line-height:1.8;"></pre>
+        <button class="btn btn-primary" data-action="tfa-done" style="justify-content:center;">Ya los guardé, continuar</button>
+      </div>
+      <div id="tfa-on" class="hidden tfa-box">
+        <p style="margin:0;"><strong>El 2FA está activado.</strong> <span id="tfa-left"></span></p>
+        <div class="form-group"><label class="form-label" for="tfa-pass">Contraseña</label><input class="form-input" type="password" id="tfa-pass" autocomplete="current-password" /></div>
+        <div class="form-group"><label class="form-label" for="tfa-code2">Código de la app o de recuperación</label><input class="form-input" id="tfa-code2" autocomplete="one-time-code" maxlength="14" /></div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <button class="btn btn-ghost" data-action="tfa-regen">Códigos de recuperación nuevos</button>
+          <button class="btn btn-ghost" data-action="tfa-disable">Desactivar 2FA</button>
+        </div>
       </div>
     </section>
 

@@ -73,7 +73,7 @@ Los campos que llegan por la URL de retorno se filtran con una lista blanca (`RE
 |---|---|
 | Qué cumple hoy | Railway sirve el sitio por HTTPS. `helmet` (`server.js`) activa `Strict-Transport-Security`. La cookie de sesión lleva `Secure` en producción (`utils/session.js`). El inicio de pago se rechaza si `SITE_URL` de producción no es `https://` (`routes/azul.js`). La CSP limita `form-action` a los dominios de AZUL (`server.js`), de modo que un script inyectado no puede enviar el formulario a otro destino. La tarjeta viaja del navegador directo a AZUL. |
 | Estado | Cumple en el código; el certificado y la terminación HTTPS son de Railway |
-| Del dueño | Verificar en vivo, tras conectar el dominio, que hay candado válido y redirección de HTTP a HTTPS. Nota técnica: la conexión a Postgres usa SSL con `rejectUnauthorized: false` en producción (`database.js`): cifra, pero no valida el certificado; aceptable dentro de la red privada de Railway, a revisar si se usa una base externa. |
+| Del dueño | Verificar en vivo, tras conectar el dominio, que hay candado válido y redirección de HTTP a HTTPS. Nota técnica: por defecto la conexión a Postgres usa SSL con `rejectUnauthorized: false` en producción (`database.js`): cifra, pero no valida el certificado; aceptable dentro de la red privada de Railway. **Para validarlo**: definir `DB_SSL_CA` (PEM de la CA) o `DB_SSL_REJECT_UNAUTHORIZED=1` en Railway (ver `.env.example`); sin ellas se mantiene el comportamiento anterior. |
 
 ### Requisito 5 — Usar y actualizar programas antivirus
 
@@ -104,9 +104,9 @@ Los campos que llegan por la URL de retorno se filtran con una lista blanca (`RE
 
 | Aspecto | Detalle |
 |---|---|
-| Qué cumple hoy | Contraseñas de usuarios con `scrypt` y sal aleatoria (`utils/session.js`), mínimo 8 caracteres (`routes/auth.js`). Cookie de sesión `HttpOnly`, `SameSite=Lax`, `Secure` en producción, firmada con HMAC-SHA256 y con vencimiento a 30 días. Cambiar o restablecer la contraseña invalida las otras sesiones (`sessionVersion`); "Cerrar sesión" revoca el token (`revoked_sessions`, `middleware/auth.js`). Límite de intentos en login, registro y recuperación (`authLimiter`, `server.js`). Correo verificado obligatorio para pagar con tarjeta (`email_unverified` en `routes/azul.js`). |
+| Qué cumple hoy | Contraseñas de usuarios con `scrypt` y sal aleatoria (`utils/session.js`), mínimo 8 caracteres (`routes/auth.js`). Cookie de sesión `HttpOnly`, `SameSite=Lax`, `Secure` en producción, firmada con HMAC-SHA256 y con vencimiento a 30 días. Cambiar o restablecer la contraseña invalida las otras sesiones (`sessionVersion`); "Cerrar sesión" revoca el token (`revoked_sessions`, `middleware/auth.js`). Límite de intentos en login, registro y recuperación (`authLimiter`, `server.js`). Correo verificado obligatorio para pagar con tarjeta (`email_unverified` en `routes/azul.js`). **2FA TOTP obligatorio para administradores** (RFC 6238, `utils/totp.js`): el secreto se guarda cifrado con AES-256-GCM (clave derivada de `SESSION_SECRET`), un admin sin 2FA solo puede configurarlo (`adminRequired` responde 403 `totp_setup_required`), el login pide el código antes de emitir la sesión (también con Google o restablecer contraseña), un código no se puede reutilizar, hay 10 códigos de recuperación de un solo uso (guardados con hash), límite estricto de intentos y bloqueo de 15 min por cuenta tras 5 códigos fallidos. Desactivar o regenerar exige contraseña y código. |
 | Estado | Cumple en el código para las cuentas del sitio |
-| Pendiente | No hay segundo factor (2FA) para las cuentas de administrador del sitio. |
+| Pendiente | Nada en el código: el 2FA del panel ya es obligatorio (ver abajo). |
 | Del dueño | **Activar 2FA** en GitHub, Railway, el correo y el portal de AZUL. Contraseñas únicas en un gestor. No compartir la `AuthKey` por chat ni correo. |
 
 ### Requisito 9 — Restringir el acceso físico a los datos del titular
@@ -121,9 +121,9 @@ Los campos que llegan por la URL de retorno se filtran con una lista blanca (`RE
 
 | Aspecto | Detalle |
 |---|---|
-| Qué cumple hoy | `routes/azul.js` registra los eventos relevantes del pago con `orderNumber`, `bookingRef` e `IsoCode` (aprobado, no verificado, monto distinto, pago por revisar, orden desconocida) y **no** registra `AuthKey`, `AuthHash`, tarjetas ni datos del cliente. Cada pago queda en `card_payments` con estado, códigos de AZUL, `created_at` y `completed_at`. Los registros se consultan en los logs de Railway. |
+| Qué cumple hoy | `routes/azul.js` registra los eventos relevantes del pago con `orderNumber`, `bookingRef` e `IsoCode` (aprobado, no verificado, monto distinto, pago por revisar, orden desconocida) y **no** registra `AuthKey`, `AuthHash`, tarjetas ni datos del cliente. Cada pago queda en `card_payments` con estado, códigos de AZUL, `created_at` y `completed_at`. Los registros se consultan en los logs de Railway. **Registro de auditoría de acciones administrativas** (`audit_log`, `utils/audit.js`): inicio de sesión de admin (correcto y fallido), verificar o rechazar pagos, eliminar reservas, crear/editar/desactivar/eliminar embarcaciones, ver comprobantes, activar/desactivar el 2FA; guarda quién, qué, sobre qué registro, IP y fecha, y nunca contraseñas, secretos, códigos ni tarjetas. Se ve en el panel (Registro de actividad, últimos 200) y en `GET /api/admin/audit`. |
 | Estado | Parcial |
-| Pendiente | No hay registro de auditoría de acciones administrativas (quién vio o cambió qué) ni alertas automáticas ante fallos repetidos. La retención de logs depende del plan de Railway. |
+| Pendiente | No hay alertas automáticas ante fallos repetidos. La retención de logs depende del plan de Railway. |
 | Del dueño | Definir cuánto tiempo guardar los logs (ver "Operación") y revisarlos tras cada incidente. |
 
 ### Requisito 11 — Probar con regularidad los sistemas y procesos de seguridad
@@ -149,7 +149,7 @@ Los campos que llegan por la URL de retorno se filtran con una lista blanca (`RE
 
 1. Credenciales de AZUL de pruebas y luego de producción (`AZUL_MERCHANT_ID`, `AZUL_MERCHANT_NAME`, `AZUL_AUTH_KEY`).
 2. Cuestionario SAQ A completado y firmado; certificación de AZUL (flujo de pruebas aprobado).
-3. 2FA en GitHub, Railway, correo y portal de AZUL.
+3. 2FA en GitHub, Railway, correo y portal de AZUL, y activar el 2FA del panel del sitio con la cuenta de administrador (primer ingreso tras el despliegue).
 4. Reemplazar todos los `[COMPLETAR-DUEÑO]` (dirección, textos legales, política de reembolsos) y comprobar que `tests/no-placeholders.test.js` pase.
 5. Colocar los logos oficiales exigidos.
 6. Confirmar el ITBIS.
