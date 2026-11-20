@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=20261120r" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261120s" />
   <style>
     body { background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 50%, #dceefb 100%); min-height: 100vh; overflow-x: hidden; }
     .auth-page { background: transparent; }
@@ -138,10 +138,31 @@
     </div>
 
     <p style="text-align:center;font-size:0.75rem;color:var(--cream-4);margin-top:2rem;">
-      Al registrarte aceptas nuestros términos de servicio y política de privacidad.
+      Al registrarte aceptas nuestros <a href="/terminos.html" style="text-decoration:underline;">términos y condiciones</a> y nuestra <a href="/privacidad.html" style="text-decoration:underline;">política de privacidad</a>.
     </p>
   </div>
 </div>
+
+<footer class="footer footer-compact">
+  <div class="footer-inner">
+    <div class="footer-legal">
+      <nav class="footer-legal-links" aria-label="Información legal">
+        <a href="/terminos.html">Términos y condiciones</a>
+        <a href="/reembolsos.html">Reembolsos y cancelaciones</a>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/seguridad-pagos.html">Seguridad de pagos</a>
+      </nav>
+      <address class="footer-legal-addr">
+        <strong>VENDO BOTE RD</strong> · [COMPLETAR-DUEÑO] (dirección permanente), República Dominicana<br />
+        Tel. y WhatsApp <a href="https://wa.me/14073614042" rel="noopener">+1 407 361 4042</a> · <a href="mailto:info@vendoboterd.com">info@vendoboterd.com</a> · Precios y cobros en pesos dominicanos (RD$ / DOP)
+      </address>
+      <div class="footer-pay">
+        <span class="footer-pay-label">Pagos con tarjeta</span>
+        <span class="pay-logos" aria-label="Tarjetas aceptadas: Visa y Mastercard"><img src="/assets/img/pagos/visa.svg" alt="Visa" width="52" height="32" loading="lazy" /><img src="/assets/img/pagos/mastercard.svg" alt="Mastercard" width="52" height="32" loading="lazy" /></span>
+      </div>
+    </div>
+    </div>
+</footer>
 
 <div id="toast-container"></div>
 <script src="/assets/js/auth.js?v=20261120p" defer></script>

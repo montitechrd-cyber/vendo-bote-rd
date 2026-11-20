@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguridad en los Pagos con Tarjeta | VENDO BOTE RD</title>
+  <meta name="description" content="Cómo protegemos tus pagos con tarjeta en VENDO BOTE RD: pago procesado por AZUL, conexión HTTPS, autenticación 3D Secure y sin almacenar datos de tarjeta." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/FAVICON.png?v=3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/FAVICON.png?v=3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=20261120s" />
+</head>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"><span data-scroll-progress></span></div>
+
+<nav class="nav ab-nav is-scrolled" id="nav" aria-label="Principal">
+  <a href="/" class="ab-logo" aria-label="Vendo Bote RD, inicio"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="ab-logo-img" /></a>
+  <div class="ab-tabs">
+    <a class="ab-tab" data-match="^/(index\.html)?$" href="/"><span class="ab-ico" aria-hidden="true">🏝️</span><span>Todo</span></a>
+    <div class="ab-tabwrap">
+      <a class="ab-tab" data-match="^/(embarcaciones|renta-de-botes|boat)" href="/embarcaciones.html"><span class="ab-ico" aria-hidden="true">⛵</span><span>Rentar</span></a>
+      <div class="ab-drop">
+        <a href="/renta-de-botes-en-boca-chica">📍 Boca Chica</a>
+        <a href="/renta-de-botes-en-punta-cana">📍 Punta Cana</a>
+        <a href="/renta-de-botes-en-la-romana">📍 La Romana</a>
+      </div>
+    </div>
+    <a class="ab-tab" data-match="^/ventas" href="/ventas.html"><span class="ab-ico" aria-hidden="true">🛥️</span><span>Comprar</span></a>
+    <a class="ab-tab" href="/#como-funciona"><span class="ab-ico" aria-hidden="true">⚓</span><span>Cómo funciona</span></a>
+  </div>
+  <div class="ab-right">
+    <a href="/auth.html" class="ab-circle" id="nav-login-btn" aria-label="Iniciar sesión">
+      <svg viewBox="0 0 32 32" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="16" cy="16" r="13"/><circle cx="16" cy="13" r="4.5"/><path d="M6.5 25.5c2.2-4 5.6-5.5 9.5-5.5s7.300 1.500 9.500 5.500"/></svg>
+    </a>
+    <button type="button" class="ab-circle" id="hamburger" aria-label="Menú" aria-expanded="false" aria-haspopup="true" aria-controls="nav-menu">
+      <svg viewBox="0 0 32 32" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 9h22M5 16h22M5 23h22"/></svg>
+    </button>
+    <div class="ab-menu" id="nav-menu" hidden>
+      <a href="/auth.html" class="ab-mi ab-mi-b" id="nav-mobile-login-btn">Iniciar sesión o registrarte</a>
+      <a href="/auth.html" class="ab-mi" id="nav-register-btn">Reservar</a>
+      <div class="ab-sep"></div>
+      <a href="/embarcaciones.html" class="ab-mi">⛵ Rentar</a>
+      <a href="/ventas.html" class="ab-mi">🛥️ Comprar</a>
+      <a href="/#como-funciona" class="ab-mi">⚓ Cómo funciona</a>
+      <div class="ab-sep"></div>
+      <a href="/renta-de-botes-en-boca-chica" class="ab-mi ab-mi-s">📍 Boca Chica</a>
+      <a href="/renta-de-botes-en-punta-cana" class="ab-mi ab-mi-s">📍 Punta Cana</a>
+      <a href="/renta-de-botes-en-la-romana" class="ab-mi ab-mi-s">📍 La Romana</a>
+    </div>
+  </div>
+</nav>
+
+<main id="contenido">
+<div class="page">
+  <header class="legal-hero">
+    <div class="legal-wrap">
+      <span class="legal-kicker">Pago seguro</span>
+      <h1 class="legal-title">Seguridad en los pagos con tarjeta</h1>
+      <p class="legal-updated">Última actualización: 20 de noviembre de 2026 · Comercio: VENDO BOTE RD · Moneda: pesos dominicanos (RD$ / DOP)</p>
+    </div>
+  </header>
+  <article class="legal-wrap legal-body">
+
+    <div class="legal-badges">
+      <span class="pay-logos" aria-label="Tarjetas aceptadas: Visa y Mastercard"><img src="/assets/img/pagos/visa.svg" alt="Visa" width="52" height="32" loading="lazy" /><img src="/assets/img/pagos/mastercard.svg" alt="Mastercard" width="52" height="32" loading="lazy" /></span><span class="pay-logos" aria-label="Pagos protegidos con autenticación 3D Secure"><img src="/assets/img/pagos/verified-by-visa.svg" alt="Verified by Visa" width="88" height="32" loading="lazy" /><img src="/assets/img/pagos/mastercard-idcheck.svg" alt="Mastercard ID Check" width="88" height="32" loading="lazy" /></span>
+    </div>
+    <p class="legal-lead">En VENDO BOTE RD aceptamos tarjetas <strong>Visa</strong> y <strong>Mastercard</strong> en pesos dominicanos (RD$ / DOP). Así protegemos tus datos en cada pago.</p>
+    <section>
+      <h2>1. El pago lo procesa AZUL</h2>
+      <p>Cuando eliges pagar con tarjeta te llevamos a la página de pago de <strong>AZUL</strong>, la pasarela de Banco Popular Dominicano. Es allí donde escribes el número de tu tarjeta; nuestro sitio nunca ve esos datos.</p>
+    </section>
+    <section>
+      <h2>2. No almacenamos tu tarjeta</h2>
+      <p>VENDO BOTE RD no guarda números de tarjeta, fechas de vencimiento ni códigos de seguridad (CVV). Solo conservamos el resultado del pago (aprobado o rechazado), un número de referencia y el monto.</p>
+    </section>
+    <section>
+      <h2>3. Conexión cifrada (HTTPS)</h2>
+      <p>Toda la comunicación entre tu dispositivo, nuestro sitio y la página de pago viaja cifrada mediante HTTPS/TLS. Verifica siempre el candado en la barra del navegador.</p>
+    </section>
+    <section>
+      <h2>4. Autenticación 3D Secure</h2>
+      <p>Los pagos se verifican con <strong>Verified by Visa</strong> y <strong>Mastercard ID Check</strong> (3D Secure): tu banco puede pedirte una confirmación adicional, como un código enviado a tu teléfono o la aprobación en la app, antes de aceptar el cobro.</p>
+    </section>
+    <section>
+      <h2>5. Cumplimiento PCI DSS</h2>
+      <p>Los datos de tarjeta se procesan en la infraestructura de AZUL, que cumple con el estándar de seguridad PCI DSS exigido por Visa y Mastercard para entidades que manejan datos de tarjeta.</p>
+    </section>
+    <section>
+      <h2>6. Recomendaciones</h2>
+      <ul>
+        <li>Nunca compartas el código de seguridad de tu tarjeta ni tus códigos de verificación por WhatsApp o mensajes.</li>
+        <li>VENDO BOTE RD nunca te pedirá datos de tarjeta por chat ni por correo.</li>
+        <li>Si ves un cobro que no reconoces, escríbenos y avisa también a tu banco.</li>
+      </ul>
+    </section>
+    <p>Consulta también nuestra <a href="/privacidad.html">política de privacidad</a> y la de <a href="/reembolsos.html">reembolsos y cancelaciones</a>.</p>
+    <div class="legal-box">
+      <h2>Contacto</h2>
+      <p><strong>VENDO BOTE RD</strong><br />
+      Dirección permanente: [COMPLETAR-DUEÑO], República Dominicana<br />
+      Correo: <a href="mailto:info@vendoboterd.com">info@vendoboterd.com</a><br />
+      Teléfono y WhatsApp: <a href="https://wa.me/14073614042" rel="noopener">+1 407 361 4042</a><br />
+      Instagram: <a href="https://www.instagram.com/vendobote_rd/" rel="noopener">@vendobote_rd</a></p>
+    </div>
+  </article>
+</div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <a href="/" aria-label="VENDO BOTE RD, inicio"><img src="/assets/img/logo.png" alt="Vendo Bote RD" class="footer-logo-img" style="height:70px;margin-bottom:0;" /></a>
+      <span class="footer-copy">© 2026 VENDO BOTE RD</span>
+    </div>
+    <div class="footer-legal">
+      <nav class="footer-legal-links" aria-label="Información legal">
+        <a href="/terminos.html">Términos y condiciones</a>
+        <a href="/reembolsos.html">Reembolsos y cancelaciones</a>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/seguridad-pagos.html">Seguridad de pagos</a>
+      </nav>
+      <address class="footer-legal-addr">
+        <strong>VENDO BOTE RD</strong> · [COMPLETAR-DUEÑO] (dirección permanente), República Dominicana<br />
+        Tel. y WhatsApp <a href="https://wa.me/14073614042" rel="noopener">+1 407 361 4042</a> · <a href="mailto:info@vendoboterd.com">info@vendoboterd.com</a> · Precios y cobros en pesos dominicanos (RD$ / DOP)
+      </address>
+      <div class="footer-pay">
+        <span class="footer-pay-label">Pagos con tarjeta</span>
+        <span class="pay-logos" aria-label="Tarjetas aceptadas: Visa y Mastercard"><img src="/assets/img/pagos/visa.svg" alt="Visa" width="52" height="32" loading="lazy" /><img src="/assets/img/pagos/mastercard.svg" alt="Mastercard" width="52" height="32" loading="lazy" /></span>
+        <span class="pay-logos" aria-label="Pagos protegidos con autenticación 3D Secure"><img src="/assets/img/pagos/verified-by-visa.svg" alt="Verified by Visa" width="88" height="32" loading="lazy" /><img src="/assets/img/pagos/mastercard-idcheck.svg" alt="Mastercard ID Check" width="88" height="32" loading="lazy" /></span>
+      </div>
+    </div>
+    <div class="footer-credit" aria-label="Sitio desarrollado por Neuralab">
+      <a class="footer-credit-brand" href="https://neuralabrd.com" target="_blank" rel="noopener noreferrer" aria-label="Desarrollado por Neuralab (abre en otra pestaña)">
+        <span class="footer-credit-label">Made by</span>
+        <span class="footer-credit-logo"><img src="/assets/img/neuralab-logo.png" alt="" width="42" height="36" loading="lazy" /><span>NEURA<span>LAB</span></span></span>
+      </a>
+      <div class="footer-credit-links">
+        <a class="footer-credit-link" href="https://neuralabrd.com" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+          neuralabrd.com
+        </a>
+        <a class="footer-credit-link" href="https://www.instagram.com/neuralabrd/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Neuralab: @neuralabrd">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          @neuralabrd
+        </a>
+      </div>
+    </div>
+  
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<script src="/assets/js/main.js?v=20261120p" defer></script>
+</body>
+</html>

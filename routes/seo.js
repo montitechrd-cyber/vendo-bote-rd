@@ -187,6 +187,7 @@ router.get('/sitemap.xml', async (req, res) => {
       { loc: base + '/embarcaciones.html', priority: '0.9' },
       ...Object.keys(LOCATIONS).map((k) => ({ loc: `${base}/renta-de-botes-en-${k}`, priority: '0.9' })),
       { loc: base + '/ventas.html', priority: '0.8' },
+      ...Object.keys(LEGAL_PAGES).map((f) => ({ loc: `${base}/${f}`, priority: '0.3' })),
     ];
     const boats = await getDB().query('SELECT slug, name, images FROM boats WHERE available = true OR for_sale = true ORDER BY id');
     for (const b of boats) {
@@ -350,6 +351,40 @@ router.get('/ventas.html', (req, res) => {
     canonical: siteUrl() + '/ventas.html',
     image: ogDefault(),
     ld: [breadcrumbLd([['Inicio', siteUrl() + '/'], ['En venta', siteUrl() + '/ventas.html']])],
+  });
+  send(res, html);
+});
+
+/* ───────────── Páginas legales (exigidas por AZUL) ───────────── */
+
+const LEGAL_PAGES = {
+  'terminos.html': {
+    title: 'Términos y Condiciones | VENDO BOTE RD',
+    description: 'Términos y condiciones de VENDO BOTE RD: renta y venta de embarcaciones, reservas, precios en RD$, pagos con tarjeta y entrega del servicio.',
+  },
+  'reembolsos.html': {
+    title: 'Política de Reembolsos, Devoluciones y Cancelaciones | VENDO BOTE RD',
+    description: 'Política de reembolsos, devoluciones y cancelaciones de VENDO BOTE RD: plazos, cambios de fecha, mal tiempo y devolución a tu tarjeta.',
+  },
+  'privacidad.html': {
+    title: 'Política de Privacidad | VENDO BOTE RD',
+    description: 'Política de privacidad de VENDO BOTE RD: qué datos recopilamos, para qué los usamos y cómo protegemos tu información.',
+  },
+  'seguridad-pagos.html': {
+    title: 'Seguridad en los Pagos con Tarjeta | VENDO BOTE RD',
+    description: 'Cómo protegemos tus pagos con tarjeta: procesamiento por AZUL, HTTPS, 3D Secure (Verified by Visa y Mastercard ID Check) y sin almacenar datos de tarjeta.',
+  },
+};
+
+router.get(Object.keys(LEGAL_PAGES).map((f) => '/' + f), (req, res) => {
+  const f = req.path.slice(1);
+  const meta = LEGAL_PAGES[f];
+  const html = withHead(readPage(f), {
+    title: meta.title,
+    description: meta.description,
+    canonical: `${siteUrl()}/${f}`,
+    image: ogDefault(),
+    ld: [breadcrumbLd([['Inicio', siteUrl() + '/'], [meta.title.split(' | ')[0], `${siteUrl()}/${f}`]])],
   });
   send(res, html);
 });
