@@ -227,20 +227,82 @@ function cardPaymentRows(payment) {
     <div class="row"><span class="lbl">Orden</span><span class="val">${esc(payment.order_number)}</span></div>`;
 }
 
+// Recibo de pago con tarjeta: documento HTML completo, seguro para correo (tablas + estilos en línea) y que cabe
+// en una hoja A4 al imprimirlo o guardarlo como PDF. Nunca incluye datos de tarjeta.
+function cardReceiptHtml(booking, user, payment) {
+  const total = Number(payment.amount_dop_cents || 0), itbis = Number(payment.itbis_dop_cents || 0);
+  const base = total - itbis;
+  const pct = base > 0 && itbis > 0 ? Math.round((itbis / base) * 10000) / 100 : 0;
+  const pctTxt = pct.toLocaleString('es-DO', { maximumFractionDigits: 2 });
+  const rate = Number(payment.usd_dop_rate);
+  const rateTxt = rate > 0 ? ` · tasa del día: RD$ ${rate.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} por US$ 1` : '';
+  const F = 'font-family:Helvetica,Arial,sans-serif;';
+  const label = (t) => `<div style="${F}font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6B8BAA;margin-bottom:4px;">${esc(t)}</div>`;
+  const cell = (l, v, big) => `<td valign="top" width="50%" style="padding:0 12px 16px 0;">${label(l)}<div style="${F}font-size:${big ? 16 : 14}px;font-weight:700;color:#0F2B4A;line-height:1.35;">${esc(v)}</div></td>`;
+  const pair = (a, b) => `<tr>${a}${b}</tr>`;
+  const title = (t) => `<div style="${F}font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#0369A1;padding:0 0 10px;border-bottom:2px solid #E3EDF7;margin:0 0 16px;">${esc(t)}</div>`;
+  const ledger = (l, v, strong) => `<tr><td style="${F}padding:9px 0;font-size:${strong ? 15 : 14}px;font-weight:${strong ? 800 : 500};color:${strong ? '#0F2B4A' : '#3D6489'};${strong ? 'border-top:2px solid #0F2B4A;' : 'border-bottom:1px solid #EDF3F9;'}">${esc(l)}</td><td align="right" style="${F}padding:9px 0;font-size:${strong ? 17 : 14}px;font-weight:${strong ? 800 : 600};color:#0F2B4A;${strong ? 'border-top:2px solid #0F2B4A;' : 'border-bottom:1px solid #EDF3F9;'}">${esc(v)}</td></tr>`;
+  return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Recibo de pago · ${esc(booking.booking_ref)} · ${esc(BUSINESS_NAME)}</title>
+<style>@page{size:A4;margin:6mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{body{zoom:0.86}}</style></head>
+<body style="margin:0;padding:0;background:#EEF4FA;${F}color:#0F2B4A;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EEF4FA;"><tr><td align="center" style="padding:22px 12px;">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #DCE7F2;border-radius:16px;overflow:hidden;">
+  <tr><td style="padding:22px 32px 18px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td valign="middle"><img src="${SITE_URL}/assets/img/email-logo.png" width="112" alt="${esc(BUSINESS_NAME)}" style="display:block;border:0;height:auto;"/></td>
+      <td valign="middle" align="right"><div style="${F}font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#6B8BAA;">Recibo de pago</div>
+        <div style="${F}font-size:20px;font-weight:800;color:#0F2B4A;margin-top:2px;">${esc(booking.booking_ref)}</div></td>
+    </tr></table>
+  </td></tr>
+  <tr><td bgcolor="#0F3460" style="background:#0F3460;padding:26px 32px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td valign="bottom">
+        <span style="${F}display:inline-block;background:#D9F3E4;color:#14683A;font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:999px;">&#10003; Pago aprobado</span>
+        <div style="${F}font-size:12px;color:#A9C3DF;margin:16px 0 4px;">Total cobrado con tarjeta</div>
+        <div style="${F}font-size:38px;line-height:1.1;font-weight:800;color:#ffffff;">${esc(fmtDop(total))}</div>
+        <div style="${F}font-size:12px;color:#A9C3DF;margin-top:8px;">${esc(fmtMoney(payment.usd_total))} de referencia${esc(rateTxt)}</div>
+      </td>
+      <td valign="bottom" align="right" style="${F}font-size:12px;color:#A9C3DF;line-height:1.6;white-space:nowrap;">Fecha del pago<br/><strong style="font-size:14px;color:#ffffff;">${esc(fmtAzulDate(payment.azul_datetime))}</strong></td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:28px 32px 6px;">
+    <p style="${F}margin:0 0 22px;font-size:15px;line-height:1.6;color:#2D5987;">Hola <strong style="color:#0F2B4A;">${esc(user.name)}</strong>, tu pago fue aprobado y tu reserva está <strong style="color:#0F2B4A;">confirmada</strong>. Este es tu recibo.</p>
+    ${title('Tu reserva')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${pair(cell('Embarcación', booking.boat_name || '—', true), cell('Lugar de salida', booking.boat_location || '—', true))}
+      ${pair(cell('Fecha', fmtDate(booking.start_date)), cell('Horario', slotLabel(booking.schedule)))}
+      ${pair(cell('Personas', String(booking.guests || 1)), cell('Servicio', 'Renta de embarcación por turno'))}
+    </table>
+    <div style="height:10px;"></div>
+    ${title('Desglose del pago')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${ledger('Subtotal', fmtDop(base))}
+      ${ledger(`ITBIS (${pctTxt} %)`, fmtDop(itbis))}
+      ${ledger('Total cobrado', fmtDop(total), true)}
+    </table>
+    <div style="height:22px;"></div>
+    ${title('Datos de la transacción')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${pair(cell('Código de autorización', payment.authorization_code || '—'), cell('RRN (referencia del banco)', payment.rrn || '—'))}
+      ${pair(cell('Número de orden', payment.order_number || '—'), cell('Medio de pago', 'Tarjeta de crédito o débito (AZUL)'))}
+    </table>
+  </td></tr>
+  <tr><td style="padding:2px 32px 22px;">
+    <p style="${F}margin:0;font-size:12px;line-height:1.7;color:#5B84A8;">Por seguridad no guardamos ni mostramos los datos de tu tarjeta. Conserva este recibo como comprobante de tu pago.</p>
+  </td></tr>
+  <tr><td bgcolor="#F4F8FC" align="center" style="background:#F4F8FC;border-top:1px solid #E3EDF7;padding:16px 32px;">
+    <div style="${F}font-size:12px;font-weight:700;color:#0F2B4A;">${esc(BUSINESS_NAME)}</div>
+    <div style="${F}font-size:11px;line-height:1.7;color:#5B84A8;margin-top:2px;">${esc(BUSINESS_ADDRESS)}<br/>WhatsApp +1 407 361 4042 · ${esc(CONTACT_EMAIL)} · ${esc(SITE_URL.replace(/^https?:\/\//, ''))}</div>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
 async function sendCardReceipt(booking, user, payment) {
   if (!process.env.EMAIL_USER) return;
-  const negocio = `
-    <div class="row"><span class="lbl">Negocio</span><span class="val">${esc(BUSINESS_NAME)}</span></div>
-    <div class="row"><span class="lbl">Dirección</span><span class="val">${esc(BUSINESS_ADDRESS)}</span></div>`;
-  const userHtml = wrap('Recibo de pago con tarjeta', `
-    <p class="greeting">¡Pago recibido, ${esc(user.name)}!</p>
-    <p class="intro">Tu pago con tarjeta fue aprobado y tu reserva está <strong>confirmada</strong>. Este es tu recibo.</p>
-    <div class="box"><div class="box-title">Comercio</div>${negocio}</div>
-    <div class="box"><div class="box-title">Reserva</div>${bookingRows(booking)}</div>
-    <div class="box"><div class="box-title">Pago</div>${cardPaymentRows(payment)}</div>
-    <p style="font-size:12px;color:#5B84A8;line-height:1.7;">Por seguridad no guardamos ni mostramos los datos de tu tarjeta. Conserva este correo como comprobante.</p>
-    <div class="cta"><a class="btn" href="${SITE_URL}/dashboard.html">Ver mi reserva</a></div>
-  `);
+  const userHtml = cardReceiptHtml(booking, user, payment);
   const adminHtml = wrap('Pago con tarjeta aprobado', `
     <p class="greeting">Reserva pagada con tarjeta</p>
     <p class="intro">El pago de <strong>${esc(user.name)}</strong> fue aprobado por AZUL y la reserva quedó confirmada.</p>
@@ -386,4 +448,4 @@ async function sendEmailVerification(user, link) {
   });
 }
 
-module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, sendCardNeedsReview, sendCardsExpiredUnconfirmed, sendCardDuplicateApproval, sendRescheduleAdmin, sendRescheduleClient, sendPasswordReset, sendEmailVerification };
+module.exports = { sendPaymentSubmittedAdmin, sendPaymentApproved, sendPaymentRejected, sendCardReceipt, cardReceiptHtml, sendCardNeedsReview, sendCardsExpiredUnconfirmed, sendCardDuplicateApproval, sendRescheduleAdmin, sendRescheduleClient, sendPasswordReset, sendEmailVerification };
