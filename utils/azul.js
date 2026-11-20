@@ -63,8 +63,8 @@ function buildPaymentFields(o) {
     UseCustomField2: '0',
     CustomField2Label: '',
     CustomField2Value: '',
-    Locale: o.locale === 'EN' ? 'EN' : 'ES',
-    ShowTransactionResult: '0'
+    // Sin ShowTransactionResult: AZUL muestra su propia pantalla de resultado (valor por defecto del manual).
+    Locale: o.locale === 'EN' ? 'EN' : 'ES'
   };
   if (o.altMerchantName !== undefined && o.altMerchantName !== null && o.altMerchantName !== '') {
     const n = String(o.altMerchantName);
