@@ -96,13 +96,14 @@
     }).catch(() => { document.getElementById('bookings-list').innerHTML = '<p class="text-muted">Error cargando reservas.</p>'; });
   }
 
-  function badgeHtml(status, payStatus) {
+  function badgeHtml(status, payStatus, payMethod) {
     const statusMap = { pending:'Pendiente', confirmed:'Confirmada', cancelled:'Cancelada' };
-    const payMap = { pending:'Sin pago', submitted:'En verificación', verified:'Pago verificado', rejected:'Pago rechazado' };
+    const payMap = { pending:'Sin pago', submitted:'En verificación', verified:'Pago verificado', rejected:'Pago rechazado', card_pending:'Pago con tarjeta pendiente', expired:'Expirado' };
     const statusClass = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
-    const payClass = payStatus === 'verified' ? 'verified' : payStatus === 'submitted' ? 'submitted' : payStatus === 'rejected' ? 'rejected' : 'pending';
+    const payClass = payStatus === 'verified' ? 'verified' : (payStatus === 'submitted' || payStatus === 'card_pending') ? 'submitted' : (payStatus === 'rejected' || payStatus === 'expired') ? 'rejected' : 'pending';
+    const payLabel = (payStatus === 'verified' && payMethod === 'card') ? 'Pagado con tarjeta' : (payMap[payStatus]||payStatus);
     return `<span class="badge badge-${statusClass}">${statusMap[status]||status}</span>
-            <span class="badge badge-${payClass}" style="margin-left:0.4rem;">${payMap[payStatus]||payStatus}</span>`;
+            <span class="badge badge-${payClass}" style="margin-left:0.4rem;">${payLabel}</span>`;
   }
 
   function renderBookings(filter) {
@@ -143,7 +144,7 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
             <div class="boat-spec-item"><div class="boat-spec-label">Ref. Reserva</div><div class="boat-spec-val" style="font-family:var(--mono);font-size:0.78rem;">${esc(b.booking_ref)}</div></div>
-            <div class="boat-spec-item"><div class="boat-spec-label">Estado</div><div class="boat-spec-val">${badgeHtml(b.status, b.payment_status)}</div></div>
+            <div class="boat-spec-item"><div class="boat-spec-label">Estado</div><div class="boat-spec-val">${badgeHtml(b.status, b.payment_status, b.payment_method)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Fecha de llegada</div><div class="boat-spec-val">${fmt(b.start_date)}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Horario</div><div class="boat-spec-val">${esc(window.VBR.slotLabel(b.schedule))}</div></div>
             <div class="boat-spec-item"><div class="boat-spec-label">Ubicación</div><div class="boat-spec-val">${esc(b.boat_location)}</div></div>

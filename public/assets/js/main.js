@@ -71,12 +71,13 @@
     return '<div class="booking-card-img booking-card-img-empty">⛵</div>';
   }
 
-  function statusBadges(status, payStatus) {
+  function statusBadges(status, payStatus, payMethod) {
     const st = { pending: 'Pendiente', confirmed: 'Confirmada', cancelled: 'Cancelada' };
-    const pay = { pending: 'Sin pago', submitted: 'En verificación', verified: 'Pago verificado', rejected: 'Pago rechazado' };
+    const pay = { pending: 'Sin pago', submitted: 'En verificación', verified: 'Pago verificado', rejected: 'Pago rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado' };
     const sc = status === 'confirmed' ? 'confirmed' : status === 'cancelled' ? 'cancelled' : 'pending';
-    const pc = payStatus === 'verified' ? 'verified' : payStatus === 'submitted' ? 'submitted' : payStatus === 'rejected' ? 'rejected' : 'pending';
-    return '<span class="badge badge-' + sc + '">' + (st[status] || status) + '</span> <span class="badge badge-' + pc + '">' + (pay[payStatus] || payStatus) + '</span>';
+    const pc = payStatus === 'verified' ? 'verified' : (payStatus === 'submitted' || payStatus === 'card_pending') ? 'submitted' : (payStatus === 'rejected' || payStatus === 'expired') ? 'rejected' : 'pending';
+    const payLabel = (payStatus === 'verified' && payMethod === 'card') ? 'Pagado con tarjeta' : (pay[payStatus] || payStatus);
+    return '<span class="badge badge-' + sc + '">' + (st[status] || status) + '</span> <span class="badge badge-' + pc + '">' + payLabel + '</span>';
   }
 
   // opts: { client: 'Nombre · tel · correo' (solo admin), actions: '<button…>' }
@@ -87,7 +88,7 @@
         '<div class="booking-card-header"><div>' +
           '<div class="booking-card-name">' + esc(b.boat_name) + '</div>' +
           '<div class="booking-card-ref">' + esc(b.booking_ref) + '</div>' +
-        '</div><div class="booking-card-badges">' + statusBadges(b.status, b.payment_status) + '</div></div>' +
+        '</div><div class="booking-card-badges">' + statusBadges(b.status, b.payment_status, b.payment_method) + '</div></div>' +
         '<div class="booking-card-location">📍 ' + esc(b.boat_location) + '</div>' +
         (opts.client ? '<div class="booking-card-client">👤 ' + esc(opts.client) + '</div>' : '') +
         '<div class="booking-card-dates">' +

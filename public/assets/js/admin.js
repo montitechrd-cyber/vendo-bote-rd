@@ -72,9 +72,19 @@ document.addEventListener('DOMContentLoaded', function () {
           <td data-label="Turno" style="font-family:var(--mono);font-size:0.7rem;">${SCHEDULE_LABEL[b.schedule]||b.schedule||'—'}</td>
           <td data-label="Total">$${Number(b.total_price).toLocaleString()}</td>
           <td data-label="Estado">${badge(b.status==='confirmed'?'Confirmada':b.status==='cancelled'?'Cancelada':'Pendiente', b.status==='confirmed'?'confirmed':b.status==='cancelled'?'cancelled':'pending')}</td>
-          <td data-label="Pago">${badge(b.payment_status==='verified'?'Verificado':b.payment_status==='submitted'?'En revisión':b.payment_status==='rejected'?'Rechazado':'Sin pago', b.payment_status==='verified'?'verified':b.payment_status==='submitted'?'submitted':b.payment_status==='rejected'?'rejected':'pending')}</td>
+          <td data-label="Pago">${badge(payLabel(b), payClass(b))}</td>
         </tr>`).join('');
     }).catch(() => window.VBR.toast('Error cargando el dashboard', 'error'));
+  }
+
+  // Etiqueta y color del estado de pago (incluye pagos con tarjeta)
+  const isCard = (b) => b.payment_method === 'card' || b.payment_status === 'card_pending';
+  function payLabel(b) {
+    if (b.payment_status === 'verified') return b.payment_method === 'card' ? 'Pagado con tarjeta' : 'Verificado';
+    return { submitted: 'En revisión', rejected: 'Rechazado', card_pending: 'Pago con tarjeta pendiente', expired: 'Expirado' }[b.payment_status] || 'Sin pago';
+  }
+  function payClass(b) {
+    return b.payment_status === 'verified' ? 'verified' : (b.payment_status === 'submitted' || b.payment_status === 'card_pending') ? 'submitted' : (b.payment_status === 'rejected' || b.payment_status === 'expired') ? 'rejected' : 'pending';
   }
 
   /* ── All bookings ── */
@@ -102,8 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const canAct = b.status !== 'cancelled';
       return window.VBR.bookingCard(b, { client, actions:
         (b.receipt_filename ? '<button class="btn btn-ghost btn-sm" data-action="view-receipt" data-id="' + b.id + '">Comprobante</button>' : '') +
-        (canAct && b.payment_status === 'submitted' ? '<button class="btn btn-success btn-sm" data-action="verify-payment" data-verdict="approve" data-id="' + b.id + '">Aprobar</button>' : '') +
-        (canAct ? '<button class="btn btn-danger btn-sm" data-action="prompt-reject" data-id="' + b.id + '">Rechazar</button>' : '') +
+        (canAct && b.payment_status === 'submitted' && !isCard(b) ? '<button class="btn btn-success btn-sm" data-action="verify-payment" data-verdict="approve" data-id="' + b.id + '">Aprobar</button>' : '') +
+        (canAct && !isCard(b) ? '<button class="btn btn-danger btn-sm" data-action="prompt-reject" data-id="' + b.id + '">Rechazar</button>' : '') +
         '<button class="btn btn-ghost btn-sm" style="color:#B91C1C;" data-action="delete-booking" data-id="' + b.id + '">Eliminar</button>' });
     }).join('');
     window.VBR.observeReveals && window.VBR.observeReveals();
@@ -185,11 +195,11 @@ document.addEventListener('DOMContentLoaded', function () {
           ${b.special_requests?`<div class="boat-spec-item"><div class="boat-spec-label">Notas</div><div class="boat-spec-val" style="font-size:0.85rem;">${esc(b.special_requests)}</div></div>`:''}
           <div style="border-top:1px solid var(--line);padding-top:1.25rem;">
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-              ${b.payment_status === 'submitted' && b.status !== 'cancelled' ? `<button class="btn btn-success" data-action="approve-close" data-id="${b.id}">✓ Aprobar pago</button>` : ''}
-              ${b.status !== 'cancelled' ? `<button class="btn btn-danger" data-action="prompt-reject" data-id="${b.id}">✕ Rechazar reserva</button>` : ''}
+              ${b.payment_status === 'submitted' && !isCard(b) && b.status !== 'cancelled' ? `<button class="btn btn-success" data-action="approve-close" data-id="${b.id}">✓ Aprobar pago</button>` : ''}
+              ${b.status !== 'cancelled' && !isCard(b) ? `<button class="btn btn-danger" data-action="prompt-reject" data-id="${b.id}">✕ Rechazar reserva</button>` : ''}
               <button class="btn btn-ghost" style="color:#E05A5A;" data-action="delete-booking-close" data-id="${b.id}">🗑 Eliminar</button>
             </div>
-            <p style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);margin-top:0.75rem;">Estado: ${b.status === 'cancelled' ? 'cancelada' : b.status === 'confirmed' ? 'confirmada' : 'pendiente'} · pago: ${b.payment_status}</p>
+            <p style="font-family:var(--mono);font-size:0.72rem;color:var(--cream-3);margin-top:0.75rem;">Estado: ${b.status === 'cancelled' ? 'cancelada' : b.status === 'confirmed' ? 'confirmada' : 'pendiente'} · pago: ${esc(payLabel(b))}${isCard(b) ? ' (tarjeta, gestionado por AZUL)' : ''}</p>
           </div>
         </div>`;
       document.getElementById('verify-modal').classList.add('is-open');

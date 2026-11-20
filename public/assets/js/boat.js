@@ -707,7 +707,16 @@
     if (isSlotClosed(selDate, selSlot)) { window.VBR.toast('Este turno ya no está disponible: reserva al menos 2 horas antes del horario.', 'error'); selSlot = null; refreshSlotUI(); updateSummary(); return; }
     const maxCapacity = (boat.pricing_scheme && boat.pricing_scheme.max_capacity) || boat.capacity;
     if (calc.guests > maxCapacity) { window.VBR.toast('Máximo ' + maxCapacity + ' personas', 'error'); return; }
+    await loadAzulConfig();
     showModal(calc);
+  }
+
+  // ¿Está habilitado el pago con tarjeta (AZUL)? Si falla la consulta, solo transferencia.
+  let azulEnabled = false;
+  function loadAzulConfig() {
+    return fetch('/api/payments/azul/config', { credentials: 'same-origin' })
+      .then(r => r.json()).then(d => { azulEnabled = !!(d && d.enabled); })
+      .catch(() => { azulEnabled = false; });
   }
 
   const BANKS = [
@@ -744,6 +753,11 @@
         <label class="form-label" for="special-requests">Solicitudes especiales (opcional)</label>
         <textarea class="form-textarea" id="special-requests" placeholder="Decoración especial, peticiones del grupo..." rows="3" maxlength="500"></textarea>
       </div>
+      ${azulEnabled ? `<div class="pay-methods" role="radiogroup" aria-label="Método de pago">
+        <label class="pay-method is-active" id="pm-transfer"><input type="radio" name="pay-method" value="transfer" checked /><span>Transferencia</span></label>
+        <label class="pay-method" id="pm-card"><input type="radio" name="pay-method" value="card" /><span>Tarjeta (AZUL)</span></label>
+      </div>` : ''}
+      <div id="pay-transfer">
       <div style="border:1.5px solid var(--line-2);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;">
         <div style="font-weight:700;color:var(--cream);margin-bottom:0.15rem;">1. Transfiere ${'$'}${Number(calc.total).toLocaleString()} USD</div>
         <div style="font-size:0.8rem;color:var(--cream-3);margin-bottom:0.6rem;">Elige el banco y transfiere el monto exacto.</div>
@@ -763,6 +777,26 @@
       <p style="font-size:0.75rem;color:var(--cream-3);text-align:center;margin-top:0.75rem;line-height:1.5;">
         Tu reserva se envía junto con el comprobante y nuestro equipo la verificará en menos de 24 horas.
       </p>
+      </div>
+      <div id="pay-card" class="pay-card hidden">
+        <div class="pay-card-total">
+          <div class="pay-card-line"><span>Total a pagar</span><strong>$${Number(calc.total).toLocaleString()} USD</strong></div>
+          <div class="pay-card-line"><span>Equivalente en pesos</span><strong id="pay-card-dop">Calculando…</strong></div>
+          <div class="pay-dop-note" id="pay-card-rate"></div>
+        </div>
+        <div class="pay-card-secure">Pagarás en el sitio seguro de AZUL; no guardamos tu tarjeta.</div>
+        <div class="pay-logos" aria-label="Tarjetas aceptadas y autenticación segura">
+          <img src="/assets/img/pagos/visa.svg" alt="Visa" height="28" />
+          <img src="/assets/img/pagos/mastercard.svg" alt="MasterCard" height="28" />
+          <img src="/assets/img/pagos/verified-by-visa.svg" alt="Verified by Visa" height="28" />
+          <img src="/assets/img/pagos/mastercard-idcheck.svg" alt="MasterCard ID Check" height="28" />
+        </div>
+        <label class="pay-terms" for="accept-terms">
+          <input type="checkbox" id="accept-terms" />
+          <span>Acepto los <a href="/terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> y la <a href="/reembolsos.html" target="_blank" rel="noopener">Política de reembolsos</a>. Más sobre la <a href="/seguridad-pagos.html" target="_blank" rel="noopener">seguridad de los pagos</a>.</span>
+        </label>
+        <button class="btn btn-primary w-full" id="pay-card-btn" style="justify-content:center;" disabled>Pagar con tarjeta</button>
+      </div>
     `;
     openModal();
     const bankSel = document.getElementById('pay-bank');
@@ -800,6 +834,71 @@
       confirmBtn.textContent = valid ? 'Enviar reserva con comprobante' : 'Adjunta el comprobante para reservar';
     });
     confirmBtn.addEventListener('click', () => submitBooking(calc));
+
+    // ── Pago con tarjeta (AZUL) ──
+    if (azulEnabled) {
+      const transferBox = document.getElementById('pay-transfer'), cardBox = document.getElementById('pay-card');
+      const cardDop = document.getElementById('pay-card-dop'), cardRate = document.getElementById('pay-card-rate');
+      const terms = document.getElementById('accept-terms'), cardBtn = document.getElementById('pay-card-btn');
+      const fmtRD = (n) => 'RD$ ' + new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+      const renderCardDop = () => {
+        if (!usdDop) { cardDop.textContent = 'Calculando…'; return; }
+        if (usdDop.error) { cardDop.textContent = 'No disponible'; cardRate.textContent = 'No pudimos cargar la tasa del día. Intenta de nuevo en unos minutos o paga por transferencia.'; return; }
+        cardDop.textContent = fmtRD(calc.total * usdDop.rate);
+        cardRate.textContent = 'Tasa del día: 1 USD = RD$ ' + usdDop.rate.toFixed(2) + '. El cobro final en pesos lo confirma AZUL en su pantalla de pago.';
+      };
+      const baseRender = renderDop;
+      fetch('/api/rates/usd-dop').then(r => r.json()).then(d => { usdDop = d && d.rate ? d : { error: true }; baseRender(); renderCardDop(); }).catch(() => { usdDop = { error: true }; baseRender(); renderCardDop(); });
+      document.querySelectorAll('input[name="pay-method"]').forEach(r => r.addEventListener('change', () => {
+        const card = document.querySelector('input[name="pay-method"]:checked').value === 'card';
+        transferBox.classList.toggle('hidden', card); cardBox.classList.toggle('hidden', !card);
+        document.getElementById('pm-card').classList.toggle('is-active', card);
+        document.getElementById('pm-transfer').classList.toggle('is-active', !card);
+        if (card) renderCardDop();
+      }));
+      terms.addEventListener('change', () => { cardBtn.disabled = !terms.checked; });
+      cardBtn.addEventListener('click', () => payWithCard(calc));
+    }
+  }
+
+  // Inicia el pago: el servidor calcula el monto y firma; el navegador envía el formulario a AZUL.
+  function payWithCard(calc) {
+    const btn = document.getElementById('pay-card-btn');
+    if (!document.getElementById('accept-terms').checked) { window.VBR.toast('Debes aceptar los Términos y la Política de reembolsos', 'error'); return; }
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Conectando con AZUL…';
+    const reset = () => { btn.disabled = !document.getElementById('accept-terms').checked; btn.textContent = label; };
+    const body = {
+      boat_id: boat.id, start_date: selDate, schedule: selSlot, guests: calc.guests,
+      special_requests: (document.getElementById('special-requests') || {}).value || '',
+      accept_terms: true
+    };
+    if (isDayBased()) {
+      body.birthday_combo = !!selBirthday;
+    } else if (boat.pricing_scheme) {
+      body.package_hours = selPackageHours;
+      body.extra_hours = extraHours;
+      body.meal_addons = getMealAddons().map(m => m.key);
+    }
+    fetch('/api/payments/azul/start', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(r => r.json().catch(() => ({ error: 'Error de conexión con el servidor' })))
+      .then(data => {
+        if (!data || data.error || !data.action || !data.fields) {
+          const msg = (data && data.error) || 'No se pudo iniciar el pago con tarjeta';
+          window.VBR.toast(msg, 'error'); reset();
+          if (/turno/i.test(msg)) fetchAvailability();
+          return;
+        }
+        const form = document.createElement('form');
+        form.method = 'post'; form.action = data.action; form.style.display = 'none';
+        Object.keys(data.fields).forEach(k => {
+          const i = document.createElement('input');
+          i.type = 'hidden'; i.name = k; i.value = String(data.fields[k]);
+          form.appendChild(i);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      }).catch(() => { window.VBR.toast('Error al iniciar el pago con tarjeta', 'error'); reset(); });
   }
 
   function submitBooking(calc) {
