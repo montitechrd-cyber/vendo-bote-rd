@@ -2207,12 +2207,21 @@ ul { list-style: none; }
 @keyframes hxSheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes hxSwell{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes hxFoam{from{stroke-dashoffset:0}to{stroke-dashoffset:-400}}
-/* Lancha navegando: cruza el mar del hero entre las olas (la ola de adelante tapa el casco) */
-.hx-boat{position:absolute;left:0;bottom:20%;width:clamp(150px,15vw,250px);z-index:1;animation:hxSail 55s linear infinite;will-change:transform}
+/* Lancha-CTA: sticker clicable anclado en el mar (la ola de adelante le tapa el casco) */
+.hx-main{pointer-events:none}.hx-main>*{pointer-events:auto}
+.hx-boat{position:absolute;right:clamp(14px,5vw,90px);bottom:19%;width:clamp(170px,18vw,300px);z-index:1;display:block;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .hx-boat img{display:block;width:100%;height:auto;transform-origin:50% 85%;filter:drop-shadow(0 8px 10px rgba(10,61,133,.28));animation:hxPitch 4.6s ease-in-out infinite}
-@keyframes hxSail{from{transform:translateX(-30vw)}to{transform:translateX(105vw)}}
+.hx-boat-cta{position:absolute;left:50%;bottom:calc(100% - 14px);translate:-50% 0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:9px 16px;border-radius:999px;background:#fff;color:#0a3d85;font-weight:700;font-size:.85rem;box-shadow:0 8px 22px rgba(10,61,133,.22);transition:background .2s,color .2s}
+.hx-boat-cta::after{content:'';position:absolute;left:50%;top:100%;width:10px;height:10px;background:inherit;transform:translate(-50%,-50%) rotate(45deg);border-radius:2px}
+.hx-boat-cta .t-s{display:none}
+.hx-boat-cta svg{transition:transform .25s}
+.hx-boat:hover{transform:translateY(-4px) scale(1.03)}
+.hx-boat:hover .hx-boat-cta,.hx-boat:focus-visible .hx-boat-cta{background:#0a5bb8;color:#fff}
+.hx-boat:hover .hx-boat-cta .t-s{display:none}
+.hx-boat-cta svg{transform:translateX(3px)}
+.hx-boat:focus-visible{outline:3px solid #0a5bb8;outline-offset:4px;border-radius:14px}
 @keyframes hxPitch{0%,100%{transform:translateY(2px) rotate(-1.6deg)}50%{transform:translateY(-5px) rotate(1.6deg)}}
-@media (max-width:760px){.hx-boat{width:clamp(110px,30vw,160px);bottom:18%}}
+@media (max-width:760px){.hx-boat{width:clamp(110px,26vw,160px);bottom:7%;right:3vw}.hx-boat-cta{font-size:.78rem;padding:7px 12px;left:auto;right:0;translate:0 0}.hx-boat-cta::after{left:auto;right:30px;transform:translate(0,-50%) rotate(45deg)}.hx-boat-cta .t-l{display:none}.hx-boat-cta .t-s{display:inline}}
 @media (max-height:720px){.hx-sub{display:none}.hx-badge{display:none}}
 @media (max-width:760px){
   .hx{min-height:560px}
@@ -2233,7 +2242,7 @@ ul { list-style: none; }
   @keyframes hxPopC{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
   .hx-actions{gap:8px}.hx-btn{padding:10px 18px;font-size:.88rem}
 }
-@media (prefers-reduced-motion:reduce){.hx *{animation:none!important}.hx-boat{left:62%}}
+@media (prefers-reduced-motion:reduce){.hx *{animation:none!important}}
 
 /* ── Header estilo Airbnb ── */
 .nav.ab-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;padding:0 clamp(1rem,3vw,2.5rem);background:#fff;box-shadow:none}
