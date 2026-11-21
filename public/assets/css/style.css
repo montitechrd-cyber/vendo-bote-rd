@@ -2207,11 +2207,12 @@ ul { list-style: none; }
 @keyframes hxSheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes hxSwell{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes hxFoam{from{stroke-dashoffset:0}to{stroke-dashoffset:-400}}
-/* Stickers decorativos de yates: a los lados del contenido, sobre las olas */
-.hx-sticker{position:absolute;height:auto;max-width:none;display:none;filter:drop-shadow(0 14px 18px rgba(10,61,133,.22));opacity:0;animation:hxStIn 1s cubic-bezier(.2,.8,.2,1) .5s forwards,hxBob 7s ease-in-out 1.5s infinite}
-.hx-st-a{left:max(2vw,10px);top:34%;width:clamp(240px,24vw,400px);rotate:-5deg}
-@keyframes hxStIn{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
-@media (min-width:1080px){.hx-sticker{display:block}}
+/* Lancha navegando: cruza el mar del hero entre las olas (la ola de adelante tapa el casco) */
+.hx-boat{position:absolute;left:0;bottom:20%;width:clamp(150px,15vw,250px);z-index:1;animation:hxSail 55s linear infinite;will-change:transform}
+.hx-boat img{display:block;width:100%;height:auto;transform-origin:50% 85%;filter:drop-shadow(0 8px 10px rgba(10,61,133,.28));animation:hxPitch 4.6s ease-in-out infinite}
+@keyframes hxSail{from{transform:translateX(-30vw)}to{transform:translateX(105vw)}}
+@keyframes hxPitch{0%,100%{transform:translateY(2px) rotate(-1.6deg)}50%{transform:translateY(-5px) rotate(1.6deg)}}
+@media (max-width:760px){.hx-boat{width:clamp(110px,30vw,160px);bottom:18%}}
 @media (max-height:720px){.hx-sub{display:none}.hx-badge{display:none}}
 @media (max-width:760px){
   .hx{min-height:560px}
@@ -2232,7 +2233,7 @@ ul { list-style: none; }
   @keyframes hxPopC{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
   .hx-actions{gap:8px}.hx-btn{padding:10px 18px;font-size:.88rem}
 }
-@media (prefers-reduced-motion:reduce){.hx *{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.hx *{animation:none!important}.hx-boat{left:62%}}
 
 /* ── Header estilo Airbnb ── */
 .nav.ab-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;padding:0 clamp(1rem,3vw,2.5rem);background:#fff;box-shadow:none}
