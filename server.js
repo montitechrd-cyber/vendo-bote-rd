@@ -1,4 +1,6 @@
 require('dotenv').config();
+// Credenciales de AZUL limpias antes de usarlas; el registro muestra solo longitudes, nunca valores.
+console.log('AZUL credenciales →', require('./utils/azul-env').normalizeAzulEnv(process.env));
 const express = require('express');
 const compression = require('compression');
 const cors = require('cors');
