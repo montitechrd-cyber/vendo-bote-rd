@@ -425,6 +425,14 @@ test('M3: en producción con AZUL_ENV=test → 503 sin reserva; con AZUL_ALLOW_T
   assert.equal((await startPayment(d2, user, body)).status, 200);
 });
 
+test('certificacion: en produccion con AZUL_ENV=test solo los correos autorizados ven la tarjeta', () => {
+  const env = { AZUL_MERCHANT_ID: '1', AZUL_AUTH_KEY: 'k', NODE_ENV: 'production', AZUL_ENV: 'test', AZUL_TEST_EMAILS: ' Prueba@azul.com , otro@x.com' };
+  assert.equal(cardEnabled(env), false);
+  assert.equal(cardEnabled(env, { email: 'cliente@x.com' }), false);
+  assert.equal(cardEnabled(env, { email: 'prueba@azul.com' }), true);
+  assert.equal(cardEnabled({ ...env, AZUL_TEST_EMAILS: '' }, { email: 'prueba@azul.com' }), false);
+});
+
 test('M3: cardEnabled (usada por /config)', () => {
   const base = { AZUL_MERCHANT_ID: '1', AZUL_AUTH_KEY: 'k' };
   assert.equal(cardEnabled({ ...base, NODE_ENV: 'development', AZUL_ENV: 'test' }), true);
@@ -433,4 +441,12 @@ test('M3: cardEnabled (usada por /config)', () => {
   assert.equal(cardEnabled({ ...base, NODE_ENV: 'production' }), false);
   assert.equal(cardEnabled({ ...base, NODE_ENV: 'production', AZUL_ENV: 'test', AZUL_ALLOW_TEST_IN_PROD: '1' }), true);
   assert.equal(cardEnabled({ NODE_ENV: 'development' }), false);
+});
+
+test('DCC: solo se toma si fue aceptada y con datos validos', () => {
+  const { dccFromParams } = require('../routes/azul');
+  assert.equal(dccFromParams({ DCCApplied: '0', DCCCurrencyAlpha: 'USD', DCCAmount: '873' }), null);
+  assert.deepEqual(dccFromParams({ DCCApplied: '1', DCCCurrencyAlpha: 'USD', DCCAmount: '873', DCCExchangeRate: '00185', DCCMarkup: '500' }),
+    { dcc_currency: 'USD', dcc_amount: '873', dcc_rate: '00185', dcc_markup: '500' });
+  assert.equal(dccFromParams({ DCCApplied: '1', DCCCurrencyAlpha: '<b>', DCCAmount: '873' }), null);
 });

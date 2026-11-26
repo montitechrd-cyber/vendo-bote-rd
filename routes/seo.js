@@ -362,6 +362,10 @@ const LEGAL_PAGES = {
     title: 'Términos y Condiciones | VENDO BOTE RD',
     description: 'Términos y condiciones de VENDO BOTE RD: renta y venta de embarcaciones, reservas, precios en RD$, pagos con tarjeta y entrega del servicio.',
   },
+  'entrega.html': {
+    title: 'Política de Entrega del Servicio | VENDO BOTE RD',
+    description: 'Política de entrega de VENDO BOTE RD: cuándo, dónde y cómo se entrega la renta de embarcaciones y qué pasa si no se puede salir.',
+  },
   'reembolsos.html': {
     title: 'Política de Reembolsos, Devoluciones y Cancelaciones | VENDO BOTE RD',
     description: 'Política de reembolsos, devoluciones y cancelaciones de VENDO BOTE RD: no se devuelve dinero: se cambia la fecha. Plazos de cambio, mal tiempo y errores de cobro.',

@@ -712,11 +712,12 @@
   }
 
   // ¿Está habilitado el pago con tarjeta (AZUL)? Si falla la consulta, solo transferencia.
-  let azulEnabled = false, itbisRate = 0.18;
+  let azulEnabled = false, azulTestMode = false, itbisRate = 0.18;
   function loadAzulConfig() {
     return fetch('/api/payments/azul/config', { credentials: 'same-origin' })
       .then(r => r.json()).then(d => {
         azulEnabled = !!(d && d.enabled);
+        azulTestMode = !!(d && d.testMode);
         if (d && typeof d.itbisRate === 'number' && d.itbisRate >= 0 && d.itbisRate <= 1) itbisRate = d.itbisRate;
       })
       .catch(() => { azulEnabled = false; });
@@ -751,7 +752,10 @@
           ${calc.extraLines.map(x => `<div class="sum-row sum-extra"><span>${x.label}</span><strong>${x.hidden ? 'Incluido' : '+$' + x.price.toLocaleString()}</strong></div>`).join('')}
         </div>
         <div class="sum-total"><span>Total</span><strong>$${Number(calc.total).toLocaleString()} USD</strong></div>
+        <div class="sum-dop" id="sum-dop" aria-live="polite">Equivalente en pesos dominicanos (DOP): calculando…</div>
       </div>
+      <p class="currency-note"><strong>Moneda:</strong> los precios se muestran en US$. Los pagos con tarjeta se procesan y cobran en <strong>pesos dominicanos (RD$ / DOP)</strong> a la tasa del día, más ITBIS, y verás el monto exacto en RD$ antes de pagar.</p>
+      ${azulTestMode ? '<p class="currency-note currency-test">Modo de prueba de AZUL: no se cobra dinero real.</p>' : ''}
       <div class="form-group" style="margin-bottom:1.25rem;">
         <label class="form-label" for="special-requests">Solicitudes especiales (opcional)</label>
         <textarea class="form-textarea" id="special-requests" placeholder="Decoración especial, peticiones del grupo..." rows="3" maxlength="500"></textarea>
@@ -816,6 +820,12 @@
     let usdDop = null;
     const dopBox = document.getElementById('pay-dop');
     const renderDop = () => {
+      const sumDop = document.getElementById('sum-dop');
+      if (sumDop) {
+        sumDop.textContent = !usdDop ? 'Equivalente en pesos dominicanos (DOP): calculando…'
+          : usdDop.error ? 'Equivalente en pesos dominicanos (DOP): no disponible en este momento'
+          : 'Equivalente: RD$ ' + new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(calc.total * usdDop.rate) + ' (DOP)';
+      }
       const bk = BANKS[parseInt(bankSel.value, 10)];
       if (bk.usd) { dopBox.innerHTML = '<div class="pay-dop-note">Esta cuenta recibe <strong>dólares</strong>: transfiere el monto en USD.</div>'; return; }
       if (!usdDop) { dopBox.innerHTML = '<div class="pay-dop-note">Calculando el monto en pesos…</div>'; return; }

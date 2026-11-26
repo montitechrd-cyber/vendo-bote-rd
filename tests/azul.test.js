@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const azul = require('../utils/azul');
 
-const hmac = (s, k) => crypto.createHmac('sha512', k).update(Buffer.from(s, 'utf16le')).digest('hex');
+const hmac = (s, k) => crypto.createHmac('sha512', k).update(Buffer.from(s, 'utf8')).digest('hex');
 
 test('toAzulAmount: centavos exactos', () => {
   assert.equal(azul.toAzulAmount(17483.21), '1748321');
@@ -19,7 +19,7 @@ const ORDER = ['MerchantId', 'MerchantName', 'MerchantType', 'CurrencyCode', 'Or
   'ApprovedUrl', 'DeclinedUrl', 'CancelUrl', 'UseCustomField1', 'CustomField1Label', 'CustomField1Value',
   'UseCustomField2', 'CustomField2Label', 'CustomField2Value'];
 
-test('buildRequestHash: UTF-16LE HMAC-SHA512 hex minuscula en el orden del manual', () => {
+test('buildRequestHash: UTF-8 (como el ejemplo de AZUL) HMAC-SHA512 hex minuscula en el orden del manual', () => {
   const f = {};
   ORDER.forEach((k, i) => { f[k] = 'v' + i; });
   f.CustomField2Label = '';
@@ -85,6 +85,23 @@ test('buildPaymentFields: AltMerchantName valido y limites', () => {
     assert.throws(() => azul.buildPaymentFields({ ...base(), altMerchantName: n }));
   }
   assert.doesNotThrow(() => azul.buildPaymentFields({ ...base(), altMerchantName: 'x'.repeat(25) }));
+});
+
+test('verifyResponseHash acepta tambien la respuesta firmada en UNICODE (UTF-16LE)', () => {
+  const p = respuesta('clave');
+  const unicode = azul.buildResponseHash(p, 'clave', 'utf16le');
+  assert.notEqual(unicode, azul.buildResponseHash(p, 'clave'));
+  assert.equal(azul.verifyResponseHash({ ...p, AuthHash: unicode }, 'clave'), true);
+});
+
+test('datos del tarjetahabiente para 3D Secure: limpios, opcionales y fuera del hash', () => {
+  const sin = azul.buildPaymentFields(base());
+  assert.equal('CardHolderName' in sin, false);
+  const con = azul.buildPaymentFields({ ...base(), cardHolder: { name: 'Ana "<b>" P', email: 'ana@x.com', phone: '8095550000' } });
+  assert.equal(con.CardHolderName, 'Ana b P');
+  assert.equal(con.CardHolderEmail, 'ana@x.com');
+  assert.equal(con.CardHolderPhoneMobile, '8095550000');
+  assert.equal(con.AuthHash, sin.AuthHash);
 });
 
 test('isApproved', () => {

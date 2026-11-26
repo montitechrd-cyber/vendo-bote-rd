@@ -23,8 +23,9 @@ function toAzulAmount(value) {
   return String(cents).padStart(3, '0');
 }
 
-function hmacHex(text, authKey) {
-  return crypto.createHmac('sha512', String(authKey)).update(Buffer.from(text, 'utf16le')).digest('hex');
+// El manual 2026 admite UTF-8 o UNICODE (UTF-16LE). El ejemplo de cálculo que entrega AZUL usa UTF-8.
+function hmacHex(text, authKey, encoding = 'utf8') {
+  return crypto.createHmac('sha512', String(authKey)).update(Buffer.from(text, encoding)).digest('hex');
 }
 
 const val = (o, k) => (o[k] === undefined || o[k] === null ? '' : String(o[k]));
@@ -33,17 +34,25 @@ function buildRequestHash(fields, authKey) {
   return hmacHex(REQUEST_ORDER.map((k) => val(fields, k)).join('') + authKey, authKey);
 }
 
-function buildResponseHash(params, authKey) {
-  return hmacHex(RESPONSE_ORDER.map((k) => val(params, k)).join('') + authKey, authKey);
+function buildResponseHash(params, authKey, encoding = 'utf8') {
+  return hmacHex(RESPONSE_ORDER.map((k) => val(params, k)).join('') + authKey, authKey, encoding);
 }
 
+// El manual dice que la respuesta se firma desde una cadena UNICODE y su ejemplo de envío usa UTF-8: se
+// aceptan ambas codificaciones. Las dos exigen conocer la AuthKey, así que no debilita la verificación.
 function verifyResponseHash(params, authKey) {
   if (!params || typeof params.AuthHash !== 'string' || !params.AuthHash) return false;
   const recibido = Buffer.from(params.AuthHash.toLowerCase(), 'utf8');
-  const esperado = Buffer.from(buildResponseHash(params, authKey), 'utf8');
-  if (recibido.length !== esperado.length) return false;
-  return crypto.timingSafeEqual(recibido, esperado);
+  let ok = false;
+  for (const encoding of ['utf8', 'utf16le']) {
+    const esperado = Buffer.from(buildResponseHash(params, authKey, encoding), 'utf8');
+    if (recibido.length === esperado.length && crypto.timingSafeEqual(recibido, esperado)) ok = true;
+  }
+  return ok;
 }
+
+// Datos del tarjetahabiente para 3D Secure (no entran en el hash). Sin comillas ni barras invertidas.
+const cleanHolder = (v, max) => String(v == null ? '' : v).replace(/["'\\<>]/g, '').trim().slice(0, max);
 
 function buildPaymentFields(o) {
   const f = {
@@ -72,6 +81,11 @@ function buildPaymentFields(o) {
     if (n.length > 25 || /["\\']/.test(n)) throw new Error('AltMerchantName inválido');
     f.AltMerchantName = n;
   }
+  const holder = o.cardHolder || {};
+  const name = cleanHolder(holder.name, 96), mail = cleanHolder(holder.email, 254), phone = cleanHolder(holder.phone, 32);
+  if (name) f.CardHolderName = name;
+  if (mail) f.CardHolderEmail = mail;
+  if (phone) f.CardHolderPhoneMobile = phone;
   f.AuthHash = buildRequestHash(f, o.authKey);
   return f;
 }

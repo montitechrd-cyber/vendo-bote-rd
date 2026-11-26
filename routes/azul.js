@@ -5,7 +5,7 @@
 const express = require('express');
 const crypto = require('node:crypto');
 const { getDB } = require('../database');
-const { authRequired, adminRequired } = require('../middleware/auth');
+const { optionalAuth, authRequired, adminRequired } = require('../middleware/auth');
 const emailUtil = require('../utils/email');
 const azul = require('../utils/azul');
 const { computeQuote } = require('../utils/booking-quote');
@@ -17,7 +17,8 @@ const router = express.Router();
 
 const RATE_ERROR = 'No pudimos obtener la tasa del día; intenta de nuevo o paga por transferencia';
 const USER_HOLD_ERROR = 'Ya tienes un pago con tarjeta en curso. Complétalo o espera 15 minutos.';
-const RESPONSE_FIELDS = ['OrderNumber', 'Amount', 'AuthorizationCode', 'DateTime', 'ResponseCode', 'IsoCode', 'ResponseMessage', 'ErrorDescription', 'RRN', 'AuthHash'];
+const RESPONSE_FIELDS = ['OrderNumber', 'Amount', 'AuthorizationCode', 'DateTime', 'ResponseCode', 'IsoCode', 'ResponseMessage', 'ErrorDescription', 'RRN', 'AuthHash',
+  'DCCApplied', 'DCCCurrencyAlpha', 'DCCExchangeRate', 'DCCMarkup', 'DCCAmount'];
 
 // ---------- utilidades ----------
 
@@ -66,9 +67,18 @@ function computeBreakdown(totalUsd, rate, itbisRateValue) {
 
 // ¿Se puede cobrar con tarjeta en este entorno? Sin credenciales no; en producción solo con AZUL_ENV=prod
 // (o AZUL_ALLOW_TEST_IN_PROD=1, explícito): con credenciales de pruebas se confirmarían reservas reales sin dinero real.
-function cardEnabled(env) {
+// Correos autorizados a ver y usar el pago de PRUEBAS en el sitio publicado (certificación con AZUL).
+function testEmails(env) {
+  return String(env.AZUL_TEST_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+}
+// ¿Es un cobro contra el ambiente de pruebas (sin dinero real)?
+const isTestMode = (env) => env.AZUL_ENV !== 'prod';
+
+function cardEnabled(env, user) {
   if (!env.AZUL_MERCHANT_ID || !env.AZUL_AUTH_KEY) return false;
-  if (env.NODE_ENV === 'production' && env.AZUL_ENV !== 'prod' && env.AZUL_ALLOW_TEST_IN_PROD !== '1') return false;
+  if (env.NODE_ENV === 'production' && isTestMode(env) && env.AZUL_ALLOW_TEST_IN_PROD !== '1') {
+    return !!(user && user.email && testEmails(env).includes(String(user.email).toLowerCase()));
+  }
   return true;
 }
 
@@ -79,7 +89,7 @@ const fail = (status, error, extra) => ({ status, body: { error, ...(extra || {}
 async function startPayment(deps, user, body) {
   const { db, getRate, env } = deps;
   const b = body || {};
-  if (!cardEnabled(env)) {
+  if (!cardEnabled(env, user)) {
     if (env.AZUL_MERCHANT_ID && env.AZUL_AUTH_KEY) console.error('AZUL: en producción AZUL_ENV no es "prod" (y falta AZUL_ALLOW_TEST_IN_PROD=1); se rechaza el inicio del pago');
     return fail(503, 'El pago con tarjeta no está disponible por ahora. Puedes pagar por transferencia.');
   }
@@ -158,9 +168,9 @@ async function startPayment(deps, user, body) {
       const candidate = generateOrderNumber();
       try {
         await db.run(
-          `INSERT INTO card_payments (booking_id, order_number, amount_dop_cents, itbis_dop_cents, usd_total, usd_dop_rate)
-           VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-          [bookingId, candidate, amountCents, itbisCents, quote.total, rate]
+          `INSERT INTO card_payments (booking_id, order_number, amount_dop_cents, itbis_dop_cents, usd_total, usd_dop_rate, is_test)
+           VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+          [bookingId, candidate, amountCents, itbisCents, quote.total, rate, isTestMode(env)]
         );
         orderNumber = candidate;
       } catch (e) {
@@ -185,6 +195,7 @@ async function startPayment(deps, user, body) {
     cancelUrl: ret('cancelled'),
     authKey: env.AZUL_AUTH_KEY,
     bookingRef: ref,
+    cardHolder: { name: [user.name, user.last_name].filter(Boolean).join(' '), email: user.email, phone: user.phone },
   });
   const action = await resolveActionUrl(env);
   return {
@@ -206,6 +217,17 @@ function fireAndForget(fn) {
   } catch (e) {
     console.error('AZUL: fallo al enviar correo:', e && e.message);
   }
+}
+
+// Conversión de moneda (DCC): el manual exige mostrarla en el recibo cuando el tarjetahabiente la acepta.
+// Formatos de AZUL: tasa con 4 decimales ('00185' = 0.0185), margen y monto con 2 ('500' = 5.00, '028' = 0.28).
+function dccFromParams(p) {
+  const digits = (v) => (typeof v === 'string' && /^\d{1,18}$/.test(v) ? v : null);
+  if (!p || p.DCCApplied !== '1') return null;
+  const currency = typeof p.DCCCurrencyAlpha === 'string' && /^[A-Z]{3}$/.test(p.DCCCurrencyAlpha) ? p.DCCCurrencyAlpha : null;
+  const amount = digits(p.DCCAmount), rate = digits(p.DCCExchangeRate), markup = digits(p.DCCMarkup);
+  if (!currency || !amount) return null;
+  return { dcc_currency: currency, dcc_amount: amount, dcc_rate: rate, dcc_markup: markup };
 }
 
 const cleanIso = (v) => (typeof v === 'string' && /^[A-Za-z0-9]{1,4}$/.test(v) ? v : null);
@@ -248,7 +270,7 @@ async function releaseHold(db, cp, ref, cpStatus, bookingPayStatus, params) {
   await db.run(
     `UPDATE card_payments SET status = $2, iso_code = $3, response_message = $4, completed_at = NOW()
      WHERE id = $1 AND status NOT IN ('approved','needs_review')`,
-    [cp.id, cpStatus, cleanIso(params && params.IsoCode), cleanText(params && params.ResponseMessage)]
+    [cp.id, cpStatus, cleanIso(params && params.IsoCode), cleanText([params && params.ResponseMessage, params && params.ErrorDescription].filter(Boolean).join(' · '))]
   );
   return { estado: cpStatus === 'declined' ? 'declinado' : 'cancelado', ref };
 }
@@ -335,10 +357,15 @@ async function handleReturn(deps, input) {
      WHERE id = $1`,
     [cp.id, cleanIso(params.IsoCode), cleanText(params.ResponseMessage), cleanText(params.AuthorizationCode, 40), cleanText(params.RRN, 40), cleanText(params.DateTime, 40)]
   );
+  const dcc = dccFromParams(params);
+  if (dcc) {
+    await db.run('UPDATE card_payments SET dcc_currency = $2, dcc_amount = $3, dcc_rate = $4, dcc_markup = $5 WHERE id = $1',
+      [cp.id, dcc.dcc_currency, dcc.dcc_amount, dcc.dcc_rate, dcc.dcc_markup]);
+  }
   console.log(`AZUL: pago aprobado orderNumber=${orderNumber} bookingRef=${ref} IsoCode=00`);
   try {
     const { booking, user } = await loadForEmail(db, cp);
-    const payment = { ...cp, authorization_code: params.AuthorizationCode, rrn: params.RRN, azul_datetime: params.DateTime };
+    const payment = { ...cp, ...(dccFromParams(params) || {}), authorization_code: params.AuthorizationCode, rrn: params.RRN, azul_datetime: params.DateTime };
     if (booking && user) fireAndForget(() => deps.email.sendCardReceipt(booking, user, payment));
   } catch (e) { console.error('AZUL: no se pudo preparar el recibo:', e.message); }
   return { estado: 'aprobado', ref };
@@ -346,8 +373,10 @@ async function handleReturn(deps, input) {
 
 // ---------- rutas HTTP ----------
 
-router.get('/config', (req, res) => {
-  res.json({ enabled: cardEnabled(process.env), itbisRate: itbisRate(process.env) });
+router.get('/config', optionalAuth, (req, res) => {
+  const enabled = cardEnabled(process.env, req.user);
+  res.set('Cache-Control', 'private, no-store');
+  res.json({ enabled, testMode: enabled && isTestMode(process.env), itbisRate: itbisRate(process.env) });
 });
 
 // Cobros con tarjeta que no terminaron en 'approved', 'declined' ni 'cancelled': por revisar y conciliar con AZUL.
@@ -402,6 +431,7 @@ router.get('/:kind(approved|declined|cancelled)/:orderNumber', async (req, res) 
 
 module.exports = router;
 module.exports.handleReturn = handleReturn;
+module.exports.dccFromParams = dccFromParams;
 module.exports.startPayment = startPayment;
 module.exports.generateOrderNumber = generateOrderNumber;
 module.exports.resolveActionUrl = resolveActionUrl;

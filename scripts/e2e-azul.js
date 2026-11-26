@@ -293,7 +293,12 @@ init().then(() => {
   // El log se escribe después de los UPDATE de la expiración: se espera en vez de leerlo al instante.
   const logged = await until(async () => serverLog.includes(`${refExp}/${ordExp}`), 5000);
   check('Expiración → el servidor registró el aviso con la orden y la referencia', true, logged);
+  if (!logged) console.log('DBG', refExp, ordExp, JSON.stringify(serverLog.split(String.fromCharCode(10)).filter((l) => /expir|AZUL/.test(l)).slice(-8)));
   const adminReview = await mkUser('adm', true, 'admin');
+  // Los cobros de este guion salen como 'de prueba' (AZUL_ENV=test); para comprobar la protección de borrado de
+  // cobros reales se marcan como de producción antes de las comprobaciones de DELETE.
+  const protegidos = () => q('UPDATE card_payments SET is_test = FALSE');
+  await protegidos();
   r = await api('GET', '/api/payments/azul/admin/review', { cookie: adminReview.cookie });
   const listed = Array.isArray(r.json) ? r.json.find((x) => x.order_number === ordExp) : null;
   check('GET /admin/review (admin) lista el cobro expired_unconfirmed sin datos sensibles', [200, 'expired_unconfirmed', true], [r.status, listed && listed.status, !!listed && !('authorization_code' in listed) && !('rrn' in listed)]);
@@ -332,17 +337,21 @@ init().then(() => {
 
   // --- 10. No se borra la evidencia de cobros; verify-payment no aplica a tarjeta
   const bNeeds = await bookingByRef(refAmt);
+  await protegidos();
   r = await api('DELETE', `/api/bookings/${bNeeds.id}`, { cookie: adminReview.cookie });
   const stillThere = (await q('SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id=$1', [bNeeds.id]))[0].n;
   check('DELETE de reserva con pago needs_review → 409 y el cobro sigue en la base', [409, 1], [r.status, stillThere]);
   const bExpired = await bookingByRef(refExp);
+  await protegidos();
   r = await api('DELETE', `/api/bookings/${bExpired.id}`, { cookie: adminReview.cookie });
   check('DELETE de reserva con cobro needs_review (aprobación tardía) → 409', 409, r.status);
   const bDeclined = await bookingByRef(refHold);
+  await protegidos();
   r = await api('DELETE', `/api/bookings/${bDeclined.id}`, { cookie: adminReview.cookie });
   const gone = (await q('SELECT COUNT(*)::int AS n FROM bookings WHERE id=$1', [bDeclined.id]))[0].n;
   check('DELETE de reserva con pago declinado (sin dinero) → 200 y se borra', [200, 0], [r.status, gone]);
   const bOk = await bookingByRef(refOk);
+  await protegidos();
   r = await api('DELETE', `/api/bookings/${bOk.id}`, { cookie: adminReview.cookie });
   check('DELETE de reserva con pago aprobado → 409', 409, r.status);
   r = await api('PATCH', `/api/bookings/${bOk.id}/verify-payment`, { cookie: adminReview.cookie, body: { action: 'approve' } });

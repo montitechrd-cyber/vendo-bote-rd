@@ -2418,3 +2418,8 @@ ul { list-style: none; }
   .resched-fields { grid-template-columns: 1fr; }
   .resched-actions .btn { flex: 1 1 auto; }
 }
+
+/* Moneda en el checkout (exigido por AZUL: RD$ / DOP) */
+.sum-dop { text-align: right; font-size: 0.85rem; color: var(--cream-3); padding: 0 0 0.35rem; }
+.currency-note { font-size: 0.78rem; line-height: 1.55; color: var(--cream-2); background: var(--sky-bg, #f0f9ff); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 0.6rem 0.75rem; margin: 0 0 1rem; }
+.currency-test { border-color: #d97706; color: #92400e; background: #fffbeb; font-weight: 600; }

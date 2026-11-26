@@ -163,6 +163,12 @@ async function createTables() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       completed_at TIMESTAMPTZ
     )`).catch(() => {});
+  // Cobros hechos contra el ambiente de pruebas de AZUL (certificación): no mueven dinero real
+  await pool.query(`ALTER TABLE card_payments ADD COLUMN IF NOT EXISTS is_test BOOLEAN DEFAULT FALSE`).catch(() => {});
+  // Conversión de moneda DCC (solo si el tarjetahabiente la aceptó); se muestra en el recibo
+  for (const col of ['dcc_currency', 'dcc_amount', 'dcc_rate', 'dcc_markup']) {
+    await pool.query(`ALTER TABLE card_payments ADD COLUMN IF NOT EXISTS ${col} TEXT`).catch(() => {});
+  }
   await pool.query(`CREATE INDEX IF NOT EXISTS card_payments_booking_idx ON card_payments(booking_id)`).catch(() => {});
   await pool.query(`ALTER TABLE card_payments ADD COLUMN IF NOT EXISTS dup_notified BOOLEAN NOT NULL DEFAULT false`).catch(() => {});
   // Expiración de retenciones: índice parcial para que el UPDATE periódico no recorra toda la tabla

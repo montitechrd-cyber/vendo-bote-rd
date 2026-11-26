@@ -452,7 +452,7 @@ router.delete('/:id', adminRequired, async (req, res) => {
     const booking = await db.queryOne('SELECT id FROM bookings WHERE id = $1', [req.params.id]);
     if (!booking) return res.status(404).json({ error: 'Reserva no encontrada' });
     // El registro de un cobro con tarjeta con dinero de por medio no se borra (trazabilidad / conciliación)
-    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id = $1 AND status IN ('approved','needs_review','expired_unconfirmed')", [booking.id]);
+    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id = $1 AND status IN ('approved','needs_review','expired_unconfirmed') AND is_test IS NOT TRUE", [booking.id]);
     if (evidence.n > 0) return res.status(409).json({ error: 'Esta reserva tiene un pago con tarjeta que debe conservarse como registro (aprobado, por revisar o sin confirmar). No se puede eliminar.' });
     await db.run('DELETE FROM card_payments WHERE booking_id = $1', [booking.id]);
     await db.run('DELETE FROM reviews WHERE booking_id = $1', [booking.id]);

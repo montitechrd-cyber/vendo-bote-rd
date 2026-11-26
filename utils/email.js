@@ -282,6 +282,12 @@ function cardReceiptHtml(booking, user, payment) {
       ${ledger('Total cobrado', fmtDop(total), true)}
     </table>
     <div style="height:22px;"></div>
+    ${payment.dcc_currency ? `${title('Conversión de moneda / Currency conversion (DCC)')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${pair(cell('Pagado en / Paid in', payment.dcc_currency + ' ' + (Number(payment.dcc_amount) / 100).toFixed(2)), cell('Monto original / Original amount', fmtDop(total)))}
+      ${pair(cell('Tasa / Exchange rate', payment.dcc_rate ? '1 DOP = ' + (Number(payment.dcc_rate) / 10000).toFixed(4) + ' ' + payment.dcc_currency : '—'), cell('Margen / Markup', payment.dcc_markup ? (Number(payment.dcc_markup) / 100).toFixed(2) + ' %' : '—'))}
+    </table>
+    <p style="${F}margin:0 0 18px;font-size:12px;color:#5B84A8;">El tarjetahabiente eligió pagar en ${esc(payment.dcc_currency)}. The cardholder chose to pay in ${esc(payment.dcc_currency)}.</p>` : ''}
     ${title('Datos de la transacción')}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       ${pair(cell('Código de autorización', payment.authorization_code || '—'), cell('RRN (referencia del banco)', payment.rrn || '—'))}

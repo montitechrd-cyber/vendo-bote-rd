@@ -151,7 +151,7 @@ router.delete('/:id/permanent', adminRequired, async (req, res) => {
     const live = await db.queryOne("SELECT COUNT(*)::int AS n FROM bookings WHERE boat_id = $1 AND status != 'cancelled'", [boat.id]);
     if (live.n > 0) return res.status(409).json({ error: 'Esta embarcación tiene ' + live.n + ' reserva(s) pendientes o confirmadas. Recházalas o cancélalas primero, o usa Desactivar para conservar el historial.' });
     // El registro de cobros con tarjeta con dinero de por medio no se borra (trazabilidad): usa Desactivar.
-    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1) AND status IN ('approved','needs_review','expired_unconfirmed')", [boat.id]);
+    const evidence = await db.queryOne("SELECT COUNT(*)::int AS n FROM card_payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1) AND status IN ('approved','needs_review','expired_unconfirmed') AND is_test IS NOT TRUE", [boat.id]);
     if (evidence.n > 0) return res.status(409).json({ error: 'Esta embarcación tiene pagos con tarjeta que deben conservarse como registro. Usa Desactivar para conservar el historial.' });
     await db.run('DELETE FROM card_payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [boat.id]);
     await db.run('DELETE FROM payments WHERE booking_id IN (SELECT id FROM bookings WHERE boat_id = $1)', [boat.id]);
