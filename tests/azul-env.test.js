@@ -22,3 +22,10 @@ test('la huella solo aparece en modo pruebas y nunca incluye la llave', () => {
   assert.equal(normalizeAzulEnv({ ...env }).includes('secreta-larga'), false);
   assert.equal(/huella/.test(normalizeAzulEnv({ ...env, AZUL_ENV: 'prod' })), false);
 });
+
+test('describeFields no expone la firma ni los datos del tarjetahabiente', () => {
+  const { describeFields } = require('../utils/azul-env');
+  const t = describeFields('https://x', { Amount: '100', AuthHash: 'abc123', CardHolderName: 'José Peña', CardHolderEmail: 'a@b.com' });
+  assert.equal(/abc123|José|a@b\.com/.test(t), false);
+  assert.match(t, /"CardHolderName":"len=9 no-ascii"/);
+});

@@ -198,6 +198,7 @@ async function startPayment(deps, user, body) {
     cardHolder: { name: [user.name, user.last_name].filter(Boolean).join(' '), email: user.email, phone: user.phone },
   });
   const action = await resolveActionUrl(env);
+  if (env.AZUL_ENV !== 'prod') console.log('AZUL envío de prueba →', require('../utils/azul-env').describeFields(action, fields));
   return {
     status: 200,
     body: {

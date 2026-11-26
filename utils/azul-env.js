@@ -23,4 +23,16 @@ function normalizeAzulEnv(env) {
   return report.join(' · ');
 }
 
-module.exports = { normalizeAzulEnv };
+// Resumen del formulario enviado a AZUL para diagnosticar rechazos en el ambiente de PRUEBAS. No incluye la
+// firma ni los datos personales: de estos solo la longitud y si tienen caracteres fuera de ASCII imprimible.
+function describeFields(action, fields) {
+  const out = { action };
+  for (const [k, v] of Object.entries(fields)) {
+    if (k === 'AuthHash') continue;
+    if (k.startsWith('CardHolder')) out[k] = `len=${String(v).length}${/^[ -~]*$/.test(v) ? '' : ' no-ascii'}`;
+    else out[k] = v;
+  }
+  return JSON.stringify(out);
+}
+
+module.exports = { normalizeAzulEnv, describeFields };
