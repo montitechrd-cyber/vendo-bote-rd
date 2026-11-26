@@ -291,9 +291,10 @@ init().then(() => {
   check('El job expira la reserva sola (sin ninguna petición) → cancelled/expired', ['cancelled', 'expired'], [row.status, row.payment_status], expired);
   check('Expiración → el cobro created pasa a expired_unconfirmed', 'expired_unconfirmed', row.cp_status);
   // El log se escribe después de los UPDATE de la expiración: se espera en vez de leerlo al instante.
-  const logged = await until(async () => serverLog.includes(`${refExp}/${ordExp}`), 5000);
-  check('Expiración → el servidor registró el aviso con la orden y la referencia', true, logged);
-  if (!logged) console.log('DBG', refExp, ordExp, JSON.stringify(serverLog.split(String.fromCharCode(10)).filter((l) => /expir|AZUL/.test(l)).slice(-8)));
+  // El guion levanta varios servidores sobre la misma base y cada uno tiene su tarea de expiración: el aviso
+  // aparece en el log del que la ejecute primero, así que se buscan todos.
+  const logged = await until(async () => [serverLog, ...Object.values(logs)].some((t) => String(t).includes(`${refExp}/${ordExp}`)), 5000);
+  check('Expiración → un servidor registró el aviso con la orden y la referencia', true, logged);
   const adminReview = await mkUser('adm', true, 'admin');
   // Los cobros de este guion salen como 'de prueba' (AZUL_ENV=test); para comprobar la protección de borrado de
   // cobros reales se marcan como de producción antes de las comprobaciones de DELETE.
