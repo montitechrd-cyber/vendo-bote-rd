@@ -2126,7 +2126,7 @@ ul { list-style: none; }
 .hx-gull{position:absolute;left:0;animation:hxGull 40s linear infinite}.hx-gull svg{animation:hxFlap .9s ease-in-out infinite}
 .hx-gull.g1{top:20%}.hx-gull.g2{top:26%;animation-duration:50s;animation-delay:-16s}
 .hx-spark{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px rgba(255,255,255,.9);animation:hxTwinkle 3s ease-in-out infinite}
-.hx-main{position:relative;z-index:3;flex:1;min-height:auto;width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;padding:calc(var(--nav-h,72px) + 18px) 1.5rem clamp(70px,14vh,150px);display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;text-align:center}
+.hx-main{position:relative;z-index:3;flex:1;min-height:auto;width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;padding:calc(var(--nav-h,72px) + 18px) 1.5rem clamp(130px,25vh,210px);display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;text-align:center}
 .hx-logo-wrap{position:relative;height:clamp(110px,23vh,250px);aspect-ratio:1;margin:0 0 -1.5vh;flex:0 1 auto;animation:hxRise 1s .1s both}
 .hx-logo-wrap::before{content:'';position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(43,181,230,.22),rgba(43,181,230,.08) 40%,transparent 68%)}
 .hx-logo{position:relative;width:100%;height:100%;object-fit:contain;animation:hxFloat 6s ease-in-out infinite;filter:drop-shadow(0 18px 30px rgba(10,91,184,.18))}
@@ -2207,6 +2207,19 @@ ul { list-style: none; }
 @keyframes hxSheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes hxSwell{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes hxFoam{from{stroke-dashoffset:0}to{stroke-dashoffset:-400}}
+/* Lancha-CTA: sticker clicable anclado en el mar (la ola de adelante le tapa el casco) */
+.hx-main{pointer-events:none}.hx-main>*{pointer-events:auto}
+.hx-boat{position:absolute;left:50%;translate:-50% 0;bottom:14%;width:clamp(190px,20vw,320px);z-index:1;display:block;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.hx-boat img{display:block;width:100%;height:auto;transform-origin:50% 85%;filter:drop-shadow(0 8px 10px rgba(10,61,133,.28));animation:hxPitch 4.6s ease-in-out infinite}
+.hx-boat-cta{position:absolute;left:50%;bottom:calc(100% - 14px);translate:-50% 0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:9px 16px;border-radius:999px;background:#fff;color:#0a3d85;font-weight:700;font-size:.85rem;box-shadow:0 8px 22px rgba(10,61,133,.22);transition:background .2s,color .2s}
+.hx-boat-cta::after{content:'';position:absolute;left:50%;top:100%;width:10px;height:10px;background:inherit;transform:translate(-50%,-50%) rotate(45deg);border-radius:2px}
+.hx-boat-cta svg{transition:transform .25s}
+.hx-boat:hover{transform:translateY(-4px) scale(1.03)}
+.hx-boat:hover .hx-boat-cta,.hx-boat:focus-visible .hx-boat-cta{background:#0a5bb8;color:#fff}
+.hx-boat:hover .hx-boat-cta svg{transform:translateX(3px)}
+.hx-boat:focus-visible{outline:3px solid #0a5bb8;outline-offset:4px;border-radius:14px}
+@keyframes hxPitch{0%,100%{transform:translateY(2px) rotate(-1.6deg)}50%{transform:translateY(-5px) rotate(1.6deg)}}
+@media (max-width:760px){.hx-boat{width:clamp(150px,42vw,210px);bottom:12%}.hx-boat-cta{font-size:.8rem;padding:8px 14px}}
 @media (max-height:720px){.hx-sub{display:none}.hx-badge{display:none}}
 @media (max-width:760px){
   .hx{min-height:560px}

@@ -16,7 +16,7 @@ const EMAIL = 'info@vendoboterd.com';
 const INSTAGRAM = 'https://www.instagram.com/vendobote_rd/';
 
 // Imagen 1200x630 (proporción 1.91:1) para vistas previas en WhatsApp, Facebook, X y Google
-const OG_DEFAULT_PATH = '/assets/img/og-default.jpg';
+const OG_DEFAULT_PATH = '/assets/img/og-default.jpg?v=3';
 function siteUrl() {
   const u = (process.env.SITE_URL || '').trim().replace(/\/+$/, '');
   // El .env.example trae un marcador; no lo usamos como URL canónica real.
