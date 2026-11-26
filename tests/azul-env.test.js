@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { normalizeAzulEnv } = require('../utils/azul-env');
 
 test('quita espacios, saltos de línea y comillas pegados por error, sin revelar valores', () => {
-  const env = { AZUL_MERCHANT_ID: ' 123456 \n', AZUL_AUTH_KEY: '"abc def​"' };
+  const env = { AZUL_ENV: 'prod', AZUL_MERCHANT_ID: ' 123456 \n', AZUL_AUTH_KEY: '"abc def​"' };
   const report = normalizeAzulEnv(env);
   assert.equal(env.AZUL_MERCHANT_ID, '123456');
   assert.equal(env.AZUL_AUTH_KEY, 'abcdef');
